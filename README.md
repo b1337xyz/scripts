@@ -1,4 +1,4 @@
-## shell dependencies
+> shell dependencies
 - aria2c
 - dmenu
 - fzf
@@ -7,5 +7,5 @@
 - ueberzug
 - wget
 
-## python dependencies
+> python dependencies
 None
