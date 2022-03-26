@@ -1,0 +1,3 @@
+#!/bin/sh
+
+xdcc -s irc.rizon.net -c '#nipponsei' 'Nippon|zongzing' send "$1"
