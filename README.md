@@ -1,10 +1,11 @@
 ## shell dependencies
-- wget
-- fzf
-- pup
 - aria2c
-- ueberzug
 - dmenu
+- fzf
+- jq
+- pup
+- ueberzug
+- wget
 
 ## python dependencies
 None
