@@ -1,5 +1,6 @@
-> shell dependencies
+> Shell dependencies
 - aria2c
+- dash
 - dmenu
 - fzf
 - jq
@@ -7,5 +8,5 @@
 - ueberzug
 - wget
 
-> python dependencies
-None
+> Python dependencies
+- i3ipc
