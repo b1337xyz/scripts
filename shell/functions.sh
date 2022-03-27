@@ -6,7 +6,6 @@ za() { command zathura "$@" &>/dev/null & disown ; }
 fr() { find . -type f -iregex "$@"; }
 line() { sed "${1}!d" "$2"; }
 wallpaper() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
-lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 start_xephyr() {
     Xephyr -br -ac -noreset -screen 800x600 :1
 }
