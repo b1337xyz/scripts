@@ -1,5 +1,6 @@
 > Shell dependencies
 - aria2c
+- cksfv
 - dash
 - dmenu
 - [fzf](https://github.com/junegunn/fzf)
