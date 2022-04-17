@@ -7,7 +7,7 @@ J1HD                |https://maggie.torontocast.com:2000/stream/J1HD
 J1HISTS             |https://jenny.torontocast.com:2000/stream/J1HITS
 J1XTRA              |https://jenny.torontocast.com:2000/stream/J1XTRA
 Kawaii              |https://kathy.torontocast.com:3060
-Lofi-24_7           |https://usa9.fastcast4u.com/proxy/jamz?mp=/1
+Lofi-24/7           |https://usa9.fastcast4u.com/proxy/jamz?mp=/1
 Lofi-girl           |https://www.youtube.com/watch?v=5qap5aO4i9A
 Hunter.FM-LoFi      |https://live.hunter.fm/lofi_high
 Plaza               |http://radio.plaza.one/opus
