@@ -16,6 +16,6 @@ case "$1" in
             -map_metadata 0 -map 0 -map -0:1 -map -0:2 \
             -c copy -c:a libopus "$out"
     ;;
-esac || { rm -vf "$out"; exit 1; }
+esac || exit 1
 
 exit 0
