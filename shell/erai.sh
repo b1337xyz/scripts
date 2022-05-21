@@ -51,7 +51,6 @@ main() {
         dir=$(echo ${1##*dir=} | quote)
         url="${domain}/?dir=${dir}"
     fi
-    echo "$url" >> ~/log
     [ -n "$url" ] &&
         curl -s "$url" | awk '/<div id="content"/,EOF {print $0}' > "$tmpfile"
 
@@ -82,4 +81,4 @@ esac | fzf -m --header '^f favorite'    \
     --bind 'ctrl-t:last'                \
     --bind 'ctrl-b:first'               \
     --bind 'enter:reload(main {+})'     \
-    --bind 'ctrl-f:reload(favorite {})' \
+    --bind 'ctrl-f:execute(favorite {})'
