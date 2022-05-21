@@ -36,7 +36,7 @@ main() {
     if [[ "${1##*.}" =~ (ass|srt) ]];then
         dir=${1##*dir=}
         dir=${dir%/*}
-        dldir="${HOME}/Downloads/$dir"
+        dldir="${HOME}/Downloads/"
         mkdir -p "$dldir"
         for i in "$@";do
             f=$(echo "${i##*/}" | unquote)
@@ -58,7 +58,7 @@ main() {
     {
         grep -ioP '(?<=href\=")Sub/.*\.(ass|srt)(?=")' "$tmpfile";
         grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$tmpfile";
-    } | unquote
+    } | unquote | sort
 }
 favorite() {
     if ! grep -qF "$1" "$cache" 2>/dev/null;then
@@ -69,19 +69,17 @@ favorite() {
         n=$(grep -nF "$1" "$cache" | cut -d':' -f1)
         sed -i "${n}d" "$cache"
     fi
-    cat "$cache"
 }
 export -f main unquote quote favorite
 case "$1" in
     -l|--load)
-        if [ -s "$cache" ];then
-            cat "$cache"
-        else
-            exit 1
-        fi
+        [ -s "$cache" ] || exit 1
+        cat "$cache"
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf -m --header '^f favorite' \
+esac | fzf -m --header '^f favorite'    \
+    --bind 'ctrl-t:last'                \
+    --bind 'ctrl-b:first'               \
     --bind 'enter:reload(main {+})'     \
-    --bind 'ctrl-f:reload(favorite {})'
+    --bind 'ctrl-f:reload(favorite {})' \
