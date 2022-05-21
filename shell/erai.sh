@@ -71,9 +71,20 @@ favorite() {
 }
 export -f main unquote quote favorite
 case "$1" in
-    -l|--load)
+    -f|--favorites)
         [ -s "$cache" ] || exit 1
         cat "$cache"
+    ;;
+    -r|--release)
+        q=$(date +%q)
+        y=$(date +%Y)
+        case "$q" in
+            1) s=Winter ;;
+            2) s=Spring ;;
+            3) s=Summer ;;
+            4) s=Fall ;;
+        esac
+        main "Sub/$y/$s"
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
