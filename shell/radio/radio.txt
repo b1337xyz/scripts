@@ -1,4 +1,6 @@
+Chillhop            |https://streams.ilovemusic.de/iloveradio17.mp3
 City-Pop            |https://igor.torontocast.com:1710
+Hunter.FM-LoFi      |https://live.hunter.fm/lofi_high
 J-Hip-Hop           |https://kathy.torontocast.com:3350
 J-Pop               |https://kathy.torontocast.com:3560
 J-Rock              |https://kathy.torontocast.com:3340
@@ -7,10 +9,11 @@ J1HD                |https://maggie.torontocast.com:2000/stream/J1HD
 J1HISTS             |https://jenny.torontocast.com:2000/stream/J1HITS
 J1XTRA              |https://jenny.torontocast.com:2000/stream/J1XTRA
 Kawaii              |https://kathy.torontocast.com:3060
+Lain (cafe)         |https://lainon.life/radio/cafe.mp3.m3u
+Lain (cyberia)      |https://lainon.life/radio/cyberia.mp3.m3u
+Lain (swing)        |https://lainon.life/radio/swing.mp3.m3u
 Lofi-24/7           |https://usa9.fastcast4u.com/proxy/jamz?mp=/1
 Lofi-girl           |https://www.youtube.com/watch?v=5qap5aO4i9A
-Hunter.FM-LoFi      |https://live.hunter.fm/lofi_high
 Plaza               |http://radio.plaza.one/opus
-SomaFM              |https://ice4.somafm.com/vaporwaves-128-mp3
-Chillhop            |https://streams.ilovemusic.de/iloveradio17.mp3
 RmFM                |https://rautemusik-de-hz-fal-stream14.radiohost.de/study?ref=tunein
+SomaFM              |https://ice4.somafm.com/vaporwaves-128-mp3
