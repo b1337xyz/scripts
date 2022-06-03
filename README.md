@@ -2,7 +2,7 @@
 - aria2c
 - cksfv
 - dash
-- dmenu
+- dmenu patched with [instant](https://tools.suckless.org/dmenu/patches/instant/) and [center](https://tools.suckless.org/dmenu/patches/center/)
 - [fzf](https://github.com/junegunn/fzf)
 - [jq](https://github.com/stedolan/jq)
 - mediainfo
@@ -14,3 +14,5 @@
 > Python dependencies
 - [i3ipc](https://pypi.org/project/i3ipc)
 - [xdcc](https://pypi.org/project/xdcc)
+- [requests](https://pypi.org/project/requests/)
+- [bencode.py](https://pypi.org/project/bencode.py/)
