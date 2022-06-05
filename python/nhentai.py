@@ -2,9 +2,8 @@
 import os
 import re
 import json
-import bencode
 import requests
-# import subprocess as sp
+import subprocess as sp
 from optparse import OptionParser
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
@@ -45,18 +44,32 @@ if opts.cookie or opts.user_agent:
         json.dump(config, fp)
 
 if len(args) == 0:
-    parser.error('URL not provided')
+    parser.error('<url> not provided')
 
-URL = args[0].split('?')[0]
+URL = args[0]
 if not re.match(r'^https://nhentai', URL):
     parser.error('Invalid URL')
+if 'page=' in URL:
+    URL = re.sub(r'([\?&]page=)\d*', r'\1{}', URL)
+elif '?' in URL:
+    URL += '&page={}'
+else:
+    URL += '?page={}'
+
+
 DL_DIR = os.path.realpath(opts.dl_dir)
 if not os.path.exists(DL_DIR):
     os.mkdir(DL_DIR)
-assert os.path.isdir(DL_DIR), '"{}" not a directory'.format(DL_DIR)
+assert os.path.isdir(DL_DIR), f'"{DL_DIR}" not a directory'
 
-# cmd = sp.run(['which', 'aria2c'], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-# aria2_is_installed = cmd.returncode == 0
+try:
+    tag = URL.split('?')[0].split('/')[4]
+    if tag:
+        DL_DIR = os.path.join(DL_DIR, tag)
+        if not os.path.exists(DL_DIR):
+            os.mkdir(DL_DIR)
+except AttributeError:
+    pass
 
 
 def get_html(url):
@@ -70,53 +83,55 @@ def get_html(url):
 
 def download(url, fname):
     file = os.path.join(DL_DIR, fname)
-    r = requests.get(
-        url,
-        cookies={'required_cookie': COOKIE},
-        headers={'User-Agent': UA},
-        stream=True
-    )
-    with open(file, 'wb') as fp:
-        fp.write(r.content)
+    if not os.path.exists(file):
+        try:
+            r = requests.get(
+                url, stream=True,
+                cookies={'required_cookie': COOKIE},
+                headers={'User-Agent': UA}
+            )
+            with open(file, 'wb') as fp:
+                fp.write(r.content)
+        except Exception as err:
+            print(f'Failed to download torrent "{url}"\nError: {err}')
+    mime = sp.run(['file', '-bi', file], stdout=sp.PIPE).stdout.decode()
+    if not 'bittorrent' in mime:
+        os.remove(file)
+        return
+    out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+    try:
+        torrent_name = re.search(r' 1\|\./([^/]*)', out).group(1)
+    except AttributeError:
+        os.remove(file)
+        return
+    torrent = os.path.join(DL_DIR, torrent_name)
+    if os.path.exists(torrent):
+        os.remove(file)
+        return
+    if not 'english' in torrent_name.lower():
+        os.remove(file)
+        return
 
-
-def rename(fname):
-    target = os.path.join(DL_DIR, fname)
-    # out = sp.run(['aria2c', '-S', target], stdout=sp.PIPE).stdout.decode()
-    # torrent_name = re.search(r' 1\|\./([^/]*)', out)
-    with open(target, 'rb') as fp:
-        torrent_name = bencode.bdecode(fp.read())['info']['name']
-    # if not 'english' in torrent_name.lower():
-    #     os.remove(target)
-    #     return
-    # torrent = os.path.join(DL_DIR, torrent_name.group(1) + '.torrent')
-    torrent = os.path.join(DL_DIR, torrent_name + '.torrent')
-
-    if not os.path.exists(torrent):
-        os.rename(target, torrent)
-    return torrent_name
+    if sp.run([
+        'aria2c', '--dir', DL_DIR,
+        '--log-level=error', '--console-log-level=error',
+        '--bt-stop-timeout=500', '--seed-time=0', file
+    ]).returncode == 0:
+        os.remove(file)
 
 
 def main():
     page = 1
-    posts = []
     while True:
-        url = '{}?page={}'.format(URL, page)
+        url = URL.format(page)
         html = get_html(url)
-        lst = re.findall(r'href="([^""]*/g/\d*)', html)
-        if not lst:
+        posts = re.findall(r'href="([^""]*/g/\d*)', html)
+        if not posts:
             break
-        print('Scraping page {} ...\r'.format(page), end='')
-        posts += lst
-        page += 1
-
-    for i, v in enumerate(posts, start=1):
-        url = 'https://nhentai.net{}/download'.format(v)
-        fname = '{}.torrent'.format(v.split('/')[-1])
-        download(url, fname)
-        # if aria2_is_installed:
-        torrent_name = rename(fname)
-        print('{:<4} of {:<4} {}'.format(i, len(posts), torrent_name))
+        for i in posts:
+            url = f'https://nhentai.net{i}/download'
+            fname = i.split('/')[-1] + '.torrent'
+            download(url, fname)
 
 
 if __name__ == '__main__':
