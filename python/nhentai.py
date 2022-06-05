@@ -13,6 +13,7 @@ CONFIG = os.path.join(HOME, '.nhentai.json')
 
 
 def parse_arguments():
+    global parser
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
     parser.add_option(
@@ -107,7 +108,7 @@ def main(URL):
 
 
 if __name__ == '__main__':
-    args, opts = parse_arguments()
+    opts, args = parse_arguments()
     try:
         with open(CONFIG , 'r') as fp:
             config = json.load(fp)
