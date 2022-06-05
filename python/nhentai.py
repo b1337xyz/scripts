@@ -103,7 +103,7 @@ def main(URL):
     for i, post in enumerate(posts, start=1):
         url = f'https://nhentai.net{post}/download'
         print(f'[{i}/{len(posts)}] {url}')
-        fname = post.split('/')[-1] + '.torrent'
+        fname = post.split('/')[-2] + '.torrent'
         download(url, dl_dir, fname)
 
 
