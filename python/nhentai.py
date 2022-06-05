@@ -8,48 +8,27 @@ from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
-
-usage = 'Usage: %prog [options] <url>'
-parser = OptionParser(usage=usage)
-parser.add_option(
-    '-d', '--dir', dest='dl_dir', default='nhentai', metavar='DIR',
-    help='download directory'
-)
-parser.add_option(
-    '-c', '--cookie', dest='cookie', metavar="STR",
-    help="csrftoken=TOKEN; sessionid=ID; cf_clearance=CLOUDFLARE"
-)
-parser.add_option(
-    '-i', '--input-file', dest='input_file', metavar='FILE',
-    action='store', help='Download URLs found in FILE'
-)
-parser.add_option('-u', '--user-agent', dest='user_agent', metavar="STR")
-opts, args = parser.parse_args()
-
 HOME = os.getenv('HOME')
 CONFIG = os.path.join(HOME, '.nhentai.json')
-try:
-    with open(CONFIG , 'r') as fp:
-        config = json.load(fp)
-    UA = config['user-agent']
-    COOKIE = config['cookie']
-except FileNotFoundError:
-    config = dict()
 
-try:
-    COOKIE = opts.cookie if opts.cookie else config['cookie']
-    UA = opts.user_agent if opts.user_agent else config['user-agent']
-except KeyError:
-    print("Cookie or User-Agent not defined")
-    parser.print_help()
-    exit(1)
 
-if opts.cookie or opts.user_agent:
-    with open(CONFIG, 'w') as fp:
-        json.dump(config, fp)
-
-if len(args) == 0 and not opts.input_file:
-    parser.error('<url> not provided')
+def parse_arguments():
+    usage = 'Usage: %prog [options] <url>'
+    parser = OptionParser(usage=usage)
+    parser.add_option(
+        '-d', '--dir', dest='dl_dir', default='nhentai', metavar='DIR',
+        help='download directory'
+    )
+    parser.add_option(
+        '-c', '--cookie', dest='cookie', metavar="STR",
+        help="csrftoken=TOKEN; sessionid=ID; cf_clearance=CLOUDFLARE"
+    )
+    parser.add_option(
+        '-i', '--input-file', dest='input_file', metavar='FILE',
+        action='store', help='Download URLs found in FILE'
+    )
+    parser.add_option('-u', '--user-agent', dest='user_agent', metavar="STR")
+    return parser.parse_args()
 
 
 def get_soup(url):
@@ -128,6 +107,29 @@ def main(URL):
 
 
 if __name__ == '__main__':
+    args, opts = parse_arguments()
+    try:
+        with open(CONFIG , 'r') as fp:
+            config = json.load(fp)
+        UA = config['user-agent']
+        COOKIE = config['cookie']
+    except FileNotFoundError:
+        config = dict()
+    try:
+        COOKIE = opts.cookie if opts.cookie else config['cookie']
+        UA = opts.user_agent if opts.user_agent else config['user-agent']
+    except KeyError:
+        print("Cookie or User-Agent not defined")
+        parser.print_help()
+        exit(1)
+
+    if opts.cookie or opts.user_agent:
+        with open(CONFIG, 'w') as fp:
+            json.dump(config, fp)
+
+    if len(args) == 0 and not opts.input_file:
+        parser.error('<url> not provided')
+
     if opts.input_file:
         with open(opts.input_file, 'r') as fp:
             args = [i.strip() for i in fp.readlines() if 'nhentai.net' in i]
