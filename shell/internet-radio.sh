@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -xe
 
 tmpfile=$(mktemp)
 trap "rm -- $tmpfile" EXIT
@@ -13,7 +13,7 @@ while read -r station;do
         grep -oP '(?<=href=")[^"]*page\d*(?=">)' "$tmpfile" |
         sort -t '/' -k 4.5n | tail -1 | grep -oP '(?<=page)\d*'
     )
-    printf '{"%s":{' "$station"
+    printf '"%s":{' "$station"
     for page in $(seq 1 "$max_page");do
         if [ "$page" -gt 1 ];then
             url="https://www.internet-radio.com/stations/${station}/page${page}"
@@ -32,4 +32,4 @@ while read -r station;do
             }'
     done | sed 's/,$//'
     printf '},'
-done | sed 's/,$//' > ./internet-radio.json
+done | sed 's/^/{; s/,$/}/' | tee ./internet-radio.json
