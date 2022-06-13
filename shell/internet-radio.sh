@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -xe
+set -e
 
 tmpfile=$(mktemp)
 trap "rm -- $tmpfile" EXIT
@@ -30,6 +30,5 @@ while read -r station;do
                 if (title && file)
                     printf("\"%s\": \"%s\",", title, file)
             }'
-    done | sed 's/,$//'
-    printf '},'
-done | sed 's/^/{; s/,$/}/' | tee ./internet-radio.json
+    done | sed 's/,$/},/'
+done | sed 's/^/{/; s/,$/}/' | tee ./internet-radio.json
