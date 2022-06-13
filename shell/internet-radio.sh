@@ -31,5 +31,5 @@ while read -r station;do
                     printf("\"%s\": \"%s\",", title, file)
             }'
     done | sed 's/,$//'
-    printf '}},'
+    printf '},'
 done | sed 's/,$//' > ./internet-radio.json
