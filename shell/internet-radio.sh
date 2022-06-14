@@ -1,4 +1,5 @@
 #!/bin/sh
+# useless and bad internet-radio.com scraper
 
 set -e
 
