@@ -1,11 +1,14 @@
 # shellcheck disable=SC2012 
 # shellcheck disable=SC2094
+fin() { find . -iname "*${*}*"; }
+fre() { find . -iregex ".*${*}.*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
 za() { command zathura "$@" &>/dev/null & disown ; }
 fr() { find . -type f -iregex "$@"; }
 line() { sed "${1}!d" "$2"; }
 wallpaper() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
+lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 start_xephyr() {
     Xephyr -br -ac -noreset -screen 800x600 :1
 }
@@ -43,22 +46,14 @@ bkp2() {
         --exclude='*.zip' --exclude='*.7z' --exclude='*.rar' \
         "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
 }
-alljpg() {
-    find . -maxdepth 1 -type f -iregex '.*\.\(png\|webp\)$' | while read -r i;do
+png2jpg() {
+    find "${1:-.}" -maxdepth 1 -type f -iname '*.png' | while read -r i;do
         if convert -verbose "$i" "${i%.*}.jpg";then
             rm -vf "$i"
-        else
-            break
         fi
     done
 }
 ex() {
-    delete=0
-    for arg in "$@";do
-        case "$arg" in
-            -d) delete=1 ;;
-        esac
-    done
     for i in "$@";do
         case "$i" in
             *.tar.bz2) tar xvjf "$i" ;;
@@ -74,8 +69,7 @@ ex() {
             *.Z) uncompress "$i" ;;
             -*) continue ;;
             *) printf '"%s" cannot be extracted\n' "$i" ;;
-        esac || break
-        [ $delete -eq 1 ] && rm -vf "$i"
+        esac || { printf '\nfailed to extract "%s" :(\n' "$i"; break; }
     done
     return 0
 }
@@ -93,14 +87,11 @@ lst() {
             c=$(command ls -1A "$i" | wc -l)
             (( total += c ))
             printf '%4s: %s\n' "$c" "$i"
-        done < <(find "${@:-.}" -mindepth 0 -maxdepth 1 \
-                -type d -printf '%f\n');
+        done < <(find "${@:-.}" -mindepth 0 -maxdepth 1 -type d);
         printf '%4s: total\n' "$total";
     } | sort -n 
 }
-lst2() {
-    lst "${@:-.}" | pr -t4w 80
-}
+lst2() { lst "${@:-.}" | pr -t4w 80; }
 lstar() {
     local tmpfile
     tmpfile=$(mktemp)
@@ -125,86 +116,9 @@ ren5sum() {
         fi
     done
 }
-mntermux() {
-    [ -d ~/mnt/termux ] || mkdir -pv ~/mnt/termux
-    sshfs termux:/data/data/com.termux/files/home ~/mnt/termux \
-        -o port=8022,allow_other,no_check_root,follow_symlinks,reconnect
-}
-convert_miliseconds() {
-    local hh ss mm
-    hh=0
-    ss=$(( $1 / 1000 ))
-    mm=$(( ss / 60 ))
-    ss=$(( ss - ( mm * 60 ) ))
-    if [ "$mm" -ge 60 ];then
-        hh=$(( mm / 60 ))
-        mm=$(( mm % 60 ))
-    fi
-    [ "$hh" -lt 10 ] && hh="0$hh"
-    [ "$mm" -lt 10 ] && mm="0$mm"
-    [ "$ss" -lt 10 ] && ss="0$ss"
-    printf '%s:%s:%s' "$hh" "$mm" "$ss"
-}
-lsd() {
-    command -v mediainfo &>/dev/null || { printf 'install mediainfo\n'; return 1; }
-    local total=0
-    if [ -f "$1" ];then
-        for i in "$@";do
-            mms=$(mediainfo --Output='General;%Duration%' "$i" | cut -d'.' -f1)
-            [ -z "$mms" ] && return 1
-            (( total += mms ))
-            duration=$(convert_miliseconds "$mms") 
-            printf '\e[1;34m%s\e[m - \e[1;35m%s\e[m\n' "$duration" "$i"
-        done
-    else
-        while read -r i;do
-            # mediainfo --Output='General;%CompleteName%: %Duration/String%' "$i";
-            mms=$(mediainfo --Output='General;%Duration%' "$i")
-            [ -z "$mms" ] && continue
-            (( total += mms ))
-            duration=$(convert_miliseconds "$mms") 
-            printf '\e[1;34m%s\e[m - \e[1;35m%s\e[m\n' "$duration" "$i"
-        done < <(find "${1:-.}" -mindepth 1 -maxdepth 1 \
-            -iregex '.*\.\(mp[3-4]\|wav\|opus\|mkv\|avi\|webm\)' | sort)
-    fi
-
-    [ "$total" -eq 0 ] && return 1
-    if [ "$total" -ne "$mms" ];then
-        duration=$(convert_miliseconds "$total")
-        printf 'Total: \e[1;32m%s\e[m\n' "$duration"
-    fi
-}
-lsres() {
-    command -v mediainfo &>/dev/null || { printf 'install mediainfo\n'; return 1; }
-    declare -f -a args=()
-    local mimetype
-
-    if [ $# -eq 0 ];then
-        while IFS= read -r -d $'\0' i;do
-            args+=("$i")
-        done < <(find . -mindepth 1 -maxdepth 1 -type f -print0 | sort -z)
-    else
-        args=("$@")
-    fi
-        
-    for i in "${args[@]}";do
-        mimetype=$(file -Lbi -- "$i")
-        case "$mimetype" in
-            image/*)
-                IFS='x' read -r width height < <(
-                    mediainfo --Output="Image;%Width%x%Height%" "$i")
-                printf '%sx%-4s %s\n' "$width" "$height" "$i" ;;
-            video/*)
-                IFS='x' read -r width height < <(
-                    mediainfo --Output="Video;%Width%x%Height%" "$i")
-                printf '%sx%-4s %s\n' "$width" "$height" "$i" ;;
-        esac
-    done
-}
-
 sort_by_year() {
-    #year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}' | tail -n1) # match (1999
-
+    ls -1 "${1:-.}" | sort -t '(' -k 2nr
+    return
     if [ $# -eq 0 ];then
         find . -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i;do
             year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}(?=\))' | tail -1)
@@ -222,27 +136,30 @@ sort_by_year() {
     done
 }
 bulkrename() {
-    local tmpfile lines files
+    local tmpfile
     declare -f -a files=()
     tmpfile=$(mktemp)
 
     while IFS= read -r -d $'\0' i;do
-        files+=("$i")
-        printf '%s\n' "$i" >> "$tmpfile" 
+        files+=("${i#*/}")
+        printf '%s\n' "${i#*/}" >> "$tmpfile" 
     done < <(find . -mindepth 1 -maxdepth 1 \! -path '*/\.*' -print0 | sort -z)
 
     [ "${#files[@]}" -eq 0 ] && return 1
     vim "$tmpfile"
 
     lines=$(wc -l "$tmpfile" | cut -d' ' -f1)
-    [ "${#files[@]}" -ne "$lines" ] &&
-        { printf 'The number of lines does not match the amount of files\n'; return 1; }
+    if [ "${#files[@]}" -ne "$lines" ];then
+        echo "The number of lines does not match the amount of files"
+        rm "$tmpfile"
+        return 1
+    fi
 
     i=0
     # shellcheck disable=SC2094
     while read -r l;do
         if ! [ -s "$l" ] && [ "${files[i]}" != "$l" ];then
-            mv -vn "${files[i]}" "$l" || { rm -vf "$tmpfile"; return 1; }
+            mv -vn -- "${files[i]}" "$l" || { rm "$tmpfile"; return 1; }
         fi
         i=$((i+1))
     done < "$tmpfile"
@@ -312,19 +229,8 @@ dn() {
         sort -h | head -n "$1" | awk -F\\t '{print $2}' |
         tr \\n \\0 | du --files0-from=- -csh | sort -h
 }
-all1080p() {
-    command -v mediainfo &>/dev/null || { printf 'install mediainfo\n'; return 1; }
-    find . -maxdepth 1 -type f -iname '*.jpg' | while read -r i;do
-        out="1080p_${i##*/}"
-        IFS='x' read -r width height < <(mediainfo --Output='Image;%Width%x%Height%' "$i")
-        [ -z "$width" ] && continue
-        [ -z "$height" ] && continue
-        [ "$width" -le 1920 ] && continue
-        [ "$height" -le 1080 ] && continue
-        convert -verbose -resize 1920x1080\! "$i" "$out" && rm -vf "$i"
-    done
-}
 cpdir() {
+    # copy directory structure
     local len dst
     declare -f -a args
     args=("$@")
@@ -362,28 +268,6 @@ fixext() {
         fi
     done
     return 0
-}
-killflac() {
-    command -v mediainfo &>/dev/null || { printf 'install mediainfo\n'; return 1; }
-    find "${1:-.}" -type f -iregex '.*\.\(mkv\|mp4\)' | sort | while read -r i;do
-        mediainfo --Output='Audio;%Format%' "$i" |
-            grep -qi flac && printf '%s\n' "$i"
-    done
-
-    return 0
-}
-killflac2() {
-    command -v mediainfo &>/dev/null || { printf 'install mediainfo\n'; return 1; }
-    command -v jq &>/dev/null || { printf 'install jq\n'; return 1; }
-
-    find "${1:-.}" -iregex '.*\.\(mkv\|mp4\)' -print0 |
-    xargs -r0 -I{} mediainfo --Output=JSON {} |
-    jq -M -r -c '
-    [
-        .media["@ref"]
-    ] + [
-        .media.track[] | select(.["@type"] == "Audio") | .Format
-    ] | select(.[1] == "FLAC") | .[0]' 2>/dev/null
 }
 odr() {
     case "$1" in
@@ -491,7 +375,6 @@ mvbyext() {
         mv -vn "$i" "$ext"
     done
 }
-f() { find . -iname "*${*}*"; }
 mkj() {
     for i in "$@";do
         mkvmerge -J "$i" | jq -r '
@@ -605,4 +488,26 @@ lifetime() {
     } END {
         printf("%s: %.0f days, %.0f hours\n", dev, d, h)
     }' 
+}
+quote() {
+    sed '
+    s/%/%25/g;  s/ /%20/g;  s/\[/%5B/g;
+    s/\]/%5D/g; s/</%3C/g;  s/>/%3E/g;
+    s/#/%23/g;  s/{/%7B/g;  s/}/%7D/g;
+    s/|/%7C/g;  s/\\/%5C/g; s/\^/%5E/g;
+    s/~/%7E/g;  s/`/%60/g;  s/\;/%3B/g;
+    s/?/%3F/g;  s/@/%40/g;  s/=/%3D/g;
+    s/&/%26/g;  s/\$/%24/g; s/(/%28/g;
+    s/)/%29/g'
+}
+unquote() {
+    sed '
+    s/%25/%/g;  s/%20/ /g;  s/%5B/\[/g;
+    s/%5D/\]/g; s/%3C/</g;  s/%3E/>/g;
+    s/%23/#/g;  s/%7B/{/g;  s/%7D/}/g;
+    s/%7C/|/g;  s/%5C/\\/g; s/%5E/\^/g;
+    s/%7E/~/g;  s/%60/`/g;  s/%3B/\;/g;
+    s/%3F/?/g;  s/%40/@/g;  s/%3D/=/g;
+    s/%26/&/g;  s/%24/\$/g; s/%28/(/g;
+    s/%29/)/g'
 }
