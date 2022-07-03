@@ -101,3 +101,11 @@ BEGIN { total = 0 }
     printf("%s total\n", total)
 }' | sort -n
 }
+btsel() {
+    aria2c -S "$1" | awk -F'|' '/[0-9]\|\.\//{
+        sub(/^[ \t]*/, "", $0);
+        split($2, a, "/");
+        printf("%s|%s\n", $1, a[length(a)])
+    }' | fzf -m | grep -oP '^\d*(?=\|)' | tr \\n ',' | sed 's/,$//' |
+        xargs -rI{} aria2c --bt-remove-unselected-file --select-file "{}" "$1" 
+}
