@@ -38,15 +38,15 @@ if [ $# -gt 0 ];then
     search "${q// /+}"
 else
     latest
-fi | sed 's/\/msg ANSK|\(.*\) xdcc send #\([0-9]*\) \(.*\)/\1 \2 \3/' |
-     tee "$tmpfile" | fzf -m | awk '{print $1" "$2}' | sort | while read -r bot pack
+fi | sed 's/\/msg ANSK|\(.*\) xdcc send #\([0-9]*\) \(.*\)/\3|\1|\2/' |
+    fzf -m | sort -t "|" -k 2 | awk -F "|" '
+{
+    if ( $2 != old_bot || !old_bot ) {
+        old_bot = $2
+        printf("\n%s ", $2)
+    }
+    printf("%s,", $3)
+} END { print "" }' | sed '/^$/d; s/,$//' |  while read bot packs
 do
-    packs+="${pack},"
-    [ -z "$old_bot" ] && old_bot=$bot
-    if [ "$bot" != "$old_bot" ];then
-        old_bot=$bot
-        xdcc -s irc.rizon.net -c '#AnimeNSK' "ANSK|${bot}" send "${packs::-1}" 
-        sleep 10
-        packs=
-    fi
+    xdcc -s irc.rizon.net -c '#AnimeNSK' "ANSK|${bot}" send "$packs" 
 done
