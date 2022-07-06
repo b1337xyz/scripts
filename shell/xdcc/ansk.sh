@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-command -v pup &>/dev/null || { printf 'install pup\n'; return 1; }
-command -v xdcc &>/dev/null || { printf 'install xdcc\n'; return 1; }
-command -v jq &>/dev/null || { printf 'install jq\n'; return 1; }
-command -v fzf &>/dev/null || { printf 'install fzf\n'; return 1; }
+set -e
 
 tmpfile=$(mktemp)
 end() { rm "$tmpfile"; }
@@ -21,6 +18,8 @@ search() {
     jq -r '.[] | "\(.children[3].children[0].text) \(.children[4].text)"'
 }
 latest() {
+    # output = title tags|ANSK|bot|pack
+
     # <tr class="L2">
     #   <td> title </td> children 0
     #   <td> info  </td> children 1 
@@ -32,15 +31,22 @@ latest() {
     jq -r '.[] | "\(.children[2].children[0].text) \(.children[0].text) \(.children[1].text)"'
 }
 
-# output = title tags|ANSK|bot|pack
-if [ -n "$1" ];then
-    search "$1"
+packs=
+old_bot=
+if [ $# -gt 0 ];then
+    q=$*
+    search "${q// /+}"
 else
     latest
-fi | sed 's/\/msg ANSK|\(.*\) xdcc send #\([0-9]*\) \(.*\)/\1|\2|\3/' |
-     tee "$tmpfile" | awk -F'|' '{print $3}' | fzf -m | while read -r i;do
-        read -r bot pack < <(grep -F "|$i" "$tmpfile" | awk -F'|' '{print $1" "$2}')
-        [ -z "$pack" ] && break
-        xdcc -s irc.rizon.net -c '#AnimeNSK' "ANSK|${bot}" send "$pack" 
+fi | sed 's/\/msg ANSK|\(.*\) xdcc send #\([0-9]*\) \(.*\)/\1 \2 \3/' |
+     tee "$tmpfile" | fzf -m | awk '{print $1" "$2}' | sort | while read -r bot pack
+do
+    packs+="${pack},"
+    [ -z "$old_bot" ] && old_bot=$bot
+    if [ "$bot" != "$old_bot" ];then
+        old_bot=$bot
+        xdcc -s irc.rizon.net -c '#AnimeNSK' "ANSK|${bot}" send "${packs::-1}" 
+        sleep 10
+        packs=
+    fi
 done
-# cp "$tmpfile" .
