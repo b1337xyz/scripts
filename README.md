@@ -6,6 +6,7 @@
 - [fzf](https://github.com/junegunn/fzf)
 - [jq](https://github.com/stedolan/jq)
 - mediainfo
+- [nsxiv](https://github.com/nsxiv/nsxiv)
 - [pup](https://github.com/ericchiang/pup)
 - [ueberzug](https://github.com/seebye/ueberzug)
 - wget
