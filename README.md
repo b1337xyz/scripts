@@ -13,6 +13,7 @@
 - xwallpaper
 
 > Python dependencies
+- [bs4](https://pypi.org/project/bs4/)
 - [i3ipc](https://pypi.org/project/i3ipc)
 - [xdcc](https://pypi.org/project/xdcc)
 - [requests](https://pypi.org/project/requests/)
