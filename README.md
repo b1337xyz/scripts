@@ -9,8 +9,8 @@
 - [nsxiv](https://github.com/nsxiv/nsxiv)
 - [pup](https://github.com/ericchiang/pup)
 - [ueberzug](https://github.com/seebye/ueberzug)
-- wget
 - xclip
+- xwallpaper
 
 > Python dependencies
 - [i3ipc](https://pypi.org/project/i3ipc)
