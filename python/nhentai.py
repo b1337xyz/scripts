@@ -9,7 +9,9 @@ from optparse import OptionParser
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
+HIST = os.path.join(HOME, '.nhentai_history')
 CONFIG = os.path.join(HOME, '.nhentai.json')
+DL_DIR = os.path.join(os.getenv('HOME'), 'Downloads/nhentai')
 
 
 def parse_arguments():
@@ -17,7 +19,7 @@ def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
     parser.add_option(
-        '-d', '--dir', dest='dl_dir', default='nhentai', metavar='DIR',
+        '-d', '--dir', dest='dl_dir', default=DL_DIR, metavar='DIR',
         help='download directory'
     )
     parser.add_option(
@@ -29,6 +31,7 @@ def parse_arguments():
         action='store', help='Download URLs found in FILE'
     )
     parser.add_option('-u', '--user-agent', dest='user_agent', metavar="STR")
+    parser.add_option('-a', '--artist', dest='artist', default=None)
     return parser.parse_args()
 
 
@@ -55,6 +58,14 @@ def download(url, dl_dir, fname):
         except Exception as err:
             print(f'Failed to download torrent "{url}"\nError: {err}')
 
+    out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+    torrent_name = re.search(r'[ \t]*\d\|\./([^/]*)', out)
+    if torrent_name:
+        torrent = os.path.join(dl_dir, torrent_name.group(1))
+        if os.path.exists(torrent):
+            os.remove(file)
+            return
+
     if sp.run([
         'aria2c', '--dir', dl_dir,
         '--log-level=error', '--console-log-level=error',
@@ -64,6 +75,9 @@ def download(url, dl_dir, fname):
 
 
 def main(URL):
+    with open(HIST, 'a') as fp:
+        fp.write(URL + '\n')
+
     if 'page=' in URL:
         URL = re.sub(r'([\?&]page=)\d*', r'\1{}', URL)
     elif '?' in URL:
@@ -88,20 +102,20 @@ def main(URL):
     page = 1
     posts = list()
     while True:
+        print(f'Scraping page {page}...\r', end='')
         soup = get_soup(URL.format(page))
         gallery = soup.findAll('div', {'class': 'gallery'})
         if not gallery:
             break
         for div in gallery:
             a = div.a.get('href')
-            title = div.text.strip()
-            if not 'english' in title.lower():
+            if not 'english' in div.text.lower():
                 continue
             posts.append(a)
         page += 1
 
     for i, post in enumerate(posts, start=1):
-        url = f'https://nhentai.net{post}/download'
+        url = f'https://nhentai.net{post}download'
         print(f'[{i}/{len(posts)}] {url}')
         fname = post.split('/')[-2] + '.torrent'
         download(url, dl_dir, fname)
@@ -116,25 +130,37 @@ if __name__ == '__main__':
         COOKIE = config['cookie']
     except FileNotFoundError:
         config = dict()
+
     try:
-        COOKIE = opts.cookie if opts.cookie else config['cookie']
         UA = opts.user_agent if opts.user_agent else config['user-agent']
+        COOKIE = opts.cookie if opts.cookie else config['cookie']
     except KeyError:
         print("Cookie or User-Agent not defined")
         parser.print_help()
         exit(1)
 
     if opts.cookie or opts.user_agent:
+        config['user-agent'] = UA
+        config['cookie'] = COOKIE
         with open(CONFIG, 'w') as fp:
-            json.dump(config, fp)
+            json.dump(config, fp, indent=2)
 
-    if len(args) == 0 and not opts.input_file:
+    if opts.artist:
+        artist = opts.artist.strip().replace(' ', '-')
+        args = [f'https://nhentai.net/artist/{artist}/']
+    elif len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
 
     if opts.input_file:
         with open(opts.input_file, 'r') as fp:
-            args = [i.strip() for i in fp.readlines() if 'nhentai.net' in i]
+            args = [i.strip() for i in fp.readlines() if 'nhentai' in i]
+
     for i in args:
         if not re.match(r'^https://nhentai', i):
             parser.error('Invalid URL')
-        main(i)
+        try:
+            main(i)
+        except KeyboardInterrupt:
+            break
+        finally:
+            print('\nbye')
