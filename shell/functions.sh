@@ -47,11 +47,8 @@ bkp2() {
         "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
 }
 png2jpg() {
-    find "${1:-.}" -maxdepth 1 -type f -iname '*.png' | while read -r i;do
-        if convert -verbose "$i" "${i%.*}.jpg";then
-            rm -vf "$i"
-        fi
-    done
+    find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
+        \( -exec convert '{}' '{}.png' \; -a -exec rm -v '{}' \; \)
 }
 ex() {
     for i in "$@";do
@@ -78,6 +75,14 @@ repeat() {
     local max=$1; shift;
     for ((i=1; i <= max ; i++)); do
         eval "$*";
+    done
+}
+loop() {
+    local s=$1; shift;
+    [[ $s =~ ^[0-9]*$ ]] || { printf 'Usage: loop <sleep> <command...>\n'; return 1; }
+    while :;do
+        eval "$*";
+        sleep "$s";
     done
 }
 lst() {
@@ -277,6 +282,10 @@ odr() {
         ;;
         image)
             wget -w 3 -r -nc -A jpg,jpeg,gif,png,tiff,bmp,svg \
+                --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
+        ;;
+        audio)
+            wget -w 3 -r -nc -A mp3,opus,flac,wav \
                 --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
         ;;
         http*)
