@@ -11,7 +11,7 @@ from optparse import OptionParser
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.nhentai_history')
 CONFIG = os.path.join(HOME, '.nhentai.json')
-DL_DIR = os.path.join(os.getenv('HOME'), 'Downloads/nhentai')
+DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 
 
 def parse_arguments():
