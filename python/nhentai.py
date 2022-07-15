@@ -35,26 +35,13 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_soup(url):
-    r = requests.get(
-        url,
-        cookies={'required_cookie': COOKIE},
-        headers={'User-Agent': UA}
-    )
-    return BS(r.text, 'html.parser')
-
-
-def download(url, dl_dir, fname):
+def download(session, url, dl_dir, fname):
     file = os.path.join(dl_dir, fname)
     if not os.path.exists(file):
         try:
-            r = requests.get(
-                url, stream=True,
-                cookies={'required_cookie': COOKIE},
-                headers={'User-Agent': UA}
-            )
+            r = session.get(url, stream=True)
             with open(file, 'wb') as fp:
-                fp.write(r.content)
+                fp.write(r.raw.read())
         except Exception as err:
             print(f'Failed to download torrent "{url}"\nError: {err}')
 
@@ -73,8 +60,23 @@ def download(url, dl_dir, fname):
     ]).returncode == 0:
         os.remove(file)
 
+def get_soup(session, url):
+    content = session.get(url).content
+    return BS(content, 'html.parser')
 
 def main(URL):
+    s = requests.Session()
+    s.headers.update({'user-agent': UA})
+    cookies = [
+        {'name': x.strip(), 'value': y.strip()} for x, y in
+        [i.split('=') for i in COOKIE.split(';')]
+    ]
+    for cookie in cookies:
+        s.cookies.set(
+            cookie['name'],
+            cookie['value'],
+            domain = 'nhentai.net'
+        )
     with open(HIST, 'a') as fp:
         fp.write(URL + '\n')
 
@@ -103,7 +105,7 @@ def main(URL):
     posts = list()
     while True:
         print(f'Scraping page {page}...\r', end='')
-        soup = get_soup(URL.format(page))
+        soup = get_soup(s, URL.format(page))
         gallery = soup.findAll('div', {'class': 'gallery'})
         if not gallery:
             break
@@ -118,7 +120,7 @@ def main(URL):
         url = f'https://nhentai.net{post}download'
         print(f'[{i}/{len(posts)}] {url}')
         fname = post.split('/')[-2] + '.torrent'
-        download(url, dl_dir, fname)
+        download(s, url, dl_dir, fname)
 
 
 if __name__ == '__main__':
