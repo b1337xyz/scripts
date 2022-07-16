@@ -34,18 +34,19 @@ unquote() {
     s/%29/)/g;    s/%21/!/g;    s/%CE%94/Δ/g
     '
 }
+download() {
+    for i in "$@";do
+        f=$(echo "${i##*/}" | unquote)
+        if ! [ -f "${DLDIR}/${f}" ];then
+            wget -nc -q -P "$DLDIR" "${domain}/$i"
+            notify-send -i "$dlicon" "Erai Sub Downloader" "$f"
+        fi
+    done
+}
 main() {
-    url=
+    local url dir
     if [[ "${1##*.}" =~ (ass|srt) ]];then
-        dir=${1##*dir=}
-        dir=${dir%/*}
-        for i in "$@";do
-            f=$(echo "${i##*/}" | unquote)
-            if ! [ -f "${DLDIR}/${f}" ];then
-                wget -nc -q -P "$DLDIR" "${domain}/$i"
-                notify-send -i "$dlicon" "Erai Sub Downloader" "$f"
-            fi
-        done
+        download "$@"
     elif [[ "$1" =~ ^http ]];then
         url="$1"
     else
@@ -64,18 +65,9 @@ main() {
     } | unquote | sort
 }
 download_all() {
-    url=
+    local url dir
     if [[ "${1##*.}" =~ (ass|srt) ]];then
-        dir=${1##*dir=}
-        dir=${dir%/*}
-        for i in "$@";do
-            f=$(echo "${i##*/}" | unquote)
-            if ! [ -f "${DLDIR}/${f}" ];then
-                echo "$f"
-                wget -nc -q -P "$DLDIR" "${domain}/$i"
-                notify-send -i "$dlicon" "Erai Sub Downloader" "$f"
-            fi
-        done
+        download "$@"
         return
     else
         dir=$(echo ${1##*dir=} | quote)
@@ -90,7 +82,8 @@ download_all() {
     {
         grep -ioP '(?<=href\=")Sub.*\.por\.(ass|srt)' "$tmpfile" || grep -ioP '(?<=href\=")Sub.*\.(ass|srt)' "$tmpfile";
         grep -oP '(?<=href\="\?dir\=)Sub[^"]*(?=")' "$tmpfile";
-    } | grep -vxF "$subdir" | grep -vxF "$dir" | unquote | while read -r i; do
+    } | grep -vxF "$subdir" | grep -vxF "$dir" | unquote | while read -r i
+    do
         download_all "$i"
     done
 }
@@ -104,7 +97,7 @@ favorite() {
         sed -i "${n}d" "$favorites"
     fi
 }
-export -f main unquote quote favorite download_all
+export -f main unquote quote favorite download download_all
 case "$1" in
     -f|--favorites)
         [ -s "$favorites" ] || exit 1
@@ -123,9 +116,9 @@ case "$1" in
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf -m --header '^f favorite'    \
-    --bind 'ctrl-t:last'                \
-    --bind 'ctrl-b:first'               \
-    --bind 'enter:reload(main {+})+clear-query'     \
-    --bind 'ctrl-f:execute(favorite {})' \
+esac | fzf -m --header '^f favorite' \
+    --bind 'ctrl-t:last'  \
+    --bind 'ctrl-b:first' \
+    --bind 'enter:reload(main {+})+clear-query' \
+    --bind 'ctrl-f:execute(favorite {})'        \
     --bind 'ctrl-d:execute(download_all {})'
