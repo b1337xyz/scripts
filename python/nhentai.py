@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-import os
-import re
-import json
-import requests
-import subprocess as sp
 from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
+import json
+import os
+import re
+import requests
+import subprocess as sp
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.nhentai_history')
 CONFIG = os.path.join(HOME, '.nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
+UA = None
+COOKIE = None
 DOMAIN = 'nhentai.net'
 
 
@@ -83,6 +85,7 @@ def get_soup(session, url):
 def main(urls):
     s = requests.Session()
     s.headers.update({'user-agent': UA})
+    # parse cookie
     cookies = [
         {'name': x.strip(), 'value': y.strip()} for x, y in
         [i.split('=') for i in COOKIE.split(';')]
