@@ -13,6 +13,8 @@
 - xwallpaper
 
 > Python dependencies
+- [aiofiles](https://pypi.org/project/aiofiles/)
+- [aiohttp](https://pypi.org/project/aiohttp/)
 - [beautifulsoup4](https://pypi.org/project/beautifulsoup4/)
 - [i3ipc](https://pypi.org/project/i3ipc)
 - [requests](https://pypi.org/project/requests/)
