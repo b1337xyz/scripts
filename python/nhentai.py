@@ -113,12 +113,12 @@ def main(urls):
         except AttributeError:
             dl_dir = opts.dl_dir
 
-        if 'page=' in URL:
-            URL = re.sub(r'([\?&]page=)\d*', r'\1{}', URL)
-        elif '?' in URL:
-            URL += '&page={}'
+        if 'page=' in url:
+            url = re.sub(r'([\?&]page=)\d*', r'\1{}', url)
+        elif '?' in url:
+            url += '&page={}'
         else:
-            URL += '?page={}'
+            url += '?page={}'
 
         soup = get_soup(s, url.format(1))
         gallery = soup.findAll('div', {'class': 'gallery'})
