@@ -46,9 +46,10 @@ bkp2() {
         --exclude='*.zip' --exclude='*.7z' --exclude='*.rar' \
         "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
 }
-png2jpg() {
+alljpg() {
     find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
-        \( -exec convert '{}' '{}.png' \; -a -exec rm -v '{}' \; \)
+        -exec sh -c 'convert "$1" "${1%.*}.jpg" && rm -v "$1"' _ '{}' \;
+        # \( -exec convert '{}' '{}.jpg' \; -a -exec rm -v '{}' \; \)
 }
 ex() {
     for i in "$@";do
@@ -78,8 +79,8 @@ repeat() {
     done
 }
 loop() {
-    local s=$1; shift;
-    [[ $s =~ ^[0-9]*$ ]] || { printf 'Usage: loop <sleep> <command...>\n'; return 1; }
+    local s=${1:-15}; shift;
+    [[ "$s" =~ ^[0-9]+$ ]] || { printf 'Usage: loop <sleep> <command...>\n'; return 1; }
     while :;do
         eval "$*";
         sleep "$s";
@@ -519,4 +520,35 @@ unquote() {
     s/%3F/?/g;  s/%40/@/g;  s/%3D/=/g;
     s/%26/&/g;  s/%24/\$/g; s/%28/(/g;
     s/%29/)/g'
+}
+last_modified() {
+    stat -c '%Z' "${@:-.}" | xargs -rI{} date --date='@{}' '+%s %b %d %H:%M %Y' |
+    awk -v s=$(date '+%s') '{
+S = s - $1
+M = int(S / 60)
+H = int(M / 60)
+d = int(H / 24)
+if ( d > 365 ) {
+    printf("%d %s %d %s\n", $5, $2, $3, $4)
+} else if ( d >= 30 ) {
+    printf("%s %d %s\n", $2, $3, $4)
+} else if ( d == 1 ) {
+    printf("yesterday\n")
+} else if ( d > 1 ){
+    printf("%d days ago\n", d)
+} else if ( H == 1 ) {
+    printf("%d hour ago\n", H)
+} else if ( H > 1 ) {
+    printf("%d hours ago\n", H)
+} else if ( M == 1 ) {
+    printf("%d minute ago\n", M)
+} else if ( M > 1 ) {
+    printf("%d minutes ago\n", M)
+} else if ( S == 1 ) {
+    printf("%d second ago\n", S)
+} else if ( S > 1 ) {
+    printf("%d seconds ago\n", S)
+} else {
+    printf("%s %d %s\n", $2, $3, $4)
+}}'
 }
