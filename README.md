@@ -8,6 +8,7 @@
 - mediainfo
 - [nsxiv](https://github.com/nsxiv/nsxiv)
 - [pup](https://github.com/ericchiang/pup)
+- tmux
 - [ueberzug](https://github.com/seebye/ueberzug)
 - xclip
 - xwallpaper
