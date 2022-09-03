@@ -7,9 +7,6 @@ import shutil
 import subprocess as sp
 import xmlrpc.client
 
-### IMPORTANT!!! 
-# See ../shell/autostart/aria2rpc.sh
-
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/torrents')
 DL_DIR = os.path.join(HOME, 'Downloads')
@@ -46,7 +43,7 @@ def get_psize(size):
         if size < 1000:
             break
         size /= 1000
-        psize = f"{size:4.2f} {i}"
+        psize = f"{size:.2f} {i}"
     return psize
 
 
@@ -140,21 +137,24 @@ def add_torrent(torrent):
 def list_torrents():
     for i in get_all():
         size = int(i["totalLength"])
+        completed_length = int(i["completedLength"])
+        p = 0 if size == 0 else completed_length * 100 // size
         psize = get_psize(size)
+        plen = get_psize(completed_length)
         torrent_name = get_torrent_name(i['gid'])
-        if len(torrent_name) > 50:
-            torrent_name = torrent_name[:47] + '...'
+        if len(torrent_name) > 40:
+            torrent_name = torrent_name[:37] + '...'
         status = i['status']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             upspeed = get_psize(int(i['uploadSpeed']))
-            print('{}: {:50} {:10} [{:8}] [{:10}/{:10}] ({})'.format(
-                i['gid'], torrent_name, psize, i['status'], dlspeed, upspeed,
-                i['numSeeders']
+            print('{}: [{:>3}% {:10}/{:>10}] [{:>3} {:10}/{:>10}] [{}] - {}'.format(
+                i['gid'], p, plen, psize, i['numSeeders'], dlspeed, upspeed,
+                i['status'], torrent_name[:50]
             ))
         else:
-            print('{}: {:50} {:10} [{:8}]'.format(
-                i['gid'], torrent_name, psize, i['status']
+            print('{}: [{:>3}% {:10}/{:>10}] [{}] - {}'.format(
+                i['gid'], p, plen, psize, i['status'], torrent_name[:50]
             ))
 
 
