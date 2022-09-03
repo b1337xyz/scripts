@@ -2,10 +2,13 @@
 from optparse import OptionParser
 from time import sleep
 import json
+import sys
 import os
 import shutil
 import subprocess as sp
 import xmlrpc.client
+
+# See ../shell/autostart/aria2rpc.sh
 
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/torrents')
@@ -60,6 +63,9 @@ def get_gid(torrents):
             return torrents[i]['gid']
         except Exception as err:
             print(err)
+        except KeyboardInterrupt:
+            print('bye')
+            sys.exit(0)
 
 
 def get_all():
@@ -121,12 +127,12 @@ def add_torrent(torrent):
         'bt-save-metadata': 'true',
     }
     if os.path.isfile(torrent):
-        shutil.move(torrent, CACHE)
         with open(torrent, 'rb') as fp:
             gid = s.aria2.addTorrent(
                 xmlrpc.client.Binary(fp.read()),
                 [], options
             )
+        shutil.move(torrent, CACHE)
     else:
         gid = s.aria2.addUri([torrent], options)
     torrent_name = get_torrent_name(gid)
