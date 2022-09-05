@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
 # NOTE: grep -xFf <patterns list> <file> ...  will keep the order of the second file
+# Using Anilist APIv2 https://anilist.gitbook.io/anilist-apiv2-docs/
 
 set -eo pipefail
 
-# USER SETTINGS
+### USER SETTINGS
 
 declare -r -x ANIME_DIR=~/Videos/Anime
+declare -r -x PLAYER='mpv --really-quiet=yes --input-ipc-server=/tmp/mpvsocket'
 declare -r -x DB=~/.cache/anilist.json
-declare -r -x PLAYER='mpv --really-quiet=yes --profile=big-cache'
 
-# END OF USER SETTINGS
+### END OF USER SETTINGS
 
+[[ "${ANIME_DIR:: -1}" = "/" ]] && exit 1
 [ -d "$ANIME_DIR" ] || { printf '%s not found\n' "${ANIME_DIR}"; exit 1; }
 
 declare -r -x ANIME_HST=~/.cache/anime_history.txt
@@ -27,20 +29,6 @@ source "${rpath%/*}/preview.sh" || {
     exit 1;
 }
 
-function start_ueberzug {
-    mkfifo "${UEBERZUG_FIFO}"
-    <"${UEBERZUG_FIFO}" \
-        ueberzug layer --parser bash --silent &
-    # prevent EOF
-    3>"${UEBERZUG_FIFO}" \
-        exec
-}
-function finalise {
-    3>&- \
-        exec
-
-    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$mode" &>/dev/null
-}
 function sed_scape {
     i=${1//\[/\\[}  i=${i//\]/\\]}
     i=${i//\*/\\*}  i=${i//\./\\.}
@@ -49,7 +37,6 @@ function sed_scape {
 }
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
-    notify-send -t 1000 -i mplayer "MPV" "Anime: $1" 2>/dev/null
     $PLAYER "${ANIME_DIR}/$1" &>/dev/null &
     echo "$1" >> "$ANIME_HST"
 }
@@ -70,7 +57,7 @@ function main() {
                 -xtype l -printf '%f\n') "$mainfile" | tee "$tmpfile"
         ;;
         offline)
-            grep -xFf <(stat -c '%N' "$ANIME_DIR"/* | grep -vP '(onedrive|gdrive)' |
+            grep -xFf <(stat -c '%N' "$ANIME_DIR"/* | grep -vP 'gdrive' |
                 awk -F' -> ' '{print $1}' | cut -d'/' -f6 | sed 's/.$//g') "$mainfile" | tee "$tmpfile"
         ;;
         by_score)
@@ -112,6 +99,16 @@ function main() {
             jq -r '.[]["rated"]' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
             return
         ;;
+        shuffle)
+            shuf "$mainfile"
+        ;;
+        latest) ls --color=none -1tc ~/Videos/Anime0 | tee "$tmpfile" ;;
+        by_size)
+            sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 | du -L --files0-from=- | sort -n | awk '{
+                split($0, a, "/");
+                print a[length(a)];
+            }' | tee "$tmpfile"
+        ;;
         path)
             printf "path" > "$mode"
             readlink "$ANIME_DIR"/* |
@@ -149,10 +146,8 @@ function main() {
                     "$mainfile" | tee "$tmpfile"
 
             elif [ "$curr_mode" = "path" ];then
-
                 stat -c '%N' "$ANIME_DIR"/* |
                     awk -F' -> ' '/'"$2"'/{split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' | tee "$tmpfile"
-
             else
                 play "$2"
                 cat "$mainfile"
@@ -175,16 +170,18 @@ export -f main play sed_scape preview check_link
 trap finalise EXIT SIGINT
 start_ueberzug 2>/dev/null
 
+# --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
 main "$@" | fzf -e --no-sort --preview 'preview {}' \
-    --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
+    --color dark \
     --preview-window 'left:53%:border-sharp:border-right' \
     --prompt "NORMAL " \
     --border none \
     --header '^p ^s ^l ^r ^w ^o ^a ^e ^g ^v 
-A-p A-u A-c A-a A-d' \
+A-p A-u A-c A-a A-d A-s' \
     --bind 'ctrl-t:last' \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main select {})+clear-query' \
+    --bind 'ctrl-d:delete-char' \
     --bind 'ctrl-p:execute-silent(play {})' \
     --bind 'ctrl-r:reload(main)+first+change-prompt(NORMAL )' \
     --bind 'ctrl-h:reload(main nsfw)+first+change-prompt(ADULT )' \
@@ -197,10 +194,13 @@ A-p A-u A-c A-a A-d' \
     --bind 'ctrl-l:reload(main history)+first+change-prompt(HISTORY )' \
     --bind 'ctrl-g:reload(main genre)+first+change-prompt(GENRE )' \
     --bind 'ctrl-v:reload(main type)+first+change-prompt(TYPE )' \
+    --bind 'alt-l:reload(main latest)+first+change-prompt(LATEST )' \
     --bind 'alt-s:reload(main contain {q})+first+change-prompt(CONTAIN )' \
     --bind 'alt-p:reload(main path)+first+change-prompt(PATH )' \
     --bind 'alt-r:reload(main rated)+first+change-prompt(RATED )' \
+    --bind 'alt-s:reload(main shuffle)+first+change-prompt(SHUFFLED )' \
     --bind 'alt-u:reload(main unwatched)+change-prompt(UNWATCHED )' \
     --bind 'alt-c:reload(main continue)+first+change-prompt(CONTINUE )' \
+    --bind 'alt-b:reload(main by_size)+first+change-prompt(BY SIZE )' \
     --bind 'alt-a:execute-silent(main add_watched {})+refresh-preview' \
     --bind 'alt-d:execute-silent(main del_watched {})+refresh-preview'

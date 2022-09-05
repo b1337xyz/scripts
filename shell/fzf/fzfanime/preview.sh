@@ -7,6 +7,20 @@ declare -r -x mpvhist=~/.cache/mpv/mpvhistory.log
 declare -r -x cache_dir=~/.cache/fzfanime_preview
 [ -d "$cache_dir" ] || mkdir "$cache_dir"
 
+function start_ueberzug {
+    mkfifo "${UEBERZUG_FIFO}"
+    <"${UEBERZUG_FIFO}" \
+        ueberzug layer --parser bash --silent &
+    # prevent EOF
+    3>"${UEBERZUG_FIFO}" \
+        exec
+}
+function finalise {
+    3>&- \
+        exec
+
+    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$mode" &>/dev/null
+}
 function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
     #p=$(stat -c '%N' "${ANIME_DIR}/$1" |
@@ -34,8 +48,8 @@ function check_link {
     if [ -e "$p" ];then
         [ -f "$cache" ] && rm "$cache"
         ext_ptr='.*\.\(webm\|mkv\|avi\|mp4\|ogm\|mpg\|rmvb\)$'
-        #size=$(du -sh "$p" | awk '{print $1}')
-        #echo "$size" >> "$cache"
+        size=$(du -sh "$p" | awk '{print $1}')
+        echo "$size" >> "$cache"
 
         while IFS= read -r -d $'\0' i;do
             files+=("$i")
@@ -50,7 +64,7 @@ function check_link {
     fi
 
     if [ "${#files[@]}" -gt 0 ];then
-        #[ -n "$size" ] && printf 'Size: %s\t' "$size"
+        [ -n "$size" ] && printf 'Size: %s\t' "$size"
         printf 'Files: %s\n' "${#files[@]}"
         n=4
         for ((i=0;i<"${#files[@]}";i++));do

@@ -1,56 +1,15 @@
 #!/usr/bin/env python3
-from optparse import OptionParser
-from time import sleep
+from utils import *
 import json
 import sys
-import os
-import shutil
-import subprocess as sp
 import xmlrpc.client
 
-# See ../shell/autostart/aria2rpc.sh
-
-HOME = os.getenv('HOME')
-CACHE = os.path.join(HOME, '.cache/torrents')
-DL_DIR = os.path.join(HOME, 'Downloads')
-
-
-parser = OptionParser()
-parser.add_option('-l', '--list',    action='store_true')
-parser.add_option('-r', '--remove',  action='store_true')
-parser.add_option('-p', '--pause',   action='store_true')
-parser.add_option('-u', '--unpause', action='store_true')
-parser.add_option('--pause-all',     action='store_true')
-parser.add_option('--purge',         action='store_true')
-parser.add_option('--unpause-all',   action='store_true')
-parser.add_option('--remove-all',    action='store_true')
-parser.add_option('--remove-metadata',    action='store_true')
-parser.add_option('--gid', type='string')
-opts, args = parser.parse_args()
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 
-def notify(title, *args):
-    sp.run(['notify-send', '-i', 'emblem-downloads', title, '\n'.join(args)])
-
-
-def is_torrent(file):
-    out = sp.run(['file', '-Lbi', file], stdout=sp.PIPE).stdout.decode()
-    return 'bittorrent' in out or 'octet-stream' in out
-
-
-def get_psize(size):
-    units = ["KB", "MB", "GB", "TB", "PB"]
-    psize = f"{size} B"
-    for i in units:
-        if size < 1000:
-            break
-        size /= 1000
-        psize = f"{size:.2f} {i}"
-    return psize
-
-
 def get_gid(torrents):
+    if not torrents:
+        return
     for i, v in enumerate(torrents):
         torrent_name = get_torrent_name(v['gid'])
         if len(torrent_name) > 50:
@@ -59,20 +18,24 @@ def get_gid(torrents):
         print(f'{i:3}: {torrent_name:50} {size:10} [{v["status"]}]')
     while True:
         try:
-            i = int(input(': '))
-            return torrents[i]['gid']
+            gids = [
+                torrents[int(i.strip())]['gid']
+                for i in input(': ').split()
+            ]
+            break
         except Exception as err:
             print(err)
         except KeyboardInterrupt:
             print('bye')
             sys.exit(0)
+    return gids
 
 
 def get_all():
     waiting = s.aria2.tellWaiting(0, 100)
     stopped = s.aria2.tellStopped(0, 100)
     active  = s.aria2.tellActive()
-    return waiting + stopped + active
+    return [] + waiting + stopped + active
 
 
 def get_torrent_name(gid):
@@ -81,44 +44,6 @@ def get_torrent_name(gid):
         return torrent['bittorrent']['info']['name']
     except KeyError:
         return torrent['files'][0]['path']
-
-
-def watch(gid, torrent_name):
-    if torrent_name.startswith('[METADATA]'):
-        att = 0
-        new_gid = None
-        while not new_gid:
-            torrent = s.aria2.tellStatus(gid)
-            torrent_file = os.path.join(torrent['dir'], torrent['infoHash'] + '.torrent')
-            try:
-                new_gid = torrent["followedBy"][-1]
-                gid = new_gid
-                break
-            except (KeyError, IndexError):
-                pass
-            sleep(1)
-            att += 1
-            if att > 10:
-                return
-        if os.path.exists(torrent_file):
-            shutil.move(torrent_file, CACHE)
-
-    torrent = s.aria2.tellStatus(gid)
-    torrent_name = get_torrent_name(gid)
-    size = get_psize(int(torrent["totalLength"]))
-    status = torrent['status']
-    notify(f"torrent started [{status}]", torrent_name, f'Size: {size}')
-    while status in ['active', 'paused']:
-        torrent = s.aria2.tellStatus(gid)
-        status = torrent['status']
-        sleep(15)
-    notify(f"torrent finished [{status}]", torrent_name, f'Size: {size}')
-
-    if status == 'complete':
-        path = os.path.join(torrent['dir'], torrent_name)
-        if os.path.exists(path):
-            s.aria2.removeDownloadResult(gid)
-            shutil.move(path, DL_DIR)
 
 
 def add_torrent(torrent):
@@ -132,12 +57,12 @@ def add_torrent(torrent):
                 xmlrpc.client.Binary(fp.read()),
                 [], options
             )
-        shutil.move(torrent, CACHE)
+        mv(torrent, CACHE)
     else:
         gid = s.aria2.addUri([torrent], options)
-    torrent_name = get_torrent_name(gid)
-    notify('torrent added', torrent_name)
-    watch(gid, torrent_name)
+    with open(FIFO, 'w') as fifo:
+        fifo.write(f'{gid}\n')
+        fifo.flush()
 
 
 def list_torrents():
@@ -167,30 +92,30 @@ def list_torrents():
 def pause():
     torrents = s.aria2.tellActive()
     if torrents:
-        gid = get_gid(torrents)
-        s.aria2.pause(gid)
+        for gid in get_gid(torrents):
+            s.aria2.pause(gid)
 
 
 def unpause():
     torrents = s.aria2.tellWaiting(0, 100)
-    if torrents:
-        gid = get_gid(torrents)
-        s.aria2.pause(gid)
+    for gid in get_gid(torrents):
+        s.aria2.unpause(gid)
 
 
 def remove():
     torrents = get_all()
-    if torrents:
-        gid = get_gid(torrents)
+    for gid in get_gid(torrents):
         torrent = s.aria2.tellStatus(gid)
+        torrent_name = get_torrent_name(gid)
         if torrent['status'] == 'active':
             s.aria2.remove(gid)
         else:
             s.aria2.removeDownloadResult(gid)
+        print(torrent_name, 'removed')
 
 
 def remove_all():
-    if input('Are you sure? [y/N] ').strip().lower() == 'y':
+    if yes():
         for torrent in get_all():
             gid = torrent['gid']
             torrent_name = get_torrent_name(gid)
@@ -202,7 +127,7 @@ def remove_all():
 
 
 def remove_metadata():
-    if input('Are you sure? [y/N] ').strip().lower() == 'y':
+    if yes():
         torrents = s.aria2.tellStopped(0, 100)
         for i in torrents:
             torrent_name = get_torrent_name(i['gid'])
@@ -219,6 +144,7 @@ def purge():
 
 
 if __name__ == '__main__':
+    opts, args = parse_arguments()
     if opts.list:
         list_torrents()
     elif opts.remove:

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 for i in "$@";do
     mimetype=$(file -Lbi "$i")
     case "$mimetype" in
@@ -9,15 +11,12 @@ for i in "$@";do
 done
 
 output=new_"${vid##*/}"
-if ! ffmpeg -i "$vid" -i "$sub" -map_metadata 0 -map 0:v -map 0:a \
+ffmpeg -i "$vid" -i "$sub" -map_metadata 0 -map 0:v -map 0:a \
     -map 1 -map 0:s:m:language:eng? -map 0:t?   \
     -map -v:m:mimetype:image/jpeg?              \
     -metadata:s:s:0 language=por        \
     -metadata:s:s:0 title='Portuguese'  \
     -disposition:s:0 default            \
-    -c copy "$output"
-then
-    rm "$output"
-    exit 1
-fi
+    -c copy "$output" || exit 1
 
+# rm -i "$vid" "$sub"
