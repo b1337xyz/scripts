@@ -37,7 +37,7 @@ page_regex    = re.compile(r'[\?\&]page=(\d+)')
 img_regex     = re.compile(r'<img id=\"img\" src=\"([^\"]*)')
 title_regex   = re.compile(r'<h1 id="gn">([^<]*)</h1>')
 next_regex    = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
-artist_regex  = re.compile(r'<a id="ta_artist:([^\"]*) ')
+artist_regex  = re.compile(r'<a id="ta_artist:([^\"]*)')
 
 
 url = argv[1]
@@ -75,7 +75,7 @@ for gid, token in gallery:
         dl_dir = os.path.join(DL_DIR, f'{artist}/{title}')
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
-
+    logging.info(dl_dir)
     url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
     curr_page = 0
     next_page = curr_page + 1
