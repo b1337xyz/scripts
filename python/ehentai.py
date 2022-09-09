@@ -11,7 +11,6 @@ import requests
 import subprocess as sp
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'
-API_URL = 'https://api.e-hentai.org/api.php'
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
 LOG = os.path.join(HOME, '.cache/ehentai.log')
