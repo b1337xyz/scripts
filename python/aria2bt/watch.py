@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from utils import *
-from time import sleep
 from threading import Thread
+from select import select
 import xmlrpc.client
 import sys
 
@@ -17,12 +17,17 @@ def get_torrent_name(gid):
 
 
 def watch(gid):
+    global killed
     torrent_name = get_torrent_name(gid)
-    notify('torrent added', torrent_name)
+    if not torrent_name:
+        return
+
     if torrent_name.startswith('[METADATA]'):
         att = 0
         new_gid = None
         while not new_gid:
+            if killed:
+                return
             torrent = s.aria2.tellStatus(gid)
             try:
                 new_gid = torrent["followedBy"][-1]
@@ -43,16 +48,21 @@ def watch(gid):
     size = get_psize(int(torrent["totalLength"]))
     status = torrent['status']
     notify(f"torrent started [{status}]", torrent_name, f'Size: {size}')
+    logging.info(f'watching {torrent_name} [{status}]')
     att = 0
-    while status not in ['complete', 'error']:
+    while status in ['active']:
+        if killed:
+            return
+        if att > 3:
+            return
         try:
             torrent = s.aria2.tellStatus(gid)
             status = torrent['status']
+        except KeyboardInterrupt:
+            return
         except Exception as err:
             logging.error(f'{gid}: {err}')
             att += 1
-        if att > 3:
-            return
         sleep(15)
     notify(f"torrent finished [{status}]", torrent_name, f'Size: {size}')
 
@@ -67,31 +77,28 @@ def watch(gid):
 
 
 if __name__ == '__main__':
+    killed = False
     threads = list()
-    try:
-        waiting = s.aria2.tellWaiting(0, 100)
-        stopped = s.aria2.tellStopped(0, 100)
-        active  = s.aria2.tellActive()
-        for torrent in waiting + stopped + active:
-            if torrent['status'] not in ['complete', 'error']:
-                gid = torrent['gid']
-                t = Thread(target=watch, args=(gid,))
-                t.start()
-                threads.append(t)
+    if not os.path.exists(FIFO):
+        os.mkfifo(FIFO)
 
-        if not os.path.exists(FIFO):
-            os.mkfifo(FIFO)
+    try:
         with open(FIFO, 'r') as fifo:
             while True:
+                select([fifo], [], [fifo])
                 gid = fifo.read()
-                if gid:
-                    logging.info(f'thread starded, {gid}, {len(threads)}')
-                    t = Thread(target=watch, args=(gid.strip(),))
-                    t.start()
-                    threads.append(t)
-                    for i, t in enuemerate(threads):
-                        if not t.isalive():
-                            del threads[i]
+                t = Thread(target=watch, args=(gid.strip(),))
+                t.start()
+                threads.append(t)
+                for i, t in enumerate(threads):
+                    if not t.is_alive():
+                        del threads[i]
+                sleep(5)
+    except KeyboardInterrupt:
+        print('\nbye\n')
     finally:
+        killed = True
+        if os.path.exists(FIFO):
+            os.remove(FIFO)
         for t in threads:
             t.join()
