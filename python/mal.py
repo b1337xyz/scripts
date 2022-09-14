@@ -70,7 +70,7 @@ else:
             title = re.sub(r'\s{2,}', ' ', title).strip()
             year = i['year']
             year = i['aired']['prop']['from']['year'] if not year else year
-            rating = i['rating'].split()[0] if i['rating'] else '?'
+            rating = i['rating'].split('-')[0][:-1] if i['rating'] else '?'
             data[mal_id] = {
                 'title':    title,
                 'type':     i['type'] if i['type'] else '?',
@@ -79,9 +79,9 @@ else:
                 'year':     year if year else '?',
                 'score':    i['score'] if i['score'] else '?'
             }
-    cache[url] = data
-    with open(CACHE, 'w') as fp:
-        json.dump(cache, fp)
+cache[url] = data
+with open(CACHE, 'w') as fp:
+    json.dump(cache, fp)
 
 if args:
     titles = [

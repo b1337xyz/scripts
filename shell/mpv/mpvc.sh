@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SOCKET=/tmp/mpvsocket
+SOCKET=/tmp/mpvradio
 case "$1" in
     toggle)     comm='"cycle", "pause"'         ;;
     next)       comm='"playlist-next"'          ;;

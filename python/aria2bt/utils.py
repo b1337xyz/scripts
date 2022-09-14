@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from time import sleep
 import subprocess as sp
 import shutil
 import logging
@@ -30,6 +31,7 @@ def parse_arguments():
     parser.add_option('-r', '--remove',  action='store_true')
     parser.add_option('-p', '--pause',   action='store_true')
     parser.add_option('-u', '--unpause', action='store_true')
+    parser.add_option('--recheck',       action='store_true')
     parser.add_option('--pause-all',     action='store_true')
     parser.add_option('--purge',         action='store_true')
     parser.add_option('--unpause-all',   action='store_true')
@@ -74,3 +76,25 @@ def get_psize(size):
         size /= 1000
         psize = f"{size:.2f} {i}"
     return psize
+
+
+def saving_metadata(s, gid):
+    notify(gid, 'saving the metadata...')
+    att = 0
+    new_gid = None
+    while not new_gid and att < 10:
+        sleep(3)
+        torrent = s.aria2.tellStatus(gid)
+        try:
+            new_gid = torrent["followedBy"][-1]
+            break
+        except (KeyError, IndexError):
+            att += 1
+    else:
+        return
+    s.aria2.removeDownloadResult(gid)
+    file = os.path.join(torrent['dir'], torrent['infoHash'] + '.torrent')
+    if os.path.exists(file):
+        mv(file, CACHE)
+    # logging.info(f'{gid} > {new_gid}: successfully saved the metadata')
+    return new_gid

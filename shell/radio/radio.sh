@@ -17,10 +17,8 @@ url=$(
     cut -d'|' -f2
 )
 [ -z "$url" ] && exit 1
-if [ -S "$FIFO" ];then
+if [ -S "$FIFO" ] && pgrep -f -- '--profile=radio';then
     echo '{"command": ["loadfile", "'"$url"'"]}' | socat - "$FIFO"
 else
-    alacritty --class floating_terminal     \
-        --title radio                       \
-        -e mpv --profile=radio "$url" #>/dev/null 2>&1
+    tmux new-session -s radio -d mpv --profile=radio "$url"
 fi

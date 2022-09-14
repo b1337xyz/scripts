@@ -14,11 +14,9 @@ function start_ueberzug {
     3>"${UEBERZUG_FIFO}" \
         exec
 }
-
 function finalise {
     3>&- \
         exec
-
     rm "${UEBERZUG_FIFO}" &>/dev/null
 }
 
@@ -39,5 +37,5 @@ draw_img "$1"
 for _ in $(seq "$LINES");do echo ;done
 string="Press any key"
 for _ in $(seq $((COLUMNS / 2 - (${#string} / 2) - 1)));do echo -n ' ' ;done
-read -r -s -n1 -p "$string"
+read -r -s -n1 -p "$string" </dev/tty
 clear

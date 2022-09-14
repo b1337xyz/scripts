@@ -12,8 +12,6 @@ HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.nhentai_history')
 CONFIG = os.path.join(HOME, '.nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
-UA = None
-COOKIE = None
 DOMAIN = 'nhentai.net'
 
 
@@ -38,6 +36,7 @@ def parse_arguments():
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
+    if not os.path.exists(opts.dl_dir): os.mkdir(opts.dl_dir)
     assert os.path.isdir(opts.dl_dir), f'"{opts.dl_dir}" not a directory'
     return (opts, args)
 
@@ -85,7 +84,6 @@ def get_soup(session, url):
 def main(urls):
     s = requests.Session()
     s.headers.update({'user-agent': UA})
-    # parse cookie
     cookies = [
         {'name': x.strip(), 'value': y.strip()} for x, y in
         [i.split('=') for i in COOKIE.split(';')]

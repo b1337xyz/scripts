@@ -50,6 +50,7 @@ def add_torrent(torrent):
     options = {
         'force-save': 'false',
         'bt-save-metadata': 'true',
+        'check-integrity': 'true'
     }
     if os.path.isfile(torrent):
         with open(torrent, 'rb') as fp:
@@ -60,9 +61,15 @@ def add_torrent(torrent):
         mv(torrent, CACHE)
     else:
         gid = s.aria2.addUri([torrent], options)
-    with open(FIFO, 'w') as fifo:
-        fifo.write(f'{gid}\n')
-        fifo.flush()
+        new_gid = saving_metadata(s, gid)
+        gid = new_gid if new_gid else gid
+
+    torrent_name = get_torrent_name(gid)
+    notify('torrent added', torrent_name)
+    logging.info(f'torrent added {torrent_name}')
+    if os.path.exists(FIFO):
+        with open(FIFO, 'w') as fifo:
+            fifo.write(f'{gid}\n')
 
 
 def list_torrents():
@@ -73,19 +80,18 @@ def list_torrents():
         psize = get_psize(size)
         plen = get_psize(completed_length)
         torrent_name = get_torrent_name(i['gid'])
-        if len(torrent_name) > 40:
-            torrent_name = torrent_name[:37] + '...'
+        if len(torrent_name) > 60:
+            torrent_name = torrent_name[:57] + '...'
         status = i['status']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
-            upspeed = get_psize(int(i['uploadSpeed']))
-            print('{}: [{:>3}% {:10}/{:>10}] [{:>3} {:10}/{:>10}] [{}] - {}'.format(
-                i['gid'], p, plen, psize, i['numSeeders'], dlspeed, upspeed,
-                i['status'], torrent_name[:50]
+            print('{}: [{:>3}% {:>10}/{:>10} {:>10}/s ({})] [{}] - {}'.format(
+                i['gid'], p, plen, psize, dlspeed, i['numSeeders'],
+                status, torrent_name[:60]
             ))
         else:
-            print('{}: [{:>3}% {:10}/{:>10}] [{}] - {}'.format(
-                i['gid'], p, plen, psize, i['status'], torrent_name[:50]
+            print('{}: [{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
+                i['gid'], p, plen, psize, status, torrent_name[:60]
             ))
 
 
@@ -115,8 +121,11 @@ def remove():
 
 
 def remove_all():
+    status = input('Status: ').strip().lower()
     if yes():
         for torrent in get_all():
+            if status and status != torrent['status']:
+                continue
             gid = torrent['gid']
             torrent_name = get_torrent_name(gid)
             try:
@@ -163,6 +172,8 @@ if __name__ == '__main__':
         print(json.dumps(s.aria2.tellStatus(opts.gid), indent=2))
     elif opts.remove_metadata:
         remove_metadata()
+    elif opts.recheck:
+        recheck()
     elif opts.purge:
         purge()
     elif args:

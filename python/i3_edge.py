@@ -20,6 +20,8 @@ scr_height = 768 if scr_height < 768 else scr_height
 scr_x = workspace.rect.x
 scr_y = workspace.rect.y
 bar_height = 28
+bottom_bar = 20
+scr_height = scr_height - bottom_bar if bottom_bar > 0 else scr_height
 arg = args[0]
 
 
@@ -59,12 +61,12 @@ def main(arg):
         width = scr_width
         height = scr_height // 2
         x = scr_x
-        y = scr_height // 2
+        y = height
     elif arg == 'bottom-left':
         width = scr_width // 2
         height = scr_height // 2
         x = scr_x
-        y = scr_height // 2
+        y = height
     elif arg == 'bottom-right':
         width = scr_width // 2
         height = scr_height // 2
@@ -76,8 +78,7 @@ def main(arg):
         height = (scr_height // 2) + 50
         x = (scr_x + scr_width // 2) - (width // 2)
         y = (scr_height // 2) - (height // 2) + bar_height
-    y -= border
-    x -= 2
+    #y -= border
 
     def run_cmd(cmd):
         con.command(cmd)

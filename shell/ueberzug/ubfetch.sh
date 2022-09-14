@@ -63,14 +63,14 @@ WM=$(wmctrl -m | awk '/^Name:/{print $2}')
 # shellcheck disable=SC2046
 TERMINAL=$(ps -p $(ps -p $PPID -o ppid=) o args=)
 
-printf '%'"$WIDTH"'s\e[1;36m os\e[m     \e[1;35m:\e[m %s\n' ' ' "$OS" 
-printf '%'"$WIDTH"'s\e[1;36m kernel\e[m \e[1;35m:\e[m %s\n' ' ' "$KERNEL" 
-printf '%'"$WIDTH"'s\e[1;36m uptime\e[m \e[1;35m:\e[m %s\n' ' ' "$UPTIME" 
-printf '%'"$WIDTH"'s\e[1;36m ip\e[m     \e[1;35m:\e[m %s\n' ' ' "$IP" 
-printf '%'"$WIDTH"'s\e[1;36m pkgs\e[m   \e[1;35m:\e[m %s\n' ' ' "$PKGS" 
-printf '%'"$WIDTH"'s\e[1;36m wm\e[m     \e[1;35m:\e[m %s\n' ' ' "$WM" 
-printf '%'"$WIDTH"'s\e[1;36m term\e[m   \e[1;35m:\e[m %s\n' ' ' "$TERMINAL" 
-printf '%'"$WIDTH"'s\e[1;36m memory\e[m \e[1;35m:\e[m %s\n' ' ' "$MEM" 
-printf '%'"$WIDTH"'s\e[1;36m swap\e[m   \e[1;35m:\e[m %s\n' ' ' "$SWAP" 
+printf '%'"$WIDTH"'s\e[1;35m os\e[m     \e[1;35m:\e[m %s\n' ' ' "$OS" 
+printf '%'"$WIDTH"'s\e[1;35m kernel\e[m \e[1;35m:\e[m %s\n' ' ' "$KERNEL" 
+printf '%'"$WIDTH"'s\e[1;35m uptime\e[m \e[1;35m:\e[m %s\n' ' ' "$UPTIME" 
+printf '%'"$WIDTH"'s\e[1;35m ip\e[m     \e[1;35m:\e[m %s\n' ' ' "$IP" 
+printf '%'"$WIDTH"'s\e[1;35m pkgs\e[m   \e[1;35m:\e[m %s\n' ' ' "$PKGS" 
+printf '%'"$WIDTH"'s\e[1;35m wm\e[m     \e[1;35m:\e[m %s\n' ' ' "$WM" 
+printf '%'"$WIDTH"'s\e[1;35m term\e[m   \e[1;35m:\e[m %s\n' ' ' "$TERMINAL" 
+printf '%'"$WIDTH"'s\e[1;35m memory\e[m \e[1;35m:\e[m %s\n' ' ' "$MEM" 
+printf '%'"$WIDTH"'s\e[1;35m swap\e[m   \e[1;35m:\e[m %s\n' ' ' "$SWAP" 
 printf '\n\n%'"$WIDTH"'s  ... PRESS ANY KEY ... '   ' '
 read -N 1 -r -s _

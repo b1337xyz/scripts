@@ -12,13 +12,13 @@ stdbuf -oL -- udevadm monitor --udev -s block | while read -r -- _ _ event devpa
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
         LABEL=$(lsblk -o LABEL "$devname" | tail -1)
         [ -z "$LABEL" ] && continue
-        notify-send "$LABEL plugged"
+        notify-send -i drive-harddisk "$LABEL plugged"
         mp=/mnt/anon/"$LABEL"
         [ -d "$mp" ] || mkdir -v "$mp"
         if ! grep -q "^$devname" /proc/mounts;then
             printf 'mount %s %s\n' "$devname" "$mp"
             sudo mount "$devname" "$mp" -o noatime,user
-            notify-send "$devname mounted at $mp"
+            notify-send -i drive-harddisk "$devname mounted at $mp"
         fi
     fi
-done &> ~/.automount.log
+done #&> ~/.automount.log

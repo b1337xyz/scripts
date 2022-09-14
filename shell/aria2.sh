@@ -2,20 +2,42 @@ bcat() { aria2c -S "$1";  }
 bthead() {
     aria2c -S "$1" | sed '/^idx\|path\/length/q'
 }
-dubt3() {
-    [ $# -eq 0 ] && { dubt3 ./*.torrent; return; }
-    aria2c -S "$@" | awk '{
-    if ($0 ~ /^Total/) size = $3
-    if ($0 ~ / 1\|\.\//) {
+btdu() {
+    [ $# -eq 0 ] && { btdu ./*.torrent; return; }
+    aria2c -S "$@" | awk '
+/^Total| 1\|\.\//{
+    if ($0 ~ /^Total/) {
+        size = $3
+        psize = substr($3, 1, length($3) - 3) + 0
+        if (size ~ /GiB/) {
+            total += psize * 1024
+        } else if (size ~ /KiB/) {
+            total += psize / 1024
+        } else {
+            total += psize
+        }
+    } else if ($0 ~ / 1\|\.\//) {
         split($0, a, "/")
-        printf("%-8s\t%s\n", size, a[2])
+        torrent_name = a[2]
+    } 
+    if (size && torrent_name) {
+        printf("%8s\t%s\n", size, torrent_name)
+        size = ""
+        psize = ""
+        torrent_name = ""
     }
+} END {
+        if (total >= 1024) {
+            total /= 1024
+            printf("%.1fGiB total\n", total)
+        } else {
+            printf("%.1fMiB total\n", total)
+        }
 }'
 }
 dubt2() {
     aria2c -S "$1" | awk '/^Total|\|/{
     if ($0 ~ /^Total/) total = $3
-
     if ($0 ~ /[0-9]\|\.\//) {
         split($0, a, "/")
         fname = a[length(a)]
@@ -27,7 +49,16 @@ dubt2() {
 } END {
     printf("%s total\n", total)
 }'
-
+}
+dubt3() {
+    [ $# -eq 0 ] && { dubt3 ./*.torrent; return; }
+    aria2c -S "$@" | awk '{
+    if ($0 ~ /^Total/) size = $3
+    if ($0 ~ / 1\|\.\//) {
+        split($0, a, "/")
+        printf("%-8s\t%s\n", size, a[2])
+    }
+}'
 }
 rentorrent() {
     local torrent
@@ -102,6 +133,7 @@ BEGIN { total = 0 }
 }' | sort -n
 }
 btsel() {
+    file -Lbi "$1" | grep -q bittorrent || return 1
     aria2c -S "$1" | awk -F'|' '/[0-9]\|\.\//{
         sub(/^[ \t]*/, "", $0);
         split($2, a, "/");

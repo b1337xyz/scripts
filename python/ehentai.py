@@ -75,7 +75,6 @@ for gid, token in gallery:
         dl_dir = os.path.join(DL_DIR, f'{artist}/{title}')
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
-    logging.info(dl_dir)
     url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
     curr_page = 0
     next_page = curr_page + 1
@@ -85,7 +84,7 @@ for gid, token in gallery:
         r = s.get(url)
         img = img_regex.search(r.text).group(1)
         p = sp.run([
-            'wget', '-L', '-nv', '-t', '3', '-nc', '-P', dl_dir, '-U', UA, img
+            'wget', '-L', '-t', '2', '-nc', '-P', dl_dir, '-U', UA, img
         ])
         if p.returncode != 0:
             att += 1

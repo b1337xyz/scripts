@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=/usr/share/icons/Chicago95/devices/32/media-optical-audio.png
 get_info() {
-    cmus-remote -Q | awk '{
+    cmus-remote -Q 2>/dev/null | awk '{
     if ( $0 ~ /^(file|duration|status)/) {
         if ( $1 ~ /duration/ ) {
             printf("duration %02d:%02d\n", $2 / 60, $2 % 60)
@@ -14,7 +15,6 @@ get_info() {
         print $0
     }}'
 }
-
 last_played=
 while :;do
     while read -r i;do
@@ -28,16 +28,16 @@ while :;do
             date*)      date="${i#* }"      ;;
         esac
     done < <(get_info)
-    [ "$_status" != "playing" ] && { sleep 15; continue; }
-    [ "$title" == "$last_played" ] && { sleep 15; continue; }
-    last_played="$title"
     fname=${file##*/}
     title=${title:-$fname}
+    [ "$_status" != "playing" ] && { sleep 15; continue; }
+    [ "$title" == "$last_played" ] && { sleep 5; continue; }
+    last_played="$title"
     [ -n "$date" ] && title="${title} ($date)"
     img=$(md5sum "$file" | awk '{print $1".jpg"}')
     img="${COVER}/${img}"
     [ -f "$img" ] || ffmpeg -v -8 -i "$file" "$img"
     [ -f "$img" ] || img="$DEFAULT_ICON"
-    notify-send -i "$img" \
+    dunstify -r "$NID" -i "$img" \
         "[cmus] ♫ Playing now..." "$title\n$artist\n$album\n$duration"
 done

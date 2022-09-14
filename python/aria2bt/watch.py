@@ -1,71 +1,46 @@
 #!/usr/bin/env python3
 from utils import *
 from threading import Thread
-from select import select
+from random import random
 import xmlrpc.client
 import sys
 
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 
-def get_torrent_name(gid):
-    torrent = s.aria2.tellStatus(gid)
-    try:
-        return torrent['bittorrent']['info']['name']
-    except KeyError:
-        return torrent['files'][0]['path']
+def get_info(gid):
+    att = 0
+    while att < 10:
+        try:
+            return s.aria2.tellStatus(gid)
+        except Exception as err:
+            logging.error(f'{gid}: {err} attempt: {att}')
+        sleep(random() * 5)
+        att += 1
 
 
 def watch(gid):
     global killed
-    torrent_name = get_torrent_name(gid)
-    if not torrent_name:
+    torrent = get_info(gid)
+    try:
+        torrent_name = torrent['bittorrent']['info']['name']
+    except KeyError:
         return
-
-    if torrent_name.startswith('[METADATA]'):
-        att = 0
-        new_gid = None
-        while not new_gid:
-            if killed:
-                return
-            torrent = s.aria2.tellStatus(gid)
-            try:
-                new_gid = torrent["followedBy"][-1]
-                gid = new_gid
-                break
-            except (KeyError, IndexError):
-                pass
-            sleep(5)
-            att += 1
-            if att > 10:
-                return
-        torrent_file = os.path.join(torrent['dir'], torrent['infoHash'] + '.torrent')
-        if os.path.exists(torrent_file):
-            mv(torrent_file, CACHE)
-
-    torrent = s.aria2.tellStatus(gid)
-    torrent_name = get_torrent_name(gid)
     size = get_psize(int(torrent["totalLength"]))
     status = torrent['status']
     notify(f"torrent started [{status}]", torrent_name, f'Size: {size}')
     logging.info(f'watching {torrent_name} [{status}]')
-    att = 0
-    while status in ['active']:
+    while status not in ['complete', 'error']:
         if killed:
             return
-        if att > 3:
-            return
+        torrent = get_info(gid)
         try:
-            torrent = s.aria2.tellStatus(gid)
             status = torrent['status']
-        except KeyboardInterrupt:
+        except TypeError:
             return
-        except Exception as err:
-            logging.error(f'{gid}: {err}')
-            att += 1
         sleep(15)
-    notify(f"torrent finished [{status}]", torrent_name, f'Size: {size}')
 
+    notify(f"torrent finished [{status}]", torrent_name, f'Size: {size}')
     if status == 'complete':
         path = os.path.join(torrent['dir'], torrent_name)
         if os.path.exists(path):
@@ -81,19 +56,19 @@ if __name__ == '__main__':
     threads = list()
     if not os.path.exists(FIFO):
         os.mkfifo(FIFO)
-
     try:
-        with open(FIFO, 'r') as fifo:
-            while True:
-                select([fifo], [], [fifo])
-                gid = fifo.read()
-                t = Thread(target=watch, args=(gid.strip(),))
-                t.start()
-                threads.append(t)
-                for i, t in enumerate(threads):
-                    if not t.is_alive():
-                        del threads[i]
-                sleep(5)
+        while True:
+            with open(FIFO, 'r') as fifo:
+                data = fifo.read()
+                if len(data) == 0:
+                    break
+                for gid in [i for i in data.split('\n') if i]:
+                    t = Thread(target=watch, args=(gid,))
+                    t.start()
+                    threads.append(t)
+            for i, t in enumerate(threads):
+                if not t.is_alive():
+                    del threads[i]
     except KeyboardInterrupt:
         print('\nbye\n')
     finally:

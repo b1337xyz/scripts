@@ -1,26 +1,22 @@
 # shellcheck disable=SC2012 
 # shellcheck disable=SC2094
-fin() { find . -iname "*${*}*"; }
-fre() { find . -iregex ".*${*}.*"; }
+f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
 za() { command zathura "$@" &>/dev/null & disown ; }
-fr() { find . -type f -iregex "$@"; }
 line() { sed "${1}!d" "$2"; }
-wallpaper() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
+wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
-start_xephyr() {
-    Xephyr -br -ac -noreset -screen 800x600 :1
-}
+calc() { echo "scale=3;$*" | bc -l; }
+start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 webdav_server() {
     local ip
-    ip=$(command ip -br a | awk '/UP/{print substr($3, 1, length($3)-3)}')
-    rclone serve webdav -L --read-only --addr "$ip:56909" --user anon --pass 123 "${1:-$HOME}"
+    ip=$(command ip -br a | awk '/UP/{print substr($3, 1, length($3)-3); exit}')
+    rclone serve webdav -L --read-only --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
 frep() {
-    find . -type f -printf '%f\n' | sort | uniq -d | while read -r i;do
-        find . -name "$i" -type f
-    done
+    find . -type f -printf '%f\n' | sort | uniq -d |
+    sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type f -name '{}'
 }
 bkp() {
     local output
@@ -47,29 +43,35 @@ bkp2() {
         "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
 }
 alljpg() {
-    find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
-        -exec sh -c 'convert "$1" "${1%.*}.jpg" && rm -v "$1"' _ '{}' \;
-        # \( -exec convert '{}' '{}.jpg' \; -a -exec rm -v '{}' \; \)
+    # find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
+    #     -exec sh -c 'convert "$1" "${1%.*}.jpg" && rm -v "$1"' _ '{}' \;
+    #     # \( -exec convert '{}' '{}.jpg' \; -a -exec rm -v '{}' \; \)
+    find "${@:-.}" -maxdepth 1 -type f \! -name '*.jpg' | while read -r i;do
+        mime=$(file -Lbi "$i")
+        case "$mime" in
+            image/gif*) continue ;;
+            image/jpeg*)
+                [ "${i##*.}" != "jpg" ] && mv -vf "$i" "${i%.*}.jpg" ;;
+            image/*)
+                convert -verbose "$i" "${i%.*}.jpg" && rm -v "$i" ;;
+        esac
+    done
 }
 ex() {
-    for i in "$@";do
-        case "$i" in
-            *.tar.bz2) tar xvjf "$i" ;;
-            *.tbz2) tar xvjf "$i" ;;
-            *.tar.gz) tar xvzf "$i" ;;
-            *.tar) tar xvf "$i" ;;
-            *.bz2) bunzip2 "$i" ;;
-            *.tgz) tar xvzf "$i" ;;
-            *.rar) unrar x "$i" ;;
-            *.zip) unzip "$i" ;;
-            *.gz) gunzip "$i" ;;
-            *.7z) 7z x "$i" ;;
-            *.Z) uncompress "$i" ;;
-            -*) continue ;;
-            *) printf '"%s" cannot be extracted\n' "$i" ;;
-        esac || { printf '\nfailed to extract "%s" :(\n' "$i"; break; }
-    done
-    return 0
+    [ -f "$1" ] || return 1
+    case "$1" in
+        *.tar.zst) tar --zstd -xf "$1" ;;
+        *.tar.bz2) tar xvjf "$1"   ;;
+        *.tar.gz)  tar xvzf "$1"   ;;
+        *.tar)     tar xvf "$1"    ;;
+        *.bz2)     bunzip2 "$1"    ;;
+        *.zst)     unzstd "$1"     ;;
+        *.rar)     unrar x -op"${1%.*}" "$1" ;;
+        *.zip)     unzip "$1" -d "${1%.*}"   ;;
+        *.gz)      gunzip "$1"     ;;
+        *.7z)      7z x "$1"       ;;
+        *.Z)       uncompress "$1" ;;
+    esac
 }
 repeat() {
     # Repeat n times command
@@ -80,11 +82,10 @@ repeat() {
 }
 loop() {
     local s=${1:-15}; shift;
-    [[ "$s" =~ ^[0-9]+$ ]] || { printf 'Usage: loop <sleep> <command...>\n'; return 1; }
-    while :;do
-        eval "$*";
-        sleep "$s";
-    done
+    [[ "$s" =~ ^[0-9]+$ ]] && [ -n "$1" ] || {
+        printf 'Usage: loop <sleep> <command...>\n'; return 1;
+    }
+    while :;do eval "$*"; sleep "$s"; done
 }
 lst() {
     local total
@@ -104,10 +105,10 @@ lstar() {
     for i in "$@";do
         [ -f "$i" ] || continue
         printf '>>> \033[1;31m%s\033[m\n' "$i"
-        tar tvf "$i" 2>/dev/null | tee "$tmpfile" | less
+        tar tvf "$i" 2>/dev/null | tee "$tmpfile" | bat -l ls
         [ -s "$tmpfile" ] || continue
         read -rp "extract '$i'? (y/N) " ask
-        [ "${ask,,}" == 'y' ] && { tar xvf "$i"; break; }
+        [ "${ask,,}" == 'y' ] && tar axvf "$i"
     done
     return 0
 }
@@ -123,23 +124,13 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    ls -1 "${1:-.}" | sort -t '(' -k 2nr
-    return
-    if [ $# -eq 0 ];then
-        find . -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i;do
-            year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}(?=\))' | tail -1)
-            [ -z "$year" ] && continue
-            printf '%s;%s\n' "$year" "$i"
-        done
-    else
-        for i in "$@";do
-            year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}(?=\))' | tail -1)
-            [ -z "$year" ] && continue
-            printf '%s;%s\n' "$year" "$i"
-        done
-    fi | sort -n | while read -r l;do
-        printf '%s\n' "${l##*;}"
-    done
+    ls -1 "${1:-.}" | sort -t '(' -k 2nr # fails if "file (asd) (2022)"
+
+    # find "${@:-.}" -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i
+    # do
+    #     year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}(?=\))' | tail -1)
+    #     [ -n "$year" ] && printf '%s;%s\n' "$year" "$i"
+    # done | sort -n | cut -d';' -f2-
 }
 bulkrename() {
     local tmpfile
@@ -154,22 +145,20 @@ bulkrename() {
     [ "${#files[@]}" -eq 0 ] && return 1
     vim "$tmpfile"
 
-    lines=$(wc -l "$tmpfile" | cut -d' ' -f1)
+    lines=$(wc -l < "$tmpfile")
     if [ "${#files[@]}" -ne "$lines" ];then
-        echo "The number of lines does not match the amount of files"
-        rm "$tmpfile"
-        return 1
+        echo "The number of lines does not match the amount of files!"
+    else
+        i=0
+        # shellcheck disable=SC2094
+        while read -r l;do
+            if ! [ -s "$l" ] && [ "${files[i]}" != "$l" ];then
+                mv -vn -- "${files[i]}" "$l" || break
+            fi
+            i=$((i+1))
+        done < "$tmpfile"
     fi
-
-    i=0
-    # shellcheck disable=SC2094
-    while read -r l;do
-        if ! [ -s "$l" ] && [ "${files[i]}" != "$l" ];then
-            mv -vn -- "${files[i]}" "$l" || { rm "$tmpfile"; return 1; }
-        fi
-        i=$((i+1))
-    done < "$tmpfile"
-    command rm -f "$tmpfile"
+    command rm "$tmpfile"
 }
 crc32check() {
     # How it works:
@@ -181,7 +170,8 @@ crc32check() {
 
     for i in "$@";do
         [ -f "$i" ] || { printf 'File "%s" not found\n' "$i"; continue; }
-        fname_crc=$(echo "$i" | grep -oP '(?<=(\[|\())[[:alnum:]]{8}(?=(\)|\]))' | tail -n1) # [12345678] or (12345678)
+        # [12345678] or (12345678)
+        fname_crc=$(echo "$i" | grep -oP '(?<=(\[|\())[[:alnum:]]{8}(?=(\)|\]))' | tail -1)
         [ -z "$fname_crc" ] && {
             printf 'crc32 pattern not found in "%s"\n' "$i" 1>&2;
             continue;
@@ -202,18 +192,10 @@ crc32rename() {
 
     for i in "$@";do
         [ -f "$i" ] || { printf 'Not a file: %s\n' "$i"; continue; }
-        file -Lbi -- "$i" | grep -q video || { printf 'Not a video: %s\n' "$i"; continue; }
-        ext="${i##*.}"
+        file -Lbi -- "$i" | grep -q '^video/' || { printf 'Not a video: %s\n' "$i"; continue; }
         crc=$(cksfv -b "$i" | sed '/^;/d; s/.*\(.\{8\}\)$/\1/')
-        mv -vn "$i" "${i%.*} [${crc}].$ext" || return 1
+        mv -vn "$i" "${i%.*} [${crc}].${i##*.}" || return 1
     done
-}
-copy_to_sel() {
-    local tmpfile
-    tmpfile=$(mktemp)
-    vim "$tmpfile"
-    [ -s "$tmpfile" ] && xclip -sel clip "$tmpfile"
-    rm -f "$tmpfile" &>/dev/null
 }
 chgrubbg() {
     if [ -f "$1" ];then
@@ -230,9 +212,8 @@ chgrubbg() {
     esac
 }
 dn() {
-    [ -z "$1" ] && return 1
-    find . -mindepth 1 -maxdepth 1 -exec du -sh {} \; |
-        sort -h | head -n "$1" | awk -F\\t '{print $2}' |
+    find . -mindepth 1 -maxdepth 1 -exec du -sh {} + |
+        sort -h | head -n "${1:-10}" | awk -F\\t '{print $2}' |
         tr \\n \\0 | du --files0-from=- -csh | sort -h
 }
 cpdir() {
@@ -254,24 +235,16 @@ cpdir() {
 fixext() {
     local mimetype ext
     for i in "$@";do
-        ext=
         mimetype=$(file -Lbi -- "$i")
         case "${mimetype%;*}" in
-            video/x-msvideo) ext=avi ;;
+            video/x-msvideo)  ext=avi ;;
             video/x-matroska) ext=mkv ;;
-            image/jpeg) ext=jpg ;;
-            image/png) ext=png ;;
-            video/mp4) ext=mp4 ;;
+            image/jpeg)       ext=jpg ;;
+            image/png)        ext=png ;;
+            video/mp4)        ext=mp4 ;;
         esac
-        if [ -n "$ext" ];then
-            if [ "${i##*.}" != "$ext" ];then
-                if [ "${i##*.}" = "anitsu" ];then
-                    mv -v "$i" "${i%.*}.${ext}"
-                else
-                    mv -v "$i" "${i}.${ext}"
-                fi || break
-            fi
-        fi
+        [ -n "$ext" ] && [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${ext}"
+        unset ext
     done
     return 0
 }
@@ -296,23 +269,20 @@ odr() {
     esac
 }
 fscripts() {
-    local target
-    target=~/.scripts
-    find "${@:-$target}" \( -iregex '.*\.\(sh\|py\)' -or -regex '.*_functions' \) \
-        ! -path '*__*__*' ! -path '*/venv*' -print0
+    find ~/.scripts -type f -size -100k \! -path '*__*__*' -print0
 }
 loc() {
-    fscripts "$@" | wc -l --files0-from=- | sort -n 
+    fscripts | wc -l --files0-from=- | sort -n 
 }
 toc() {
-    fscripts "$@" | wc -m --files0-from=- | sort -n
+    fscripts | wc -m --files0-from=- | sort -n
 }
 soc() {
-    fscripts "$@" | du -csh --files0-from=- | sort -h
+    fscripts | du -csh --files0-from=- | sort -h
 }
 aloc() {
-    # "actual" lines of code, without empty lines
-    fscripts "$@" | xargs -r0 -I{} awk '{ if ( NF > 0 ) l+=1 } END { printf("%4s %s\n", l, FILENAME) }' {} |
+    # "actual" lines of code a.k.a without empty lines
+    fscripts | xargs -r0 -I{} awk '{ if ( NF > 0 ) l+=1 } END { printf("%4s %s\n", l, FILENAME) }' {} |
         sort -n | awk '{ print $0; total+=$1+0 } END { printf("total: %s\n", total) }'
 }
 dul() {
@@ -325,9 +295,8 @@ dul() {
     done | sort -h
 }
 edalt() {
-    theme=$(awk '/themes\//{gsub("~", "'"$HOME"'", $2) ; print $2 }' \
-        ~/.config/alacritty/alacritty.yml)
-    [ -f "$theme" ] && vim "$theme"
+    awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
+        ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
 }
 save_page() {
     wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
@@ -345,10 +314,10 @@ trackers_best() {
     xclip -sel clip -i "$output" 
 }
 fvideo() {
-    find "${1:-.}" -iregex '.*\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
+    find . -iregex '.*\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
 }
 fimage() {
-    find "${1:-.}" -iregex '.*\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\)$'
+    find . -iregex '.*\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)$'
 }
 grep_video() {
     grep --color=never -i '\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|anitsu\)$' "$1"
@@ -356,33 +325,15 @@ grep_video() {
 grep_archive() {
     grep --color=never -i '\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$' "$1"
 }
-_help() {
-    local d
-    d=~/Documents/cheat
-    case "$1" in
-        mkvmerge) cat "${d}/mkvmerge" ;;
-        *) ls "$d" ;;
-    esac
-}
-shwatch() {
-    local tmpfile
-    tmpfile=$(mktemp /tmp/tmp.XXXXXXXX.sh)
-    echo "#/bin/sh" >> "$tmpfile"
-    vim "$tmpfile"
-    chmod +x "$tmpfile"
-    watch -n 5 -t "$tmpfile"
-    rm "$tmpfile"
-}
 random_img() {
-    img=$(find ~/Pictures/random -iname '*.jpg' | shuf -n1)
-    drawimg.sh "$img"
+    find ~/Pictures/random -iname '*.jpg' -print0 | shuf -zn1 | xargs -0roI{} drawimg.sh '{}'
 }
 mvbyext() {
     find "${1:-.}" -maxdepth 1 -type f | while read -r i;do
         ext="${i##*.}"
         [ -z "$ext" ] || [ "${#ext}" -gt 4 ] && continue
         [ -d "$ext" ] || mkdir -v "$ext"
-        mv -vn "$i" "$ext"
+        mv -vn -- "$i" "$ext"
     done
 }
 mkj() {
@@ -390,8 +341,7 @@ mkj() {
         mkvmerge -J "$i" | jq -r '
 .tracks[] |
 "\(.type): \(.id) - \(.codec) - \(.properties.language) - \(.properties.track_name) \(
-if .properties.default_track then "(default)" else "" end)"
-'
+if .properties.default_track then "(default)" else "" end)"'
     done
 }
 random_str() {
@@ -417,14 +367,8 @@ toggle_btf_jit() {
         echo 1 | sudo tee "$target"
     fi
 }
-getkeys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
-uniq_lines() {
-    if [ -f "$1" ];then
-        awk '!seen[$0]++' "$1"
-    else
-        awk '!seen[$0]++'
-    fi
-}
+keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
+uniq_lines() { awk '!seen[$0]++' "$1"; }
 psrmem() {
     ps axch -o cmd,rss --sort=-%mem | head -10 |
         awk 'BEGIN { printf("\033[42;30m%-30s %-6s\033[m\n", "CMD", "MEM") } {printf("%-30s %.1f\n", $1, $2/1024)}'
@@ -432,13 +376,12 @@ psrmem() {
 freq() {
     while :;do
         awk -F':' '/cpu MHz/{printf("%.0f MHz ", $2)} END {printf "\n"}' /proc/cpuinfo;
-        sleep "${1:-2}" || break
+        sleep "${1:-3}"
     done
 }
 pacman_unessential() {
     grep -vFf <(pacman -Sl core | awk '/\[installed\]/{print $2}') <(pacman -Qq) |
-        awk '{ if ($0 ~ /^lib/) next ; c++ ; print $0 }
-        END { printf("total: %s unessential packages installed\n", c) }' 
+        awk '{print} END {printf("total: %s unessential packages installed\n", NR)}' 
 }
 ffstr() {
     verbose=0
@@ -454,7 +397,7 @@ ffstr() {
         BEGIN { c=0 }
         {
             if ($0 ~ /Attach/) {
-                c+=1
+                c++
             } else if ( $0 ~ /Stream/) {
                 printf("%s\n", substr($0, 3))
             }
@@ -500,26 +443,18 @@ lifetime() {
     }' 
 }
 quote() {
-    sed '
-    s/%/%25/g;  s/ /%20/g;  s/\[/%5B/g;
-    s/\]/%5D/g; s/</%3C/g;  s/>/%3E/g;
-    s/#/%23/g;  s/{/%7B/g;  s/}/%7D/g;
-    s/|/%7C/g;  s/\\/%5C/g; s/\^/%5E/g;
-    s/~/%7E/g;  s/`/%60/g;  s/\;/%3B/g;
-    s/?/%3F/g;  s/@/%40/g;  s/=/%3D/g;
-    s/&/%26/g;  s/\$/%24/g; s/(/%28/g;
-    s/)/%29/g'
+    python3 -c '
+from sys import stdin, stdout
+from urllib.parse import quote
+for i in stdin:
+    stdout.write(quote(i.strip()) + "\n")'
 }
 unquote() {
-    sed '
-    s/%25/%/g;  s/%20/ /g;  s/%5B/\[/g;
-    s/%5D/\]/g; s/%3C/</g;  s/%3E/>/g;
-    s/%23/#/g;  s/%7B/{/g;  s/%7D/}/g;
-    s/%7C/|/g;  s/%5C/\\/g; s/%5E/\^/g;
-    s/%7E/~/g;  s/%60/`/g;  s/%3B/\;/g;
-    s/%3F/?/g;  s/%40/@/g;  s/%3D/=/g;
-    s/%26/&/g;  s/%24/\$/g; s/%28/(/g;
-    s/%29/)/g'
+    python3 -c '
+from sys import stdout, stdin
+from urllib.parse import unquote
+for i in stdin:
+    stdout.write(unquote(i.strip()) + "\n")'
 }
 last_modified() {
     stat -c '%Z' "${@:-.}" | xargs -rI{} date --date='@{}' '+%s %b %d %H:%M %Y' |
@@ -551,4 +486,62 @@ if ( d > 365 ) {
 } else {
     printf("%s %d %s\n", $2, $3, $4)
 }}'
+}
+gcd() {
+    local width=$1
+    local height=$2
+    _gcd() {
+        test $2 -eq 0 && { echo -n "$1"; return; }
+        _gcd $2 $(($1 % $2))
+    }
+    r=$(_gcd "$width" "$height")
+    rw=$(( width  / r ))
+    rh=$(( height / r ))
+    echo "${rw}:$rh"
+}
+todo() {
+    TODOFILE=${TODOFILE:-${HOME}/.todo}
+    [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
+    case "$1" in
+        ed) [ -s "$TODOFILE" ] && "${EDITOR:-vim}" "$TODOFILE" ;;
+        ls)
+            if test -s "$TODOFILE";then
+                printf '\n\e[1;30;43m TODO \033[m\n'
+                cat "$TODOFILE"; echo
+            fi
+        ;;
+        add)
+            shift
+            [ -n "$1" ] && printf '[%s] %s\n' \
+                "$(date +%Y.%m.%d' '%H:%M)" "$*" | tee -a "$TODOFILE"
+        ;;
+        *) echo 'Usage: todo [ed ls add] <TODO>' ;;
+    esac
+}
+ftext() {
+    find . -type f -exec file -i {} + | grep -oP '.*(?=:[\t ]*text/)'
+}
+paclog() {
+    # last pkgs of <status>
+    grep "${1:-upgraded}" /var/log/pacman.log | tac | awk -F'T' '{
+        if ( substr($1, length($1)-1) != x && x)
+            exit
+        print $0
+        x = substr($1, length($1)-1)
+    }' | tac
+}
+random_anime_quote() {
+    # Default rate limit is 100 requests per hour.
+    local url="https://animechan.vercel.app/api/random"
+    curl -s "$url" | jq -Mrc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
+}
+random_color() {
+    clear
+    find ~/.scripts/playground/shell/Colors \
+        -maxdepth 1 -type f -print0 | shuf -zn 1 | xargs -r0 bash
+    printf '\e[0m'
+}
+upload() { curl -F"file=@$*" https://0x0.st; }
+check_leek() {
+    grep --exclude-dir=".git" --color=always -B 1 -A 1 -rniP 'secret|token|password|passwd|mail|cookie|client_id'
 }

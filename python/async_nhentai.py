@@ -3,6 +3,7 @@ from aiohttp import ClientSession
 from asyncio.exceptions import InvalidStateError
 from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
+from time import sleep
 import aiofiles
 import asyncio
 import json
@@ -10,10 +11,11 @@ import os
 import random
 import re
 import sys
+import xmlrpc.client
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
-HIST = os.path.join(HOME, '.nhentai_history')
+HIST = os.path.join(HOME, '.cache/nhentai_history')
 CONFIG = os.path.join(HOME, '.nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 UA = None
@@ -23,6 +25,7 @@ DOMAIN = 'nhentai.net'
 Q_SIZE = 4
 bad = '\033[1;31m:(\033[m'
 good = '\033[1;32m:)\033[m'
+aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 
 def parse_arguments():
@@ -46,6 +49,7 @@ def parse_arguments():
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
+    if not os.path.exists(opts.dl_dir): os.mkdir(opts.dl_dir)
     assert os.path.isdir(opts.dl_dir), f'"{opts.dl_dir}" not a directory'
     return (opts, args)
 
@@ -61,6 +65,7 @@ def load_config(cookie=None, agent=None):
     if agent:
         config['user-agent'] = agent
     if cookie or agent:
+        print('config updated')
         with open(CONFIG, 'w') as fp:
             json.dump(config, fp, indent=2)
     return config
@@ -77,33 +82,21 @@ async def download(session, dl_dir, queue):
         if os.path.exists(file):
             queue.task_done()
             continue
-        print(url)
         att = 1
         while True:
             async with session.get(url) as r:
                 status = r.status
                 if status != 200:
-                    print(url, f'Status: {status} {bad} ({att})')
+                    print(url, f'{status} {bad} ({att})')
                     await random_sleep()
                     att += 1
                     continue
                 else:
-                    print(url, f'Status: {status} {good} ({att})')
+                    print(url, f'{status} {good} ({att})')
                 f = await aiofiles.open(file, mode='wb')
                 await f.write(await r.read())
                 await f.close()
             break
-        proc = await asyncio.create_subprocess_exec(
-            'aria2c', *['-S', file],
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.DEVNULL
-        )
-        stdout, stderr = await proc.communicate()
-        torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', stdout.decode())
-        if torrent_name:
-            torrent = os.path.join(dl_dir, torrent_name.group(1))
-            if os.path.exists(torrent):
-                os.remove(file)
         await random_sleep()
         queue.task_done()
 
@@ -151,8 +144,8 @@ async def parse_urls(urls):
 
 async def main(urls):
     cookies = {
-        x.strip(): y.strip()
-        for x, y in [i.split('=') for i in COOKIE.split(';')]
+        k.strip(): v.strip()
+        for k, v in [i.split('=') for i in COOKIE.split(';')]
     }
     headers = {'user-agent': UA}
     async with ClientSession(cookies=cookies, headers=headers) as s:
@@ -198,12 +191,13 @@ async def main(urls):
                         posts.update(task.result())
                     except InvalidStateError:
                         pass
-                # await asyncio.gather(*tasks, return_exceptions=True)
+                await asyncio.gather(*tasks, return_exceptions=True)
 
-            print(f'Posts: {len(posts)}')
             if not posts:
-                print('Nothing found')
+                print('Nothing to do')
                 continue
+            print(f'Posts: {len(posts)}')
+            print(dl_dir)
 
             del queue
             queue = asyncio.Queue()
@@ -221,16 +215,30 @@ async def main(urls):
             for task in tasks:
                 task.cancel()
 
-            torrents = [
-                os.path.join(dl_dir, i) for i in os.listdir(dl_dir)
-                if i.endswith('.torrent')
-            ]
-            args = [
-                '--dir', dl_dir, '--bt-stop-timeout=500',
-                '--seed-time=0'
-            ] + torrents
-            proc = await asyncio.create_subprocess_exec('aria2c', *args)
-            await proc.communicate()
+            for i in os.listdir(dl_dir):
+                if i.endswith('.torrent'):
+                    torrent = os.path.join(dl_dir, i)
+                    with open(torrent, 'rb') as fp:
+                        aria2.aria2.addTorrent(
+                            xmlrpc.client.Binary(fp.read()), [], {
+                            'rpc-save-upload-metadata': 'false',
+                            'force-save': 'false',
+                            'dir': dl_dir
+                        })
+                    sleep(.5)
+                    os.remove(torrent)
+
+            # torrents = [
+            #     os.path.join(dl_dir, i) for i in os.listdir(dl_dir)
+            #     if i.endswith('.torrent')
+            # ]
+            # args = [
+            #     '--dir', dl_dir, '--bt-stop-timeout=500',
+            #     '--seed-time=0'
+            # ] + torrents
+            # proc = await asyncio.create_subprocess_exec('aria2c', *args)
+            # await proc.communicate()
+            # [os.remove(i) for i in torrents]
 
 
 if __name__ == '__main__':

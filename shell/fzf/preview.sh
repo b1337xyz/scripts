@@ -20,7 +20,7 @@ function calculate_position {
         read -r TERMINAL_LINES TERMINAL_COLUMNS
 
     case "${DEFAULT_PREVIEW_POSITION:-left}" in
-        left|up|top) X=1 Y=0 ;;
+        left|up|top) X=0 Y=0 ;;
         right) X=$((TERMINAL_COLUMNS - COLUMNS - 2)) Y=1    ;;
         down|bottom) X=1 Y=$((TERMINAL_LINES - LINES - 1))  ;;
     esac
@@ -31,7 +31,7 @@ function draw_preview {
     >"${UEBERZUG_FIFO}" declare -A -p cmd=( \
         [action]=add [identifier]="preview" \
         [x]="${X}" [y]="${Y}"               \
-        [width]="${COLUMNS}" [height]="${LINES}" \
+        [width]="$((COLUMNS - 1))" [height]="$(( LINES - 1 ))" \
         [scaler]=fit_contain [scaling_position_x]=0.5 [scaling_position_y]=0.5 \
         [path]="$1")
 }

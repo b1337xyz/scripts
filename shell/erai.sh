@@ -64,29 +64,7 @@ main() {
         grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$tmpfile";
     } | unquote | sort
 }
-download_all() {
-    local url dir
-    if [[ "${1##*.}" =~ (ass|srt) ]];then
-        download "$@"
-        return
-    else
-        dir=$(echo ${1##*dir=} | quote)
-        subdir=${dir%/*}
-        url="${domain}/?dir=${dir}/"
-    fi
-    if [ -n "$url" ];then
-        echo "$url"
-        curl -s "$url" |
-        awk '/<div id="content"/,EOF {print $0}' > "$tmpfile"
-    fi
-    {
-        grep -ioP '(?<=href\=")Sub.*\.por\.(ass|srt)' "$tmpfile" || grep -ioP '(?<=href\=")Sub.*\.(ass|srt)' "$tmpfile";
-        grep -oP '(?<=href\="\?dir\=)Sub[^"]*(?=")' "$tmpfile";
-    } | grep -vxF "$subdir" | grep -vxF "$dir" | unquote | while read -r i
-    do
-        download_all "$i"
-    done
-}
+
 favorite() {
     if ! grep -qF "$1" "$favorites" 2>/dev/null;then
         notify-send -i "$favicon" "Erai Sub Downloader" "$1"
@@ -97,7 +75,7 @@ favorite() {
         sed -i "${n}d" "$favorites"
     fi
 }
-export -f main unquote quote favorite download download_all
+export -f main unquote quote favorite download 
 case "$1" in
     -f|--favorites)
         [ -s "$favorites" ] || exit 1
@@ -120,5 +98,6 @@ esac | fzf -m --header '^f favorite' \
     --bind 'ctrl-t:last'  \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main {+})+clear-query' \
-    --bind 'ctrl-f:execute(favorite {})'        \
-    --bind 'ctrl-d:execute(download_all {})'
+    --bind 'ctrl-f:execute(favorite {})'
+
+exit 0
