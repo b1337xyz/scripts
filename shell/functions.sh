@@ -124,7 +124,7 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    ls -1 "${1:-.}" | sort -t '(' -k 2nr # fails if "file (asd) (2022)"
+    ls -1 "${1:-.}" | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but fast
 
     # find "${@:-.}" -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i
     # do
@@ -483,6 +483,8 @@ if ( d > 365 ) {
     printf("%d second ago\n", S)
 } else if ( S > 1 ) {
     printf("%d seconds ago\n", S)
+} else if ( S == 0 ) {
+    printf("now\n");
 } else {
     printf("%s %d %s\n", $2, $3, $4)
 }}'
