@@ -1,9 +1,10 @@
 #!/usr/bin/env dash
 
 set -e
-find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i;do
+find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
+do
     torrent=$(aria2c -S "$i" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
-    mv -vn "$i" "$torrent"
+    mv -vn -- "$i" "$torrent"
 done
 
 aria2c -S ./*.torrent | awk '
@@ -18,10 +19,13 @@ aria2c -S ./*.torrent | awk '
     }
     if ($0 ~ / 1\|\.\//) { 
         split($0, a, "/")
-        printf("%s.torrent|%s\n", a[2], b[1])
+        printf("%s:%s.torrent\n", b[1], a[2])
     }
-}' | while IFS='|' read -r torrent tracker;do
+}' | while read -r i
+do
+    tracker=${i%%:*}
     tracker=${tracker:-unknown}
+    torrent=${i#*:}
     [ -d "$tracker" ] || mkdir -v "$tracker"
-    [ -f "$torrent" ] && mv -vf "$torrent" "$tracker"
+    [ -f "$torrent" ] && mv -vf -- "$torrent" "$tracker"
 done
