@@ -16,7 +16,7 @@ ffp() {
 }
 e() {
     find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} -type f -size -100k \
-        \! \( -name '__*__' -o -iregex '.*\.\(png\|jpg\)' \)  |
+        \! \( -path '*__*__*' -o -iregex '.*\.\(png\|jpg\)' \)  |
         awk -v home="$HOME" 'sub(home, "~")' |
         fzf -e --layout=reverse --height 20  |
         awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
@@ -118,4 +118,7 @@ dlbkp() {
 }
 fzfopen() {
     fzf --bind 'enter:execute-silent(xdg-open {} & disown)'
+}
+fcd() {
+    cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
 }

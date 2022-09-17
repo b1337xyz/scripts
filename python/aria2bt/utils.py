@@ -26,18 +26,30 @@ logging.basicConfig(
 
 def parse_arguments():
     from optparse import OptionParser
-    parser = OptionParser()
-    parser.add_option('-l', '--list',    action='store_true')
-    parser.add_option('-r', '--remove',  action='store_true')
-    parser.add_option('-p', '--pause',   action='store_true')
-    parser.add_option('-u', '--unpause', action='store_true')
-    parser.add_option('--recheck',       action='store_true')
-    parser.add_option('--pause-all',     action='store_true')
-    parser.add_option('--purge',         action='store_true')
-    parser.add_option('--unpause-all',   action='store_true')
-    parser.add_option('--remove-all',    action='store_true')
-    parser.add_option('--remove-metadata',    action='store_true')
-    parser.add_option('--gid', type='string')
+    usage = 'Usage: %prog [options] [TORRENT_FILE | MAGNET]'
+    parser = OptionParser(usage=usage)
+    parser.add_option('-l', '--list',    action='store_true',
+        help='list all torrents')
+    parser.add_option('-r', '--remove',  action='store_true',
+        help='remove chosen torrents')
+    parser.add_option('-p', '--pause',   action='store_true',
+        help='pause chosen torrents')
+    parser.add_option('-u', '--unpause', action='store_true',
+        help='unpause chosen torrents')
+    parser.add_option('--pause-all',     action='store_true',
+        help='pause all torrents')
+    parser.add_option('--unpause-all',   action='store_true',
+        help='unpause all torrents')
+    parser.add_option('--remove-all',    action='store_true',
+        help='remove all torrents')
+    parser.add_option('--remove-metadata', action='store_true',
+        help='remove torrents metadata')
+    parser.add_option('--status', type='string',
+        help='used with --remove-all to remove torrents with STATUS')
+    parser.add_option('--gid', type='string',
+        help='return a JSON of given gid')
+    parser.add_option('-y', '--yes', action='store_true',
+        help='don\'t ask')
     return parser.parse_args()
 
 
@@ -82,8 +94,8 @@ def saving_metadata(s, gid):
     notify(gid, 'saving the metadata...')
     att = 0
     new_gid = None
-    while not new_gid and att < 10:
-        sleep(3)
+    while not new_gid and att < 15:
+        sleep(1)
         torrent = s.aria2.tellStatus(gid)
         try:
             new_gid = torrent["followedBy"][-1]

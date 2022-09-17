@@ -53,6 +53,7 @@ def add_torrent(torrent):
         'check-integrity': 'true'
     }
     if os.path.isfile(torrent):
+        options.update({'rpc-save-upload-metadata': 'false'})
         with open(torrent, 'rb') as fp:
             gid = s.aria2.addTorrent(
                 xmlrpc.client.Binary(fp.read()),
@@ -120,14 +121,17 @@ def remove():
         print(torrent_name, 'removed')
 
 
-def remove_all():
-    status = input('Status: ').strip().lower()
-    if yes():
+def remove_all(dont_ask=False, status=None):
+    if not dont_ask and yes():
         for torrent in get_all():
             if status and status != torrent['status']:
                 continue
             gid = torrent['gid']
             torrent_name = get_torrent_name(gid)
+            if torrent['status'] == 'active':
+                s.aria2.remove(gid)
+                sleep(1)
+
             try:
                 s.aria2.removeDownloadResult(gid)
                 print(torrent_name, 'removed')
@@ -135,8 +139,8 @@ def remove_all():
                 print(err)
 
 
-def remove_metadata():
-    if yes():
+def remove_metadata(dont_ask=False):
+    if not dont_ask and yes():
         torrents = s.aria2.tellStopped(0, 100)
         for i in torrents:
             torrent_name = get_torrent_name(i['gid'])
@@ -148,18 +152,14 @@ def remove_metadata():
                     print(err)
 
 
-def purge():
-    pass
-
-
 if __name__ == '__main__':
     opts, args = parse_arguments()
     if opts.list:
         list_torrents()
     elif opts.remove:
-        remove()
+        remove(opts.yes)
     elif opts.remove_all:
-        remove_all()
+        remove_all(opts.yes, opts.status)
     elif opts.pause:
         pause()
     elif opts.unpause:
@@ -172,10 +172,6 @@ if __name__ == '__main__':
         print(json.dumps(s.aria2.tellStatus(opts.gid), indent=2))
     elif opts.remove_metadata:
         remove_metadata()
-    elif opts.recheck:
-        recheck()
-    elif opts.purge:
-        purge()
     elif args:
         for arg in args:
             if os.path.isfile(arg):

@@ -16,7 +16,7 @@ import xmlrpc.client
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/nhentai_history')
-CONFIG = os.path.join(HOME, '.nhentai.json')
+CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 UA = None
 COOKIE = None
