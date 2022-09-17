@@ -81,11 +81,10 @@ repeat() {
     done
 }
 loop() {
-    local s=${1:-15}; shift;
-    [[ "$s" =~ ^[0-9]+$ ]] && [ -n "$1" ] || {
-        printf 'Usage: loop <sleep> <command...>\n'; return 1;
-    }
-    while :;do eval "$*"; sleep "$s"; done
+    local s
+    [[ "$1" =~ ^[0-9]+$ ]] && { s=$1; shift; }
+    [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
+    while :;do eval "$*"; sleep "${s:-15}"; done
 }
 lst() {
     local total

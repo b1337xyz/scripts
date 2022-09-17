@@ -74,7 +74,8 @@ def add_torrent(torrent):
 
 
 def list_torrents():
-    for i in get_all():
+    torrents = sorted(get_all(), key=lambda x: x['status'])
+    for i in torrents:
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
         p = 0 if size == 0 else completed_length * 100 // size
@@ -86,7 +87,7 @@ def list_torrents():
         status = i['status']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
-            print('{}: [{:>3}% {:>10}/{:>10} {:>10}/s ({})] [{}] - {}'.format(
+            print('{}: [{:>3}% {:>10}/{:>10} {:>10}/s ({:2})] [{}] - {}'.format(
                 i['gid'], p, plen, psize, dlspeed, i['numSeeders'],
                 status, torrent_name[:60]
             ))
@@ -122,7 +123,7 @@ def remove():
 
 
 def remove_all(dont_ask=False, status=None):
-    if not dont_ask and yes():
+    if dont_ask or yes():
         for torrent in get_all():
             if status and status != torrent['status']:
                 continue
@@ -140,7 +141,7 @@ def remove_all(dont_ask=False, status=None):
 
 
 def remove_metadata(dont_ask=False):
-    if not dont_ask and yes():
+    if dont_ask or yes():
         torrents = s.aria2.tellStopped(0, 100)
         for i in torrents:
             torrent_name = get_torrent_name(i['gid'])
@@ -153,6 +154,10 @@ def remove_metadata(dont_ask=False):
 
 
 if __name__ == '__main__':
+    if not os.path.exists(PIDFILE):
+        import subprocess as sp
+        sp.Popen([WATCH], shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+
     opts, args = parse_arguments()
     if opts.list:
         list_torrents()

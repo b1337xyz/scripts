@@ -51,11 +51,17 @@ def watch(gid):
             pass
 
 
-if __name__ == '__main__':
-    killed = False
-    threads = list()
+def main():
+    global killed
+    pid = os.getpid()
+    if os.path.exists(PIDFILE):
+        os.kill(int(open(PIDFILE, 'r').read()), 15)
+    open(PIDFILE, 'w').write(str(pid))
+
     if not os.path.exists(FIFO):
         os.mkfifo(FIFO)
+    killed = False
+    threads = list()
     try:
         while True:
             with open(FIFO, 'r') as fifo:
@@ -73,7 +79,21 @@ if __name__ == '__main__':
         print('\nbye\n')
     finally:
         killed = True
-        if os.path.exists(FIFO):
+        try:
+            if int(open(PIDFILE, 'r').read()) == pid:
+                os.remove(PIDFILE)
+        except:
+            pass
+
+        try:
             os.remove(FIFO)
+        except:
+            pass
+
         for t in threads:
             t.join()
+
+
+if __name__ == '__main__':
+    main()
+

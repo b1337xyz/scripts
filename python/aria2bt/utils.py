@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from time import sleep
+from threading import Thread
 import subprocess as sp
 import shutil
 import logging
@@ -12,6 +13,8 @@ CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG  = os.path.join(ROOT, 'log')
 FIFO = '/tmp/aria2bt.fifo'
+PIDFILE = os.path.join(ROOT, 'PID')
+WATCH = os.path.join(ROOT, 'watch.py')
 
 
 logging.basicConfig(
