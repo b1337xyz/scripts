@@ -47,7 +47,7 @@ if opts.end_date:
 if opts.type:
     url += f'&type={opts.type}'
 if opts.rating:
-    url += f'&type{opts.rating}'
+    url += f'&rating={opts.rating}'
 if opts.score:
     url += f'&score={opts.score}'
 

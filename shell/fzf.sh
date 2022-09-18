@@ -29,11 +29,11 @@ c() {
         awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
 }
 fzfumount() {
-    local dev
-    dev=$(command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
-        awk '!/sda/{printf("%-20s %s\n", $1, $6)}' | fzf --layout=reverse --height 10 | awk '{print $1}')
-    [ -n "$dev" ] && sudo umount "$dev"
-    sleep .5; df -h -t ext4 -t btrfs --total
+    command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
+        awk '!/sda/{printf("%-20s %s\n", $1, $6)}' |
+        fzf -m --layout=reverse --height 10 | awk '{print $1}' | xargs -roI{} sudo umount '{}'
+
+    command df -h -x tmpfs -x devtmpfs
 }
 ftorrent() {
     local torrent
