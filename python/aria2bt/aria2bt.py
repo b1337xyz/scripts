@@ -127,17 +127,16 @@ def remove_all(dont_ask=False, status=None):
                 print(err)
 
 
-def remove_metadata(dont_ask=False):
-    if dont_ask or yes():
-        torrents = s.aria2.tellStopped(0, 100)
-        for i in torrents:
-            torrent_name = get_torrent_name(i)
-            if torrent_name.startswith('[METADATA]'):
-                try:
-                    s.aria2.removeDownloadResult(i['gid'])
-                    print(torrent_name, 'removed')
-                except Exception as err:
-                    print(err)
+def remove_metadata():
+    torrents = s.aria2.tellStopped(0, 100)
+    for i in torrents:
+        torrent_name = get_torrent_name(i)
+        if torrent_name.startswith('[METADATA]'):
+            try:
+                s.aria2.removeDownloadResult(i['gid'])
+                print(torrent_name, 'removed')
+            except Exception as err:
+                print(err)
 
 
 def move_to_top():
@@ -158,7 +157,7 @@ if __name__ == '__main__':
     if opts.list:
         list_torrents()
     elif opts.remove:
-        remove(opts.yes)
+        remove()
     elif opts.remove_all:
         remove_all(opts.yes, opts.status)
     elif opts.pause:
