@@ -9,7 +9,7 @@ do
     diff --color=always "$old" "$new" || cp -vi "$new" "$old" </dev/tty
 done
 
-printf "push changes? (y/N) "
+printf "\n\npush changes? (y/N) "
 read ask
 if [ "$ask" = y ];then
     git add -Av

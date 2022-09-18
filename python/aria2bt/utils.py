@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from time import sleep
-from threading import Thread
 import subprocess as sp
 import shutil
 import logging
@@ -13,14 +12,14 @@ CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG  = os.path.join(ROOT, 'log')
 FIFO = '/tmp/aria2bt.fifo'
-PIDFILE = os.path.join(ROOT, 'PID')
+PIDFILE = '/tmp/aria2bt.pid'
 WATCH = os.path.join(ROOT, 'watch.py')
 
 
 logging.basicConfig(
     filename=LOG,
     encoding='utf-8',
-    filemode='a',
+    filemode='w',
     level=logging.INFO,
     format='%(asctime)s:%(levelname)s: %(message)s',
     datefmt='%d-%m-%Y %H:%M:%S',
@@ -47,12 +46,15 @@ def parse_arguments():
         help='remove all torrents')
     parser.add_option('--remove-metadata', action='store_true',
         help='remove torrents metadata')
+    parser.add_option('--top', action='store_true',
+        help='move a torrent to the top of the queue')
     parser.add_option('--status', type='string',
         help='used with --remove-all to remove torrents with STATUS')
     parser.add_option('--gid', type='string',
-        help='return a JSON of given gid')
+        help='return a JSON of given GID')
     parser.add_option('-y', '--yes', action='store_true',
         help='don\'t ask')
+
     return parser.parse_args()
 
 
@@ -93,23 +95,8 @@ def get_psize(size):
     return psize
 
 
-def saving_metadata(s, gid):
-    notify(gid, 'saving the metadata...')
-    att = 0
-    new_gid = None
-    while not new_gid and att < 15:
-        sleep(1)
-        torrent = s.aria2.tellStatus(gid)
-        try:
-            new_gid = torrent["followedBy"][-1]
-            break
-        except (KeyError, IndexError):
-            att += 1
-    else:
-        return
-    s.aria2.removeDownloadResult(gid)
-    file = os.path.join(torrent['dir'], torrent['infoHash'] + '.torrent')
-    if os.path.exists(file):
-        mv(file, CACHE)
-    # logging.info(f'{gid} > {new_gid}: successfully saved the metadata')
-    return new_gid
+def get_torrent_name(torrent):
+    try:
+        return torrent['bittorrent']['info']['name']
+    except KeyError:
+        return torrent['files'][0]['path']

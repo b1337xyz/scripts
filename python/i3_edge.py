@@ -20,7 +20,7 @@ scr_height = 768 if scr_height < 768 else scr_height
 scr_x = workspace.rect.x
 scr_y = workspace.rect.y
 bar_height = 28
-bottom_bar = 20
+bottom_bar = 24
 scr_height = scr_height - bottom_bar if bottom_bar > 0 else scr_height
 arg = args[0]
 

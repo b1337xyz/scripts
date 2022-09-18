@@ -10,7 +10,7 @@ s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 def get_info(gid):
     att = 0
-    while att < 10:
+    while att < 15:
         try:
             return s.aria2.tellStatus(gid)
         except Exception as err:
@@ -22,25 +22,43 @@ def get_info(gid):
 def watch(gid):
     global killed
     torrent = get_info(gid)
-    try:
-        torrent_name = torrent['bittorrent']['info']['name']
-    except KeyError:
-        return
+    torrent_name = get_torrent_name(torrent)
+    logging.info(f'torrent added {torrent_name}')
+    if torrent_name.startswith('[METADATA]'):
+        notify('Saving the metadata...', torrent_name)
+        while True:
+            torrent = get_info(gid)
+            if torrent['status'] == 'complete':
+                break
+            elif torrent['status'] == 'error' or killed:
+                return
+            sleep(5)
+
+        new_gid = torrent["followedBy"][-1]
+        gid = new_gid
+        file = os.path.join(torrent['dir'],
+            torrent['infoHash'] + '.torrent')
+        if os.path.exists(file):
+            mv(file, CACHE)
+
+        s.aria2.removeDownloadResult(torrent['gid'])
+
+    torrent = get_info(gid)
+    torrent_name = get_torrent_name(torrent)
     size = get_psize(int(torrent["totalLength"]))
     status = torrent['status']
-    notify(f"torrent started [{status}]", torrent_name, f'Size: {size}')
+    notify(f"torrent started [{status}]",
+            torrent_name, f'Size: {size}')
     logging.info(f'watching {torrent_name} [{status}]')
     while status not in ['complete', 'error']:
         if killed:
             return
-        torrent = get_info(gid)
-        try:
-            status = torrent['status']
-        except TypeError:
-            return
         sleep(15)
+        torrent = get_info(gid)
+        status = torrent['status']
 
-    notify(f"torrent finished [{status}]", torrent_name, f'Size: {size}')
+    notify(f"torrent finished [{status}]",
+            torrent_name, f'Size: {size}')
     if status == 'complete':
         path = os.path.join(torrent['dir'], torrent_name)
         if os.path.exists(path):
@@ -53,13 +71,16 @@ def watch(gid):
 
 def main():
     global killed
-    pid = os.getpid()
-    if os.path.exists(PIDFILE):
+    try:
         os.kill(int(open(PIDFILE, 'r').read()), 15)
+    except:
+        pass
+    pid = os.getpid()
     open(PIDFILE, 'w').write(str(pid))
 
     if not os.path.exists(FIFO):
         os.mkfifo(FIFO)
+
     killed = False
     threads = list()
     try:
@@ -85,11 +106,7 @@ def main():
         except:
             pass
 
-        try:
-            os.remove(FIFO)
-        except:
-            pass
-
+        os.remove(FIFO)
         for t in threads:
             t.join()
 

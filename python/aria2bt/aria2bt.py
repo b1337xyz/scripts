@@ -11,11 +11,11 @@ def get_gid(torrents):
     if not torrents:
         return
     for i, v in enumerate(torrents):
-        torrent_name = get_torrent_name(v['gid'])
+        torrent_name = get_torrent_name(v)
         if len(torrent_name) > 50:
             torrent_name = torrent_name[:47] + '...'
         size = get_psize(int(v['totalLength']))
-        print(f'{i:3}: {torrent_name:50} {size:10} [{v["status"]}]')
+        print(f'{i:3}: [{v["status"]}] {torrent_name:50} {size:10}')
     while True:
         try:
             gids = [
@@ -38,14 +38,6 @@ def get_all():
     return [] + waiting + stopped + active
 
 
-def get_torrent_name(gid):
-    torrent = s.aria2.tellStatus(gid)
-    try:
-        return torrent['bittorrent']['info']['name']
-    except KeyError:
-        return torrent['files'][0]['path']
-
-
 def add_torrent(torrent):
     options = {
         'force-save': 'false',
@@ -62,12 +54,7 @@ def add_torrent(torrent):
         mv(torrent, CACHE)
     else:
         gid = s.aria2.addUri([torrent], options)
-        new_gid = saving_metadata(s, gid)
-        gid = new_gid if new_gid else gid
 
-    torrent_name = get_torrent_name(gid)
-    notify('torrent added', torrent_name)
-    logging.info(f'torrent added {torrent_name}')
     if os.path.exists(FIFO):
         with open(FIFO, 'w') as fifo:
             fifo.write(f'{gid}\n')
@@ -81,7 +68,7 @@ def list_torrents():
         p = 0 if size == 0 else completed_length * 100 // size
         psize = get_psize(size)
         plen = get_psize(completed_length)
-        torrent_name = get_torrent_name(i['gid'])
+        torrent_name = get_torrent_name(i)
         if len(torrent_name) > 60:
             torrent_name = torrent_name[:57] + '...'
         status = i['status']
@@ -114,7 +101,7 @@ def remove():
     torrents = get_all()
     for gid in get_gid(torrents):
         torrent = s.aria2.tellStatus(gid)
-        torrent_name = get_torrent_name(gid)
+        torrent_name = get_torrent_name(torrent)
         if torrent['status'] == 'active':
             s.aria2.remove(gid)
         else:
@@ -128,7 +115,7 @@ def remove_all(dont_ask=False, status=None):
             if status and status != torrent['status']:
                 continue
             gid = torrent['gid']
-            torrent_name = get_torrent_name(gid)
+            torrent_name = get_torrent_name(torrent)
             if torrent['status'] == 'active':
                 s.aria2.remove(gid)
                 sleep(1)
@@ -144,7 +131,7 @@ def remove_metadata(dont_ask=False):
     if dont_ask or yes():
         torrents = s.aria2.tellStopped(0, 100)
         for i in torrents:
-            torrent_name = get_torrent_name(i['gid'])
+            torrent_name = get_torrent_name(i)
             if torrent_name.startswith('[METADATA]'):
                 try:
                     s.aria2.removeDownloadResult(i['gid'])
@@ -153,10 +140,19 @@ def remove_metadata(dont_ask=False):
                     print(err)
 
 
+def move_to_top():
+    torrents = s.aria2.tellWaiting(0, 100)
+    try:
+        gid = get_gid(torrents)[0]
+    except IndexError:
+        return
+    s.aria2.changePosition(gid, 0, 'POS_SET')
+
+
 if __name__ == '__main__':
     if not os.path.exists(PIDFILE):
-        import subprocess as sp
-        sp.Popen([WATCH], shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        sp.Popen([WATCH], shell=True,
+                stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 
     opts, args = parse_arguments()
     if opts.list:
@@ -177,6 +173,8 @@ if __name__ == '__main__':
         print(json.dumps(s.aria2.tellStatus(opts.gid), indent=2))
     elif opts.remove_metadata:
         remove_metadata()
+    elif opts.top:
+        move_to_top()
     elif args:
         for arg in args:
             if os.path.isfile(arg):

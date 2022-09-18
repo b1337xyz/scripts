@@ -11,11 +11,6 @@ import os
 API_URL = "https://api.jikan.moe/v4/anime?q={}&limit={}&sfw={}"
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/jikan.json')
-try:
-    COLS = os.get_terminal_size().columns
-except OSError:
-    COLS = 150
-COLS //= 2
 
 try:
     with open(CACHE, 'r') as fp:
@@ -79,9 +74,9 @@ else:
                 'year':     year if year else '?',
                 'score':    i['score'] if i['score'] else '?'
             }
-cache[url] = data
-with open(CACHE, 'w') as fp:
-    json.dump(cache, fp)
+    cache[url] = data
+    with open(CACHE, 'w') as fp:
+        json.dump(cache, fp)
 
 if args:
     titles = [
@@ -94,11 +89,12 @@ if args:
 else:
     titles = data.keys()
 
+max_size = max(len(i['title']) for i in data.values()) + 7
 for k in titles:
     obj = data[k]
     title = obj['title']
-    title = title if len(title) + 7 < COLS else title[:COLS - 10] + '...'
     title += ' ({})'.format(obj["year"])
     print('{0:{1}} | {2:8} | {3:<4} | {4:<4} | {5}'.format(
-        title, COLS, obj['type'], obj['episodes'], obj['score'], obj['rating']
+        title, max_size, obj['type'],
+        obj['episodes'], obj['score'], obj['rating']
     ))

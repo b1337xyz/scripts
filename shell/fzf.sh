@@ -122,3 +122,10 @@ fzfopen() {
 fcd() {
     cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
 }
+fzfpac() {
+    pacman -Qq | fzf --header '^r ^u ^d' \
+        --preview='pacman -Qi {}' --preview-window '70%' \
+        --bind 'ctrl-r:execute(sudo pacman -Rs {})'     \
+        --bind 'ctrl-r:execute(sudo pacman -Syu {})'    \
+        --bind 'ctrl-r:execute(sudo downgrade {})'
+}
