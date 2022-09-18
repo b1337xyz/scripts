@@ -6,17 +6,24 @@ import json
 import os
 
 HOME = os.getenv('HOME')
-CONFIG = os.path.join(HOME, '.cache/twitch.json')
+CACHE = os.path.join(HOME, '.cache/twitch.json')
+CONFIG = os.path.join(HOME, '.config/twitch.json')
+# {
+#     "client_id": <str>,
+#     "secret": <str>,
+#     "user_id": <int>,
+# }
+with open(CONFIG, 'r') as fp:
+    config = json.load(fp)
 
-# See https://dev.twitch.tv/docs/authentication/getting-tokens-oauth
-CLIENT_ID = ''
-SECRET = ''
-USER_ID = ''
+CLIENT_ID = config['client_id']
+SECRET    = config['secret']
+USER_ID   = config['user_id']
 
 
 class Twitch:
     def __init__(self):
-        with open(CONFIG, 'r') as fp:
+        with open(CACHE, 'r') as fp:
             config = json.load(fp)
         self.token = config['access_token']
         self.refresh_token = config['refresh_token']
@@ -37,7 +44,7 @@ class Twitch:
         j = r.json()
         self.token = j['access_token']
         self.refresh_token = j['refresh_token']
-        with open(CONFIG, 'w') as fp:
+        with open(CACHE, 'w') as fp:
             json.dump(j, fp)
 
 
