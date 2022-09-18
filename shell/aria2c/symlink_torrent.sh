@@ -26,21 +26,22 @@ done
 find_by_crc() {
     aria2c -S "$torrent" | awk -F'|' '/[0-9]\|\.\//{print substr($2, 3)}' | 
     while read -r i;do
-        crc=$(echo "$i" |
+        crc=$(echo -n "$i" |
             sed 's/[0-9]\{4\}x[0-9]\{3\}//g' |
-            grep -oP '(\[|\()[[:alnum:]]{8}(\)|\])' | tail -n1 |
+            grep -oP '(\[|\()[[:alnum:]]{8}(\)|\])' | tail -1 |
             sed 's/\[/\\[/g; s/\]/\\]/g'
         )
-        f=$(find "$target" -type f -name "*${crc}*")
+        [ -z "$crc" ] && continue
+        f=$(find "$target" -type f -iname "*${crc}*")
         [ -f "$f" ] || continue
         [ -h "${TORRENT_DIR}/$i" ] && continue
         ln -vrs "$f" "${TORRENT_DIR}/$i"
     done
 }
 find_by_files() {
-    aria2c -S "$torrent" | awk -F'|' '/[0-9]\|\.\//{print substr($2, 3)}' | 
-    while read -r i;do
-        fname=$(echo "${i##*/}" | sed 's/\[/\\[/g; s/\]/\\]/g; s/\*/\\*/g; s/\$/\\$/g; s/?/\\?/g')
+    aria2c -S "$torrent" | awk -F'|' '/[0-9]\|\.\//{print substr($2, 3)}' | while read -r i
+    do
+        fname=$(echo -n "${i##*/}" | sed -e 's/[]\[?\*\$]/\\&/g')
         f=$(find "$target" -type f -name "$fname")
         [ -f "$f" ] || continue
         [ -h "${TORRENT_DIR}/${i%/*}/${f##*/}" ] && continue
@@ -70,5 +71,4 @@ printf 'Searching by crc32...\n'
 find_by_crc
 check_torrent && exit 0
 
-find "$TORRENT_DIR" -empty -delete
 exit 1
