@@ -8,7 +8,7 @@ import json
 import re
 import os
 
-API_URL = "https://api.jikan.moe/v4/anime?q={}&limit={}&sfw={}"
+API_URL = "https://api.jikan.moe/v4/anime?q={}&limit={}"
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/jikan.json')
 
@@ -22,6 +22,7 @@ parser = OptionParser()
 parser.add_option('--tolerance', type='int', default=10)
 parser.add_option('-u', '--update', action='store_true', help='update cache')
 parser.add_option('-l', '--limit', type='int', default=25)
+parser.add_option('--id', type='int')
 parser.add_option('-t', '--type', type='string',
     help='tv, movie, ova, special, ona, music')
 parser.add_option('-r', '--rating', type='string',
@@ -34,10 +35,11 @@ parser.add_option('--start-date', type='string', metavar='YYYY-MM-DD',
     default='', help='e.g 2022, 2005-05, 2005-01-01')
 parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
     default='', help='e.g 2022, 2005-05, 2005-01-01')
-parser.add_option('--nsfw', action='store_false', default=True)
+# parser.add_option('--nsfw', action='store_false', default=True)
+
 opts, args = parser.parse_args()
 query = quote(' '.join(args))
-url = API_URL.format(query, opts.limit, str(opts.nsfw).lower())
+url = API_URL.format(query, opts.limit)
 if opts.order_by:
     url += f'&order_by={opts.order_by}'
 if opts.start_date:
@@ -50,6 +52,9 @@ if opts.rating:
     url += f'&rating={opts.rating}'
 if opts.score:
     url += f'&score={opts.score}'
+if opts.id:
+    url = f'https://api.jikan.moe/v4/anime/{opts.id}'
+
 
 data = dict()
 regex = re.compile(r"(?ui)\W")
@@ -58,7 +63,8 @@ if url in cache and not opts.update:
 else:
     print(url)
     with urlopen(url, timeout=15) as r:
-        for i in json.load(r)['data']:
+        j = json.load(r)['data']
+        for i in [j] if opts.id else j:
             mal_id = str(i['mal_id'])
             title = regex.sub(" ", i['title'])
             title = title.encode('ascii', 'ignore').decode()
@@ -89,7 +95,9 @@ if args:
 else:
     titles = data.keys()
 
-max_size = max(len(i['title']) for i in data.values()) + 7
+if data:
+    max_size = max(len(i['title']) for i in data.values()) + 7
+
 for k in titles:
     obj = data[k]
     title = obj['title']
