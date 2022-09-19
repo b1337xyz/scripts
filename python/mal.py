@@ -98,8 +98,7 @@ if args:
 else:
     titles = data.keys()
 
-if data:
-    max_size = max(len(i['title']) for i in data.values()) + 7
+max_size = max(len(i['title']) for i in data.values()) + 7
 
 for k in titles:
     obj = data[k]
