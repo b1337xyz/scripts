@@ -9,14 +9,13 @@ import subprocess as sp
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
-HIST = os.path.join(HOME, '.nhentai_history')
+HIST = os.path.join(HOME, '.cache/nhentai_history')
 CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 DOMAIN = 'nhentai.net'
 
 
 def parse_arguments():
-    global parser
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
     parser.add_option(
@@ -27,34 +26,16 @@ def parse_arguments():
         '-i', '--input-file', dest='input_file', metavar='FILE',
         action='store', help='Download URLs found in FILE'
     )
-    parser.add_option(
-        '-c', '--cookie', dest='cookie', metavar="STR",
-        help="csrftoken=TOKEN; sessionid=ID; cf_clearance=CLOUDFLARE"
-    )
-    parser.add_option('-u', '--user-agent', dest='user_agent', metavar="STR")
-    parser.add_option('-a', '--artist', dest='artist', default=None)
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
-    if not os.path.exists(opts.dl_dir): os.mkdir(opts.dl_dir)
-    assert os.path.isdir(opts.dl_dir), f'"{opts.dl_dir}" not a directory'
-    return (opts, args)
+    return opts, args
 
 
-def load_config(cookie=None, agent=None):
-    try:
-        with open(CONFIG , 'r') as fp:
-            config = json.load(fp)
-    except FileNotFoundError:
-        config = dict()
-    if cookie:
-        config['cookie'] = cookie
-    if agent:
-        config['user-agent'] = agent
-    if cookie or agent:
-        with open(CONFIG, 'w') as fp:
-            json.dump(config, fp, indent=2)
-    return config
+def is_torrent(file_path):
+    cmd = ['file', '-Lbi', file_path]
+    out = sp.run(cmd, stdout=sp.PIPE).stdout.decode()
+    return 'bittorrent' in out or 'octet-stream' in out
 
 
 def download(session, url, dl_dir, fname):
@@ -66,13 +47,10 @@ def download(session, url, dl_dir, fname):
                 fp.write(r.raw.read())
         except Exception as err:
             print(f'Failed to download torrent "{url}"\nError: {err}')
-
-    out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
-    torrent_name = re.search(r'[ \t]*\d\|\./([^/]*)', out)
-    if torrent_name:
-        torrent = os.path.join(dl_dir, torrent_name.group(1))
-        if os.path.exists(torrent):
-            os.remove(file)
+    if not is_torrent(file):
+        print(f'not a torrent, {file} removed')
+        os.remove(file)
+        raise TypeError
     return file
 
 
@@ -96,8 +74,7 @@ def main(urls):
         )
 
     for url in urls:
-        with open(HIST, 'a') as fp:
-            fp.write(url + '\n')
+        open(HIST, 'a').write(url + '\n')
 
         try:
             if '?q=' in url:
@@ -149,30 +126,28 @@ def main(urls):
             url = f'https://{DOMAIN}{post}download'
             print(f'[{i}/{len(posts)}] {url}')
             fname = post.split('/')[-2] + '.torrent'
-            torrents.append(download(s, url, dl_dir, fname))
+            f = download(s, url, dl_dir, fname)
+            torrents.append(f)
 
         sp.run([
             'aria2c', '--dir', dl_dir,
             '--bt-stop-timeout=500',
             '--seed-time=0'
         ] + torrents)
+        [os.remove(i) for i in torrents]
 
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
-    config = load_config(opts.cookie, opts.user_agent)
+    with open(CONFIG , 'r') as fp:
+        config = json.load(fp)
 
     try:
         UA = config['user-agent']
         COOKIE = config['cookie']
     except KeyError:
         print("Cookie or User-Agent not defined")
-        parser.print_help()
         exit(1)
-
-    if opts.artist:
-        artist = opts.artist.strip().replace(' ', '-')
-        args = [f'https://{DOMAIN}/artist/{artist}/']
 
     if opts.input_file:
         with open(opts.input_file, 'r') as fp:
