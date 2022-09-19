@@ -35,7 +35,7 @@ def get_all():
     waiting = s.aria2.tellWaiting(0, 100)
     stopped = s.aria2.tellStopped(0, 100)
     active  = s.aria2.tellActive()
-    return [] + waiting + stopped + active
+    return sorted([] + waiting + stopped + active, key=lambda x: x['status'])
 
 
 def add_torrent(torrent):
@@ -61,8 +61,7 @@ def add_torrent(torrent):
 
 
 def list_torrents():
-    torrents = sorted(get_all(), key=lambda x: x['status'])
-    for i in torrents:
+    for i in get_all():
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
         p = 0 if size == 0 else completed_length * 100 // size

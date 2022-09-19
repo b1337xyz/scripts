@@ -80,6 +80,9 @@ else:
                 'year':     year if year else '?',
                 'score':    i['score'] if i['score'] else '?'
             }
+    if not data:
+        print('Nothing to do...')
+        exit(0)
     cache[url] = data
     with open(CACHE, 'w') as fp:
         json.dump(cache, fp)
