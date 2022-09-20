@@ -47,11 +47,22 @@ def download(session, url, dl_dir, fname):
                 fp.write(r.raw.read())
         except Exception as err:
             print(f'Failed to download torrent "{url}"\nError: {err}')
+
     if not is_torrent(file):
         print(f'not a torrent, {file} removed')
         os.remove(file)
         raise TypeError
-    return file
+
+    try:
+        out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+        torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', out).group(1)
+    except:
+        return file
+
+    new_file = os.path.join(dl_dir, torrent_name + '.torrent')
+    if not os.path.exists(new_file):
+        os.rename(file, new_file)
+    return new_file
 
 
 def get_soup(session, url):
@@ -103,6 +114,7 @@ def main(urls):
             if not 'english' in div.text.lower():
                 continue
             posts.append(a)
+
         last_page = soup.find('a', {'class': 'last'})
         if last_page:
             last_page = int(last_page.get('href').split('=')[-1])
