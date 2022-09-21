@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 declare -r -x DLDIR=~/Downloads
 declare -r -x domain="https://txt.erai-raws.org"
-declare -r -x dlicon=folder-download
-declare -r -x favicon=emblem-favorite-symbolic.symbolic
-declare -r -x delicon=user-trash
-declare -r -x favorites=~/.cache/erai.txt
-declare -r -x tmpfile=$(mktemp)
+declare -r -x icon=folder-download
+declare -r -x cache_dir=~/.cache/erai
 
-end() { rm "$tmpfile"; }
+end() { find "$cache_dir" -name 'tmp.html' -delete; }
 trap end EXIT
 
 quote() {
@@ -34,43 +31,61 @@ unquote() {
     s/%29/)/g;    s/%21/!/g;    s/%CE%94/Δ/g
     '
 }
+quote() {
+    python3 -c '
+from sys import stdin, stdout
+from urllib.parse import quote
+for i in stdin:
+    stdout.write(quote(i.strip()) + "\n")'
+}
+unquote() {
+    python3 -c '
+from sys import stdout, stdin
+from urllib.parse import unquote
+for i in stdin:
+    stdout.write(unquote(i.strip()) + "\n")'
+}
 download() {
     for i in "$@";do
-        f=$(echo "${i##*/}" | unquote)
+        f=$(echo -n "${i##*/}" | unquote)
         if ! [ -f "${DLDIR}/${f}" ];then
             wget -nc -q -P "$DLDIR" "${domain}/$i"
-            notify-send -i "$dlicon" "Erai Sub Downloader" "$f"
+            notify-send "Erai Sub Downloader" "$f downloading..."
         fi
     done
 }
 main() {
     local url dir
+    dir=$(echo ${1##*dir=} | quote)
+    echo "$dir" >> ~/log
     if [[ "${1##*.}" =~ (ass|srt) ]];then
         download "$@"
+        dir=${dir%/*}
     elif [[ "$1" =~ ^http ]];then
         url="$1"
     else
-        dir=$(echo ${1##*dir=} | quote)
         url="${domain}/?dir=${dir}"
     fi
 
-    if [ -n "$url" ];then
+    html="${cache_dir}/${dir}/tmp.html"
+    if ! [ -f "$html" ];then
+        mkdir -p "${html%/*}"
         curl -s "$url" |
-        awk '/<div id="content"/,EOF {print $0}' > "$tmpfile"
+        awk '/<div id="content"/,EOF {print $0}' > "$html"
     fi
 
     {
-        grep -ioP '(?<=href\=")Sub/.*\.(ass|srt)' "$tmpfile";
-        grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$tmpfile";
+        grep -ioP '(?<=href\=")Sub/.*\.(ass|srt)' "$html";
+        grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$html";
     } | unquote | sort
 }
 
 favorite() {
     if ! grep -qF "$1" "$favorites" 2>/dev/null;then
-        notify-send -i "$favicon" "Erai Sub Downloader" "$1"
+        notify-send "Erai Sub Downloader" "$1 added"
         echo "$1" >> "$favorites";
     else
-        notify-send -i "$delicon" "Erai Sub Downloader" "$1"
+        notify-send "Erai Sub Downloader" "$1 removed"
         n=$(grep -nF "$1" "$favorites" | cut -d':' -f1)
         sed -i "${n}d" "$favorites"
     fi
