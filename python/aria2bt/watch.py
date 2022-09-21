@@ -41,7 +41,10 @@ def watch(gid):
         if os.path.exists(file):
             mv(file, CACHE)
 
-        s.aria2.removeDownloadResult(torrent['gid'])
+        try:
+            s.aria2.removeDownloadResult(torrent['gid'])
+        except:
+            pass
 
     torrent = get_info(gid)
     torrent_name = get_torrent_name(torrent)

@@ -8,6 +8,7 @@ import os
 
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads')
+TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG  = os.path.join(ROOT, 'log')

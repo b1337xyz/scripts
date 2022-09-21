@@ -40,6 +40,7 @@ def get_all():
 
 def add_torrent(torrent):
     options = {
+        'dir': TEMP_DIR,
         'force-save': 'false',
         'bt-save-metadata': 'true',
         'check-integrity': 'true'
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     if not os.path.exists(PIDFILE):
         sp.Popen([WATCH], shell=True,
                 stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        sleep(1)
 
     opts, args = parse_arguments()
     if opts.list:
