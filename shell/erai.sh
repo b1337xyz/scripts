@@ -34,7 +34,6 @@ download() {
 main() {
     local url dir
     dir=$(echo ${1##*dir=} | quote)
-    echo "$dir" >> ~/log
     if [[ "${1##*.}" =~ (ass|srt) ]];then
         download "$@"
         dir=${dir%/*}
