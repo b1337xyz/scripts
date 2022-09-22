@@ -2,35 +2,12 @@
 declare -r -x DLDIR=~/Downloads
 declare -r -x domain="https://txt.erai-raws.org"
 declare -r -x icon=folder-download
+declare -r -x favorites=~/.cache/erai.txt
 declare -r -x cache_dir=~/.cache/erai
 
 end() { find "$cache_dir" -name 'tmp.html' -delete; }
 trap end EXIT
 
-quote() {
-    sed '
-    s/%/%25/g;    s/ /%20/g;    s/\[/%5B/g;
-    s/\]/%5D/g;   s/</%3C/g;    s/>/%3E/g;
-    s/#/%23/g;    s/{/%7B/g;    s/}/%7D/g;
-    s/|/%7C/g;    s/\\/%5C/g;   s/\^/%5E/g;
-    s/~/%7E/g;    s/`/%60/g;    s/\;/%3B/g;
-    s/?/%3F/g;    s/@/%40/g;    s/=/%3D/g;
-    s/&/%26/g;    s/\$/%24/g;   s/(/%28/g;
-    s/)/%29/g;    s/!/%21/g;    s/Δ/%CE%94/g
-    '
-}
-unquote() {
-    sed '
-    s/%25/%/g;    s/%20/ /g;    s/%5B/\[/g;
-    s/%5D/\]/g;   s/%3C/</g;    s/%3E/>/g;
-    s/%23/#/g;    s/%7B/{/g;    s/%7D/}/g;
-    s/%7C/|/g;    s/%5C/\\/g;   s/%5E/\^/g;
-    s/%7E/~/g;    s/%60/`/g;    s/%3B/\;/g;
-    s/%3F/?/g;    s/%40/@/g;    s/%3D/=/g;
-    s/%26/&/g;    s/%24/\$/g;   s/%28/(/g;
-    s/%29/)/g;    s/%21/!/g;    s/%CE%94/Δ/g
-    '
-}
 quote() {
     python3 -c '
 from sys import stdin, stdout

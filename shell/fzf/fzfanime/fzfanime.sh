@@ -168,7 +168,7 @@ function main() {
 export -f main play sed_scape preview check_link
 
 trap finalise EXIT SIGINT
-start_ueberzug 2>/dev/null
+[ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null
 
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
 main "$@" | fzf -e --no-sort --preview 'preview {}' \
