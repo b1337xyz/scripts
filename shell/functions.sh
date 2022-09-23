@@ -543,5 +543,5 @@ random_color() {
 upload() { curl -F"file=@$*" https://0x0.st; }
 check_leek() {
     grep --exclude-dir=".git" --color -rniP \
-        'secret|token|password|passwd|client.?id|(\d{1,3}\.){3}\d+'
+        'api.?key|secret|token|password|passwd|client.?id|(\d{1,3}\.){3}\d+'
 }
