@@ -51,7 +51,7 @@ alljpg() {
         case "$mime" in
             image/gif*) continue ;;
             image/jpeg*)
-                [ "${i##*.}" != "jpg" ] && mv -vf "$i" "${i%.*}.jpg" ;;
+                [ "${i##*.}" != "jpg" ] && mv -vn "$i" "${i%.*}.jpg" ;;
             image/*)
                 convert -verbose "$i" "${i%.*}.jpg" && rm -v "$i" ;;
         esac
@@ -266,7 +266,8 @@ odr() {
     esac
 }
 fscripts() {
-    find ~/.scripts -type f -size -100k \! -path '*__*__*' -print0
+    find ~/.scripts -type f -size -100k \! -path '*__*__*' \
+        \! -iregex '.*\(jpg\|png\)' -print0
 }
 loc() {
     fscripts | wc -l --files0-from=- | sort -n 
@@ -544,4 +545,12 @@ upload() { curl -F"file=@$*" https://0x0.st; }
 check_leek() {
     grep --exclude-dir=".git" --color -rniP \
         'api.?key|secret|token|password|passwd|client.?id|(\d{1,3}\.){3}\d+'
+}
+fib() {
+    local a b n
+    a=0 b=1 n=${1:-5}
+    for (( i = 0; i <= n; i++ ));do
+        echo -n "$a "
+        fn=$((a + b)) a=$b b=$fn
+    done; echo
 }

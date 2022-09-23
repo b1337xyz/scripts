@@ -1,5 +1,6 @@
 > Shell dependencies
 - aria2c
+- bat
 - cksfv
 - dash
 - dmenu patched with [instant](https://tools.suckless.org/dmenu/patches/instant/) and [center](https://tools.suckless.org/dmenu/patches/center/)
