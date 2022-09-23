@@ -100,12 +100,10 @@ lst() {
 lst2() { lst "${@:-.}" | pr -t4w 80; }
 lstar() {
     local tmpfile
-    tmpfile=$(mktemp)
     for i in "$@";do
         [ -f "$i" ] || continue
         printf '>>> \033[1;31m%s\033[m\n' "$i"
-        tar tvf "$i" 2>/dev/null | tee "$tmpfile" | bat -l ls
-        [ -s "$tmpfile" ] || continue
+        tar tvf "$i" 2>/dev/null | bat -l ls
         read -rp "extract '$i'? (y/N) " ask
         [ "${ask,,}" == 'y' ] && tar axvf "$i"
     done
@@ -123,7 +121,7 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    ls -1 "${1:-.}" | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but fast
+    ls -1 "${1:-.}" | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but faster
 
     # find "${@:-.}" -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i
     # do
@@ -161,7 +159,7 @@ bulkrename() {
 }
 crc32check() {
     # How it works:
-    #   anime_[12345678].ext > 12345678 == file crc32
+    #   anime_[12345678].ext > 12345678 == crc32
 
     [ $# -eq 0 ] && { printf 'Usage: anime_check_crc FILE\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
@@ -202,7 +200,7 @@ chgrubbg() {
     elif [ -d "$1" ];then
         image=$(sxiv -qrto "$1" | head -n1)
     else
-        image=$(sxiv -qrto ~/Pictures/wallpapers | head -n1)
+        image=$(sxiv -qrto ~/Pictures/wallpapers | head -1)
     fi
     case "${image##*.}" in
         jpg|jpeg) sudo convert -verbose "$image" /usr/share/desktop-base/active-theme/grub/grub-16x9.png ;;

@@ -157,7 +157,8 @@ function main() {
             jq -Sr 'keys[] as $k | select(.[$k].isAdult) | $k' "$DB" | tee "$mainfile"
         ;;
         *)
-            find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
+            jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
+            #find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
         ;;
     esac
 

@@ -2,7 +2,7 @@ fonts() {
     fc-list | cut -d':' -f2- | sort -u | fzf |
         tr -d \\n | sed 's/^\s*//' | xclip -sel c
 }
-btm() {
+fzbtm() {
     find ~/.config/bottom/*.toml | fzf --layout=reverse --height 10 --print0 | xargs -0or btm -C
 }
 show() {
@@ -28,14 +28,14 @@ c() {
         fzf -e --layout=reverse --height 20  |
         awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
 }
-fzfumount() {
+fzumount() {
     command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
         awk '!/sda/{printf("%-20s %s\n", $1, $6)}' |
         fzf -m --layout=reverse --height 10 | awk '{print $1}' | xargs -roI{} sudo umount '{}'
 
     command df -h -x tmpfs -x devtmpfs | grep -v '/dev/sda'
 }
-ftorrent() {
+fztorrent() {
     local torrent
     find ~/.cache/torrents -iname '*.torrent' -printf '%f\n' |
     fzf --layout=reverse --height 10 -m | while read -r torrent
@@ -46,7 +46,7 @@ ftorrent() {
         find ~/.cache/torrents -type f -name "$torrent"
     done
 }
-cptorrent() { ftorrent | xargs -rI{} cp -v '{}' . ;}
+cptorrent() { fztorrent | xargs -rI{} cp -v '{}' . ;}
 cdanime() {
     pv() {
         p=$(readlink -m ~/Videos/Anime/"$1")
@@ -68,7 +68,7 @@ btf() {
     sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0        |
     xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
 }
-fzfbt() {
+fzbt() {
     pv() {
         aria2c -S "$1" # | sed '/^idx\|path\/length/q'
     }
@@ -116,16 +116,21 @@ dlbkp() {
         fzf --height 20 -e -m --bind 'ctrl-d:execute(dl {+})')
     unset dl
 }
-fzfopen() {
+fzopen() {
     fzf --bind 'enter:execute-silent(xdg-open {} & disown)'
 }
-fcd() {
+fzcd() {
     cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
 }
-fzfpac() {
+fzpac() {
     pacman -Qq | fzf --header '^r ^u ^d' \
         --preview='pacman -Qi {}' --preview-window '70%' \
         --bind 'ctrl-r:execute(sudo pacman -Rs {})'     \
         --bind 'ctrl-r:execute(sudo pacman -Syu {})'    \
         --bind 'ctrl-r:execute(sudo downgrade {})'
+}
+fzgov() {
+    awk '{for (i=1;i<NF;i++) print $i}' \
+        /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors |
+        fzf --height 7 | xargs -ro sudo cpupower frequency-set -g 
 }
