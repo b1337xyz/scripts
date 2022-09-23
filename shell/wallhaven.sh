@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+WALL_DIR=~/Pictures/WallHaven
+
 if [[ "$1" =~ ^- ]];then
     cat << EOF
 Usage: ${0##*/} <query>
@@ -24,12 +26,11 @@ search() {
 }
 
 if [ $# -gt 0 ];then
-    out=~/Pictures/WallHaven
     page=1
     last_page=$(search "$*" | jq -r .meta.last_page)
     while [ "$page" -lt "$last_page" ];do
         echo "[${page}/${last_page}] $*" >&2
         search "$*" "$page" | jq -r '.data[].path'
         ((page++))
-    done | xargs -rP3 wget -nc -P "$out"
+    done | xargs -rP3 wget -nc -P "$WALL_DIR"
 fi
