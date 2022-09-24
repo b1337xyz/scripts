@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from optparse import OptionParser
 import googleapiclient.discovery
 import json
 import os
@@ -15,9 +16,9 @@ CONF = os.path.join(HOME, '.config/.ytapi')
 API_KEY = open(CONF, 'r').readline().strip()
 
 
-def fzf(args: list, opts: list):
+def run(prog, args: list, opts: list):
     proc = sp.Popen(
-       ["fzf"] + opts,
+       [prog] + opts,
        stdin=sp.PIPE, stdout=sp.PIPE,
        universal_newlines=True
     )
@@ -27,22 +28,34 @@ def fzf(args: list, opts: list):
     return [i for i in out[0].split('\n') if i]
 
 
+def parse_arguments():
+    parser = OptionParser()
+    parser.add_option('--dmenu', action='store_true')
+    parser.add_option('--fzf', action='store_true', default=True)
+    return parser.parse_args()
+
+
 def main():
+    opts, args = parse_arguments()
+
     try:
         with open(HIST, 'r') as fp:
             hist = [i.strip() for i in fp.readlines() if i]
     except FileNotFoundError:
         hist = list()
 
-    if hist:
-        hist_len = len(hist)
-        lines = hist_len if hist_len <= 20 else 20
-        query = fzf(hist, [
-            '--height', str(lines), '--prompt', 'search: ',
-            '--print-query'
-        ])[-1]
+    if opts.dmenu:
+        query = run('dmenu', [], ['-c', '-p', 'search:'])[-1]
     else:
-        query = input('search: ').strip()
+        if hist:
+            hist_len = len(hist)
+            lines = hist_len if hist_len <= 20 else 20
+            query = run('fzf', hist, [
+                '--height', str(lines), '--prompt', 'search: ',
+                '--print-query'
+            ])[-1]
+        else:
+            query = input('search: ').strip()
 
     if query not in hist:
         with open(HIST, 'a') as fp:
@@ -63,7 +76,11 @@ def main():
         i['snippet']['title']: i['id']['videoId']
         for i in response['items']
     }
-    output = fzf(videos.keys(), ['-m', '--height', '25'])
+    if opts.dmenu:
+        output = run('dmenu', videos.keys(), ['-c', '-l', '25'])
+    else:
+        output = run('fzf', videos.keys(), ['-m', '--height', '25'])
+
     playlist = "/tmp/mpv.m3u"
     with open(playlist, "w") as fp:
         fp.write("#EXTM3U\n")
