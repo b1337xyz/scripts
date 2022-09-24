@@ -75,10 +75,15 @@ def main():
     )
     response = request.execute()
 
-    videos = {
-        i['snippet']['title']: i['id']['videoId']
-        for i in response['items']
-    }
+    videos = dict()
+    for i in response['items']:
+        title = i['snippet']['title']
+        if 'playlistId' in i['id']:
+            _id = i['id']['playlistId']
+        else:
+            _id = i['id']['videoId']
+        videos[title] = _id
+
     if opts.dmenu:
         output = run('dmenu', videos.keys(), ['-c', '-l', '25'])
     else:
