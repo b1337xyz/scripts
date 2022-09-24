@@ -14,6 +14,7 @@
 - xwallpaper
 
 > Python dependencies
-- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/)
-- [i3ipc](https://pypi.org/project/i3ipc)
-- [requests](https://pypi.org/project/requests/)
+- [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)
+- [i3ipc](https://github.com/altdesktop/i3ipc-python)
+- [requests](https://requests.readthedocs.io/en/latest/)
+- [google-api-python-client](https://github.com/googleapis/google-api-python-client)
