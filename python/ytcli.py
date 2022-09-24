@@ -7,7 +7,10 @@ import socket
 import subprocess as sp
 import sys
 
-# https://developers.google.com/youtube/v3/quickstart/python
+# HOW TO GET THE API_KEY -> https://developers.google.com/youtube/v3/quickstart/python
+# before running this start mpv with:
+# mpv --keep-open=yes --idle=yes --ytdl-format="ba" \
+#     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
 SOCKET_PATH = '/tmp/mpvradio'
 HOME = os.getenv('HOME')
@@ -16,7 +19,7 @@ CONF = os.path.join(HOME, '.config/.ytapi')
 API_KEY = open(CONF, 'r').readline().strip()
 
 
-def run(prog, args: list, opts: list):
+def run(prog: str, args: list, opts: list):
     proc = sp.Popen(
        [prog] + opts,
        stdin=sp.PIPE, stdout=sp.PIPE,
