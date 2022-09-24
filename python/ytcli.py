@@ -9,7 +9,8 @@ import sys
 SOCKET_PATH = '/tmp/mpvradio'
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
-API_KEY = os.getenv('YOUTUBE_API_KEY')
+CONF = os.path.join(HOME, '.config/.ytapi')
+API_KEY = open(CONF, 'r').readline().strip()
 
 
 def fzf(args: list, opts: list):
