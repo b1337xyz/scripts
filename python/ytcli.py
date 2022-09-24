@@ -6,6 +6,8 @@ import socket
 import subprocess as sp
 import sys
 
+# https://developers.google.com/youtube/v3/quickstart/python
+
 SOCKET_PATH = '/tmp/mpvradio'
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
