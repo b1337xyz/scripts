@@ -2,6 +2,7 @@
 set -e
 
 WALL_DIR=~/Pictures/WallHaven
+[ -z "$WALLHAVEN_API_KEY" ] && exit 1
 
 if [[ "$1" =~ ^- ]];then
     cat << EOF
@@ -18,10 +19,9 @@ EOF
     exit 0
 fi
 
-API_KEY=$(<~/.config/.wallhaven)
 search() {
     q=${1// /\+}
-    url="https://wallhaven.cc/api/v1/search?apikey=${API_KEY}&q=${q}&page=${2:-1}"
+    url="https://wallhaven.cc/api/v1/search?apikey=${WALLHAVEN_API_KEY}&q=${q}&page=${2:-1}"
     curl -s "$url"
 }
 
