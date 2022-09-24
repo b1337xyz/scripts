@@ -21,7 +21,7 @@ if [ ${#text} -gt "$max" ];then # brake lines
             c=1
         fi
         new_text+="${text:i:1}"
-        c=$((c+1))
+        ((c++))
     done
     text="${new_text}"
 fi
