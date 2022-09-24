@@ -52,9 +52,9 @@ def main():
     else:
         if hist:
             hist_len = len(hist)
-            lines = hist_len if hist_len <= 20 else 20
+            h = hist_len if hist_len <= 20 else 20
             query = run('fzf', hist, [
-                '--height', str(lines), '--prompt', 'search: ',
+                '--height', str(h), '--prompt', 'search: ',
                 '--print-query'
             ])[-1]
         else:

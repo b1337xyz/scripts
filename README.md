@@ -1,4 +1,5 @@
-> Shell dependencies
+## Dependencies
+> Shell 
 - aria2c
 - bat
 - cksfv
@@ -13,7 +14,7 @@
 - xclip
 - xwallpaper
 
-> Python dependencies
+> Python3
 - [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)
 - [i3ipc](https://github.com/altdesktop/i3ipc-python)
 - [requests](https://requests.readthedocs.io/en/latest/)
