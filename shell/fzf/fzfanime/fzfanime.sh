@@ -23,7 +23,7 @@
 
 ### USER SETTINGS
 
-declare -r -x ANIME_DIR=~/Videos/Anime
+declare -x -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.cache/anilist.json
 
@@ -31,7 +31,6 @@ declare -r -x DB=~/.cache/anilist.json
 
 set -eo pipefail
 
-[[ "${ANIME_DIR:: -1}" = "/" ]] && exit 1
 [ -d "$ANIME_DIR" ] || { printf '%s not found\n' "${ANIME_DIR}"; exit 1; }
 
 declare -r -x ANIME_HST=~/.cache/anime_history.txt
