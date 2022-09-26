@@ -2,18 +2,34 @@
 # shellcheck disable=SC2155
 # NOTES:
 #   - grep -xFf <file1> <file2> ...  will keep the order of the second file
-#   - DB generated using Anilist APIv2 -> https://anilist.gitbook.io/anilist-apiv2-docs
+#   - $DB generated using Anilist APIv2 -> https://anilist.gitbook.io/anilist-apiv2-docs
 #     and Jikan APIv4 -> https://api.jikan.moe/v4/anime
-
-set -eo pipefail
+#     {
+#       "<Anime Folder> (1998)": {
+#         "idMal": 400,
+#         "isAdult": false,
+#         "title": "Anime",
+#         "year": 1998,
+#         "genres": ["Action", ...],
+#         "episodes": 24,
+#         "score": 74,
+#         "synopsis": "In the distant future...",
+#         "image": "<local path to the image>",
+#         "type": "TB",
+#         "rated": "R+",
+#         "duration": 25,
+#       }
+#     }, ...
 
 ### USER SETTINGS
 
 declare -r -x ANIME_DIR=~/Videos/Anime
-declare -r -x PLAYER='mpv --force-window=immediate --really-quiet=yes --input-ipc-server=/tmp/mpvsocket'
+declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.cache/anilist.json
 
 ### END OF USER SETTINGS
+
+set -eo pipefail
 
 [[ "${ANIME_DIR:: -1}" = "/" ]] && exit 1
 [ -d "$ANIME_DIR" ] || { printf '%s not found\n' "${ANIME_DIR}"; exit 1; }
