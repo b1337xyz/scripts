@@ -26,6 +26,8 @@
 declare -x -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.cache/anilist.json
+declare -r -x ANIME_HST=~/.cache/anime_history.txt
+declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 
 ### END OF USER SETTINGS
 
@@ -33,8 +35,6 @@ set -eo pipefail
 
 [ -d "$ANIME_DIR" ] || { printf '%s not found\n' "${ANIME_DIR}"; exit 1; }
 
-declare -r -x ANIME_HST=~/.cache/anime_history.txt
-declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 declare -r -x mainfile=$(mktemp) 
 declare -r -x tmpfile=$(mktemp)
 declare -r -x mode=$(mktemp)
