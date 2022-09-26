@@ -35,6 +35,8 @@ def parse_arguments():
     parser = OptionParser()
     parser.add_option('--dmenu', action='store_true')
     parser.add_option('--fzf', action='store_true', default=True)
+    parser.add_option('--long', action='store_true',
+        help='Only include videos longer than 20 minutes.')
     return parser.parse_args()
 
 
@@ -71,6 +73,7 @@ def main():
         type='video,playlist',
         part="id,snippet",
         safeSearch='none',
+        videoDuration='long' if opts.long else 'any',
         maxResults=25
     )
     response = request.execute()

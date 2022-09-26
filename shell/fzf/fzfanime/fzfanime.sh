@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
-# NOTE: grep -xFf <patterns list> <file> ...  will keep the order of the second file
-# Using Anilist APIv2 https://anilist.gitbook.io/anilist-apiv2-docs/
+# NOTES:
+#   - grep -xFf <file1> <file2> ...  will keep the order of the second file
+#   - DB generated using Anilist APIv2 -> https://anilist.gitbook.io/anilist-apiv2-docs
+#     and Jikan APIv4 -> https://api.jikan.moe/v4/anime
 
 set -eo pipefail
 
 ### USER SETTINGS
 
 declare -r -x ANIME_DIR=~/Videos/Anime
-declare -r -x PLAYER='mpv --really-quiet=yes --input-ipc-server=/tmp/mpvsocket'
+declare -r -x PLAYER='mpv --force-window=immediate --really-quiet=yes --input-ipc-server=/tmp/mpvsocket'
 declare -r -x DB=~/.cache/anilist.json
 
 ### END OF USER SETTINGS

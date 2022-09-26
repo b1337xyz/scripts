@@ -51,18 +51,18 @@ def download(session, url, dl_dir, fname):
     if not is_torrent(file):
         print(f'not a torrent, {file} removed')
         os.remove(file)
-        raise TypeError
+        raise TypeError(f'"{file}" not a torrent')
 
-    try:
-        out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
-        torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', out).group(1)
-    except:
-        return file
+    # try:
+    #     out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+    #     torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', out).group(1)
+    # except:
+    #     return file
 
-    new_file = os.path.join(dl_dir, torrent_name + '.torrent')
-    if not os.path.exists(new_file):
-        os.rename(file, new_file)
-    return new_file
+    # new_file = os.path.join(dl_dir, torrent_name + '.torrent')
+    # if not os.path.exists(new_file):
+    #     os.rename(file, new_file)
+    return file
 
 
 def get_soup(session, url):
@@ -146,7 +146,7 @@ def main(urls):
             '--bt-stop-timeout=500',
             '--seed-time=0'
         ] + torrents)
-        [os.remove(i) for i in torrents]
+        [os.remove(i) for i in torrents if os.path.exists(i)]
 
 
 if __name__ == '__main__':

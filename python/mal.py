@@ -98,13 +98,13 @@ if args:
 else:
     titles = data.keys()
 
-max_size = max(len(i['title']) for i in data.values()) + 7
+max_len = max(len(i['title']) for i in data.values()) + 7
 
 for k in titles:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
     print('{0:{1}} | {2:8} | {3:<4} | {4:<4} | {5}'.format(
-        title, max_size, obj['type'],
+        title, max_len, obj['type'],
         obj['episodes'], obj['score'], obj['rating']
     ))

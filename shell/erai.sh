@@ -53,7 +53,7 @@ main() {
     {
         grep -ioP '(?<=href\=")Sub/.*\.(ass|srt)' "$html";
         grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$html";
-    } | unquote | sort
+    } | unquote | sort -u
 }
 
 favorite() {
