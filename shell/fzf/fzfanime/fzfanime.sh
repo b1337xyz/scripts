@@ -15,7 +15,7 @@
 #         "score": 74,
 #         "synopsis": "In the distant future...",
 #         "image": "<local path to the image>",
-#         "type": "TB",
+#         "type": "TV",
 #         "rated": "R+",
 #         "duration": 25,
 #       }
