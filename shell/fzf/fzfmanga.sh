@@ -2,7 +2,7 @@
 source ~/.scripts/shell/fzf/preview.sh
 
 function preview {
-    img=$(find -L "$1" -iregex '.*\.\(jpg\|png\|webp\|gif\)' | sort -V | head -5 | shuf -n1)
+    img=$(find -L "$1" -iregex '.*\.\(jpg\|png\|webp\|gif\)' | sort -V | head -1)
     draw_preview "$img"
     for _ in $(seq $((LINES - 1)));do echo ;done
     files=$(find "$1" -type f | wc -l)

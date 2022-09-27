@@ -83,7 +83,7 @@ function check_link {
     fi
 }
 function preview {
-    IFS='|' read -r title _type genres episodes score rated image < <(
+    IFS='|' read -r title _type genres episodes score rated image < <(\
         jq -r '.["'"${1}"'"] | "
         \(.["title"])|
         \(.["type"])|
@@ -136,3 +136,4 @@ function preview {
     for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
     check_link "$1" &
 }
+export -f preview check_link

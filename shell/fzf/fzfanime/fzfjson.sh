@@ -12,4 +12,3 @@ preview() {
 export -f preview
 
 jq -Mcr 'keys[]' "$anidb" | fzf --preview 'preview {}'
-

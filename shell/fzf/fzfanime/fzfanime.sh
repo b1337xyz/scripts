@@ -46,12 +46,6 @@ source "${rpath%/*}/preview.sh" || {
     exit 1;
 }
 
-function sed_scape {
-    i=${1//\[/\\[}  i=${i//\]/\\]}
-    i=${i//\*/\\*}  i=${i//\./\\.}
-    i=${i//\$/\\$}  i=${i//^/\^}
-    printf '%s' "$i"
-}
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
     $PLAYER "${ANIME_DIR}/$1" &>/dev/null &
@@ -65,8 +59,7 @@ function main() {
         ;;
         del_watched)
             if grep -qxF "$2" "$WATCHED_FILE" 2>/dev/null;then
-                i=$(sed_scape "$2")
-                sed -i "/${i}/d" "$WATCHED_FILE" 2>/dev/null
+                echo "$2" | sed -e 's/[]\[\*\$]/\\\\&/g' | xargs -rI{} sed -i "/{}/d" "$WATCHED_FILE"
             fi
         ;;
         avail)
@@ -119,7 +112,9 @@ function main() {
         shuffle)
             shuf "$mainfile"
         ;;
-        latest) ls --color=none -1tc ~/Videos/Anime0 | tee "$tmpfile" ;;
+        latest)
+            # shellcheck disable=SC2012
+            ls --color=none -1tc ~/Videos/Anime0 | tee "$tmpfile" ;;
         by_size)
             sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 | du -L --files0-from=- | sort -n | awk '{
                 split($0, a, "/");
@@ -182,8 +177,7 @@ function main() {
     [ -f "$mode" ] && rm "$mode"
     [ -s "$tmpfile" ] && mv -f "$tmpfile" "$mainfile"
 }
-
-export -f main play sed_scape preview check_link
+export -f main play
 
 trap finalise EXIT SIGINT
 [ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null

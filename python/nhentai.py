@@ -111,21 +111,19 @@ def main(urls):
         posts = list()
         for div in gallery:
             a = div.a.get('href')
-            if not 'english' in div.text.lower():
+            if 'english' not in div.text.lower():
                 continue
             posts.append(a)
-
         last_page = soup.find('a', {'class': 'last'})
         if last_page:
             last_page = int(last_page.get('href').split('=')[-1])
-            posts = list()
             for page in range(2, last_page + 1):
                 print(f'Scraping page {page}...\r', end='')
                 soup = get_soup(s, url.format(page))
                 gallery = soup.findAll('div', {'class': 'gallery'})
                 for div in gallery:
                     a = div.a.get('href')
-                    if not 'english' in div.text.lower():
+                    if 'english' not in div.text.lower():
                         continue
                     posts.append(a)
 
@@ -142,7 +140,7 @@ def main(urls):
             torrents.append(f)
 
         sp.run([
-            'aria2c', '--dir', dl_dir,
+            'aria2c', '-q', '--dir', dl_dir,
             '--bt-stop-timeout=500',
             '--seed-time=0'
         ] + torrents)

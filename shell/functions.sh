@@ -1,5 +1,5 @@
-# shellcheck disable=SC2012 
-# shellcheck disable=SC2094
+# shellcheck disable=SC2046
+# shellcheck disable=SC2086
 f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
@@ -121,7 +121,7 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    ls -1 "${1:-.}" | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but faster
+    for i in *;do printf '%s\n' "$i" ;done | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but faster
 
     # find "${@:-.}" -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i
     # do
@@ -288,7 +288,7 @@ dul() {
     for i in */;do
         [ -d "$i" ] || continue
         size=$(du -sh "$i"  | awk '{print $1}')
-        files=$(ls -1 "$i" | wc -l)
+        files=$(find "$i" -mindepth 1 -maxdepth 1 | wc -l)
         printf '%-5s | %3s | %s\n' "$size" "$files" "$i"
     done | sort -h
 }

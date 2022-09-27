@@ -91,7 +91,7 @@ btch() {
     local torrent
 
     torrent="$1"
-    [ -z "$1" ] && torrent=$(ls -1 ./*.torrent | head -1)
+    [ -z "$1" ] && torrent=$(printf '%s\n' ./*.torrent | head -1)
 
     file -Lbi -- "$1" | grep -q bittorrent || return 1
     aria2c -S "$torrent" | awk -F'|' '/[0-9]\|\.\//{print $2}' | sort | while read -r i;do
