@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
+from html import unescape
 import googleapiclient.discovery
 import json
 import os
@@ -16,7 +17,12 @@ SOCKET_PATH = '/tmp/mpvradio'
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
 CONF = os.path.join(HOME, '.config/.ytapi')
-API_KEY = open(CONF, 'r').readline().strip()
+if not os.path.exists(CONF):
+    API_KEY = input('API KEY: ').strip()
+    with open(CONF, 'w') as fp:
+        fp.write(api_key)
+else:
+    API_KEY = open(CONF, 'r').readline().strip()
 
 
 def run(prog: str, args: list, opts: list):
@@ -37,6 +43,7 @@ def parse_arguments():
     parser.add_option('--fzf', action='store_true', default=True)
     parser.add_option('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
+    parser.add_option('--history', action='store_true')
     return parser.parse_args()
 
 
@@ -45,12 +52,17 @@ def main():
 
     try:
         with open(HIST, 'r') as fp:
-            hist = [i.strip() for i in fp.readlines() if i]
+            hist = set(i.strip() for i in fp.readlines() if i)
     except FileNotFoundError:
         hist = list()
 
     if opts.dmenu:
-        query = run('dmenu', [], ['-c', '-p', 'search:'])[-1]
+        if opts.history and hist:
+            query = run('dmenu', hist, [
+                '-c', '-l', str(len(hist)), '-p', 'search:'
+            ])[-1]
+        else:
+            query = run('dmenu', [], ['-c', '-p', 'search:'])[-1]
     else:
         if hist:
             hist_len = len(hist)
@@ -80,7 +92,7 @@ def main():
 
     videos = dict()
     for i in response['items']:
-        title = i['snippet']['title']
+        title = unescape(i['snippet']['title'])
         if 'playlistId' in i['id']:
             _id = i['id']['playlistId']
         else:
@@ -88,7 +100,7 @@ def main():
         videos[title] = _id
 
     if opts.dmenu:
-        output = run('dmenu', videos.keys(), ['-c', '-l', '25'])
+        output = run('dmenu', videos.keys(), ['-c', '-i', '-l', '25'])
     else:
         output = run('fzf', videos.keys(), ['-m', '--height', '25'])
 
