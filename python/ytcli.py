@@ -20,9 +20,10 @@ CONF = os.path.join(HOME, '.config/.ytapi')
 if not os.path.exists(CONF):
     API_KEY = input('API KEY: ').strip()
     with open(CONF, 'w') as fp:
-        fp.write(api_key)
+        fp.write(API_KEY)
 else:
     API_KEY = open(CONF, 'r').readline().strip()
+ICON = '/usr/share/icons/Chicago95/apps/32/multimedia-video-player.png'
 
 
 def run(prog: str, args: list, opts: list):
@@ -46,29 +47,33 @@ def parse_arguments():
     parser.add_option('--history', action='store_true')
     return parser.parse_args()
 
+def notify(title, *msg):
+    try:
+        sp.run(['notify-send', '-i', ICON, title, '\n'.join(msg)])
+    except:
+        pass
 
 def main():
     opts, args = parse_arguments()
-
     try:
         with open(HIST, 'r') as fp:
             hist = set(i.strip() for i in fp.readlines() if i)
     except FileNotFoundError:
         hist = list()
+    hist_len = len(hist)
+    height = str(hist_len) if hist_len <= 10 else '10'
 
     if opts.dmenu:
         if opts.history and hist:
             query = run('dmenu', hist, [
-                '-c', '-l', str(len(hist)), '-p', 'search:'
+                '-c', '-l', height, '-p', 'search:'
             ])[-1]
         else:
             query = run('dmenu', [], ['-c', '-p', 'search:'])[-1]
     else:
         if hist:
-            hist_len = len(hist)
-            h = hist_len if hist_len <= 20 else 20
             query = run('fzf', hist, [
-                '--height', str(h), '--prompt', 'search: ',
+                '--height', height, '--prompt', 'search: ',
                 '--print-query'
             ])[-1]
         else:
@@ -115,6 +120,7 @@ def main():
     mpv.connect(SOCKET_PATH)
     cmd = {"command": ["loadlist", playlist]}
     mpv.send(json.dumps(cmd).encode('utf-8') + b'\n')
+    notify('♫  Playing now...', output[0])
 
 
 if __name__ == '__main__':

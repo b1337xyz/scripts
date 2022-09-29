@@ -13,5 +13,5 @@ d=$(find /usr/share/icons ~/.local/share/icons -mindepth 1 -maxdepth 1 -type d |
 test -d "$d" || exit 0
 find "$d" -type f | fzf -e      \
     --preview 'draw_preview {}' \
-    --preview-window 'left:10%' \
+    --preview-window 'left:10%,border-none' \
     --bind 'Return:execute-silent(fun {})'
