@@ -23,7 +23,6 @@ if not os.path.exists(CONF):
         fp.write(API_KEY)
 else:
     API_KEY = open(CONF, 'r').readline().strip()
-ICON = '/usr/share/icons/Chicago95/apps/32/multimedia-video-player.png'
 
 
 def run(prog: str, args: list, opts: list):
@@ -49,7 +48,7 @@ def parse_arguments():
 
 def notify(title, *msg):
     try:
-        sp.run(['notify-send', '-i', ICON, title, '\n'.join(msg)])
+        sp.run(['notify-send', title, '\n'.join(msg)])
     except:
         pass
 

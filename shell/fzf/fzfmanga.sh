@@ -8,9 +8,7 @@ function preview {
     files=$(find "$1" -type f | wc -l)
     printf 'Files: %s\n' "$files"
 }
-function open {
-    nsxiv -fqrs w "$1" 2>/dev/null
-}
+function open { nsxiv -fqrs w "$1" 2>/dev/null; }
 export -f preview open
 trap finalise EXIT
 start_ueberzug
