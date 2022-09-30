@@ -12,10 +12,10 @@ height = focused.rect.height
 x = focused.rect.x
 y = focused.rect.y
 if 'off' in focused.floating:
-    print('nothign to do')
+    print('nothing to do')
     sys.exit(1)
 if terminal not in focused.window_class.lower():
-    print('nothign to do')
+    print('nothing to do')
     sys.exit(1)
 
 sp.call('alacritty --class floating_terminal &', shell=True)

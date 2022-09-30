@@ -2,16 +2,17 @@
 
 SOCKET=/tmp/mpvradio
 case "$1" in
-    toggle)     comm='"cycle", "pause"'         ;;
-    next)       comm='"playlist-next"'          ;;
-    prev)       comm='"playlist-prev"'          ;;
-    forward)    comm='"seek", "50"'             ;;
-    backward)   comm='"seek", "-50"'            ;;
-    mute)       comm='"cycle", "mute"'          ;;
-    up)         comm='"add", "volume", "10"'    ;;
-    down)       comm='"add", "volume", "-10"'   ;;
-    fs)         comm='"cycle", "fullscreen"'    ;;
+    toggle)   cmd='"cycle", "pause"'        ;;
+    next)     cmd='"playlist-next"'         ;;
+    prev)     cmd='"playlist-prev"'         ;;
+    forward)  cmd='"seek", "50"'            ;;
+    backward) cmd='"seek", "-50"'           ;;
+    mute)     cmd='"cycle", "mute"'         ;;
+    up)       cmd='"add", "volume", "10"'   ;;
+    down)     cmd='"add", "volume", "-10"'  ;;
+    fs)       cmd='"cycle", "fullscreen"'   ;;
+    loop)     cmd='"cycle", "loop-file"'    ;;
 esac
 
-[ -n "$comm" ] &&
-    echo '{"command": ['"${comm}"']}' | socat - "$SOCKET"
+[ -n "$cmd" ] &&
+    echo '{"command": ['"${cmd}"']}' | socat - "$SOCKET"

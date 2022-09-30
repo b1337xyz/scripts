@@ -20,8 +20,9 @@ def switch_splitting(i3, e):
             i3.command(new_layout)
 
 
-events = ["WINDOW", "MODE"]
-i3 = Connection()
-for e in events:
-    i3.on(Event[e], switch_splitting)
-i3.main()
+if __name__ == '__main__':
+    events = ["WINDOW", "MODE"]
+    i3 = Connection()
+    for e in events:
+        i3.on(Event[e], switch_splitting)
+    i3.main()
