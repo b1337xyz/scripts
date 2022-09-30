@@ -19,8 +19,6 @@ while [ $# -gt 0 ];do
         -r)
             find "$TRASH_DIR" -type f -printf '%T@ %f\n' | sort -rn | cut -d' ' -f2-  |
             fzf --no-sort -m --preview-window 'right:60%' \
-                --bind 'ctrl-t:last'    \
-                --bind 'ctrl-b:first'   \
                 --preview 'preview {}' --print0 | xargs -r0I{} mv -vi "${TRASH_DIR}/{}" .
         ;;
         -*) printf 'usage: %s -r <files*>\n' "${0##*/}"; exit 1 ;;
@@ -31,7 +29,7 @@ while [ $# -gt 0 ];do
                 rp=$(realpath "$1")
                 n=1
                 while [ -f "$f" ];do
-                    f="${TRASH_DIR}/${n}.${fname}"
+                    f="${TRASH_DIR}/${fname}.$n"
                     n=$((n + 1))
                 done
                 mv -v -- "$1" "$f"

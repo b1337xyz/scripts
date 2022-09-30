@@ -8,8 +8,7 @@ get_path() {
     {
         echo -e "$@\0";
         find -L "$@" -iregex '.*\.\(jpg\|png\)' -printf '%h\0';
-    } |
-        sort -uz | xargs -r0 basename -a | sort -u | dmenu -c -i -l 20 -n |
+    } | sort -uz | xargs -r0 basename -a | sort -u | dmenu -c -i -l 20 -n |
         tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0
 }
 get_wallpaper() {

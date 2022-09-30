@@ -5,10 +5,10 @@ get_volume() {
 }
 
 case "$1" in
-    up) pactl set-sink-volume @DEFAULT_SINK@ +5% ;;
-    down) pactl set-sink-volume @DEFAULT_SINK@ -5% ;;
-    toggle) pactl set-sink-mute @DEFAULT_SINK@ toggle ;;
-    [0-9]*) pactl set-sink-volume @DEFAULT_SINK@ "$1"% ;;
+    up)     pactl set-sink-volume @DEFAULT_SINK@ +5%    ;;
+    down)   pactl set-sink-volume @DEFAULT_SINK@ -5%    ;;
+    toggle) pactl set-sink-mute @DEFAULT_SINK@ toggle   ;;
+    [0-9]*) pactl set-sink-volume @DEFAULT_SINK@ "$1"%  ;;
 esac && pkill -SIGRTMIN+10 i3blocks
 
 exit 0

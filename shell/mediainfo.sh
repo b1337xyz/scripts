@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-mj() {
-    mediainfo --Output=JSON "$@"
-}
-mpj() {
-    mj "$@" | jq . | bat -l json
-}
+mj() { mediainfo --Output=JSON "$@"; }
+mpj() { mj "$@" | jq . | bat -l json; }
 lsd() {
     find "${@:-.}" -maxdepth 1 -iregex '.*\.\(mp3\|opus\|mkv\|mp4\|m4v\|mov\|webm\|avi\)' -print0 |
     sort -zV | xargs -r0 mediainfo --Output=JSON | jq -Mcr '
@@ -103,7 +99,8 @@ mvbyres() {
             ((.track[] |
                 select(.["@type"] == "Image" or .["@type"] == "Video"
             ) | .Height) | tonumber )
-        ] | "\(.[2]) \(.[0])"' | sort -n | while read -r i;do
+        ] | "\(.[2]) \(.[0])"' | sort -n | while read -r i
+        do
             d="${i%% *}" f="${i#* }"
             test -d "$d" || mkdir -v "$d"
             mv -vn "$f" "$d"

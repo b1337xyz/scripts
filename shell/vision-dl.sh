@@ -30,7 +30,8 @@ main() {
     i=1
     curl -sS -H "$UA" "https://animesvision.biz/search?nome=$query" |
     grep -oE '(http|https)://animesvision.biz/animes/[a-z0-9-]*' | awk '!seen[$0]++' |
-    head -n "$MAX_RESULTS" | tee "$tmpfile" | while read -r url;do
+    head -n "$MAX_RESULTS" | tee "$tmpfile" | while read -r url
+    do
         title=${url##*/} title=${title//-/ }
         printf '%2s) %s\n' "$i" "$title"
         ((i++))
@@ -52,7 +53,8 @@ main() {
     url=${url}/episodio-01/legendado
     curl -sS -H "$UA" "$url" | grep -Po '(?<=href=")[^"]*(?=")*/legendado' | sort -u > "$tmpfile"
     lines=$(wc -l "$tmpfile") lines=${lines% *}
-    while read -r url;do
+    while read -r url
+    do
         printf '[%3s/%3s] %s\n' "$i" "$lines" "$url"
         download "$url"
         ((i++))
