@@ -30,8 +30,7 @@ for post in posts:
     for magnet in re.findall(r'magnet:\?xt=urn:btih:[A-z0-9]+', post):
         try:
             sp.run([
-                'aria2c',
-                '-d', thread,
+                'aria2c', '-d', thread,
                 '--bt-save-metadata',
                 '--bt-metadata-only',
                 '--bt-stop-timeout=90',
