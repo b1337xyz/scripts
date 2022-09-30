@@ -119,7 +119,7 @@ def main():
     mpv.connect(SOCKET_PATH)
     cmd = {"command": ["loadlist", playlist]}
     mpv.send(json.dumps(cmd).encode('utf-8') + b'\n')
-    notify('♫  Playing now...', output[0])
+    notify('♫ Playing now...', output[0])
 
 
 if __name__ == '__main__':

@@ -14,4 +14,4 @@ for i in stdin:
 }
 
 shuf -n "${n:-100}" "$sloc" | unquote |
-    mpv --no-config --input-ipc-server=/tmp/mpvsocket --shuffle --no-video --playlist=-
+    mpv --no-config --input-ipc-server=/tmp/mpvradio --shuffle --no-video --playlist=-
