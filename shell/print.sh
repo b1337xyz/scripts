@@ -11,7 +11,6 @@ DIR=~/Pictures/screenshots
 [ -d "$DIR"  ] || mkdir -vp "$DIR"
 
 tmpimg="/tmp/screenshot_%Y%m%d%H%M.png"
-
 case $1 in
     -*)
         printf 'Usage: %s [focused|select|copy|copy-focused|copy-select]\n' "${0##*/}"
@@ -38,6 +37,4 @@ case $1 in
     *) scrot -q 100 -m ~/Pictures/screenshots/screenshot_%Y%m%d%H%M.png -e 'notify-send -i $f Print $f' ;;
 esac
 
-if [ -f "$tmpimg" ];then
-    sleep 5m ; rm "$tmpimg" &
-fi
+[ -f "$tmpimg" ] && { sleep 5m ; rm "$tmpimg"; } &
