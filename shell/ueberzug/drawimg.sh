@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
 # shellcheck disable=SC2154
-[ -f "$1" ] || exit 1
+file -Lbi -- "$1" 2>/dev/null | grep -q '^image/' || exit 1
 
 declare -r -x UEBERZUG_FIFO="$(mktemp --dry-run --suffix "fzf-$$-ueberzug")"
 declare -r -x PREVIEW_ID="preview"
@@ -28,7 +28,6 @@ function draw_img {
         [scaler]=fit_contain [scaling_position_x]=0.5 [scaling_position_y]=0.5 \
         [path]="${@}")
 }
-
 trap finalise EXIT
 start_ueberzug
 

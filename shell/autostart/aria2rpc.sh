@@ -1,7 +1,4 @@
 #!/bin/sh
-
-set -e
-
 session=~/.cache/aria2/session
 
 pgrep aria2c | xargs -r kill
