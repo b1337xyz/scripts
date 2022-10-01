@@ -56,7 +56,7 @@ def main():
     opts, args = parse_arguments()
     try:
         with open(HIST, 'r') as fp:
-            hist = set(i.strip() for i in fp.readlines() if i)
+            hist = [i.strip() for i in fp.readlines() if i][::-1]
     except FileNotFoundError:
         hist = list()
     hist_len = len(hist)

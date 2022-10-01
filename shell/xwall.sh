@@ -40,7 +40,7 @@ if test "${use_dmenu:-0}" -eq 1  ;then
     wallpaper=$(get_path "${targets[@]}" | xargs -r0I{} bash -c 'get_wallpaper "$@"' _ '{}')
     [ -f "$wallpaper" ] || exit 0
 elif test "${use_sxiv:-0}" -eq 1 ;then
-    get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' \
+    get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' -maxdepth 1 \
         -iregex '.*\.\(jpg\|png\)' -printf '%T@ %p\n' | 
         sort -rn | cut -d' ' -f2- | nsxiv -iqt 2>/dev/null
     exit 0

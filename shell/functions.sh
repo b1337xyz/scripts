@@ -4,11 +4,17 @@ f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
 za() { command zathura "$@" &>/dev/null & disown ; }
-line() { sed "${1}!d" "$2"; }
 wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
+line() {
+    if [ -n "$2" ];then
+        sed "${1}!d" "$2"
+    else
+        sed "${1}!d"
+    fi
+}
 webdav_server() {
     local ip
     ip=$(command ip -br a | awk '/UP/{print substr($3, 1, length($3)-3); exit}')
