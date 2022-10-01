@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 
 
-def clean_filename(s: str):
+def clean_filename(s: str) -> str:
     keep = [' ', '.', '_', '[', ']', '(', ')']
     s = ''.join(c for c in s if c.isalnum() or c in keep)
     return re.sub('\s{2,}', ' ', s).strip()
@@ -36,6 +36,7 @@ page_regex    = re.compile(r'[\?\&]page=(\d+)')
 # img_regex   = re.compile(r'https://\w*\.\w*\.hath\.network(?:\:\d+)?/\w/[^\"]*\.(?:jpe?g|png|gif)')
 img_regex     = re.compile(r'<img id=\"img\" src=\"([^\"]*)')
 title_regex   = re.compile(r'<h1 id="gn">([^<]*)</h1>')
+title_regex_fallback = re.compile(r'<title>([^<]*)</title>')
 next_regex    = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
 artist_regex  = re.compile(r'<a id="ta_artist:([^\"]*)')
 
@@ -68,14 +69,30 @@ for gid, token in gallery:
     url = f'https://e-hentai.org/g/{gid}/{token}/'
     logging.info(url)
     r = s.get(url)
-    title = title_regex.search(r.text).group(1)
+    try:
+        url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
+    except:
+        logging.error(url, 'nothing found')
+        continue
+
+    try:
+        title = title_regex.search(r.text).group(1)
+    except AttributeError:
+        title = None
+
+    if not title:
+        try:
+            title = title_regex_fallback.search(f).group(1)
+            title = ''.join(title.split('-')[:-1])
+        except AttributeError:
+            title = gid
     title = clean_filename(unescape(title))
     try:
         artist = artist_regex.search(r.text).group(1)
         dl_dir = os.path.join(DL_DIR, f'{artist}/{title}')
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
-    url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
+
     curr_page = 0
     next_page = curr_page + 1
     att = 0
