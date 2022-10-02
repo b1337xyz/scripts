@@ -36,8 +36,10 @@ function calculate_position {
     esac
 }
 function draw_preview {
+    local img
     calculate_position
-    file -Lbi -- "$1" | grep -q '^image/' || return 1
+    file -Lbi -- "$1" 2>/dev/null | grep -q '^image/' || return 1
+    img=$(printf '%s\n' "$1" | sed 's/"/\\&/g')
 
     # bash
     # >"${UEBERZUG_FIFO}" declare -A -p cmd=( \
@@ -48,7 +50,11 @@ function draw_preview {
     #     [path]="$1")
 
     # json
-    printf '{"action": "add", "identifier": "preview", "x": %d, "y": %d, "width": %d, "height": %d, "scaler": "fit_contain", "path": "%s"}\n' \
-        "$X" "$Y" "$((COLUMNS - 1))" "$((LINES - 1))" "$1" > "$UEBERZUG_FIFO"
+    printf '{
+        "action": "add", "identifier": "preview",
+        "x": %d, "y": %d, "width": %d, "height": %d,
+        "scaler": "fit_contain", "path": "%s"
+    }\n' "$X" "$Y" "$((COLUMNS - 1))" "$((LINES - 1))" "$img" | jq -Mc > "$UEBERZUG_FIFO"
+
 }
 export -f draw_preview calculate_position 

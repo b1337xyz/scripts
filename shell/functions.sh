@@ -539,7 +539,7 @@ paclog() {
 random_anime_quote() {
     # Default rate limit is 100 requests per hour.
     local url="https://animechan.vercel.app/api/random"
-    curl -s "$url" | jq -Mrc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
+    curl -s "$url" | jq -Mc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
 }
 random_color() {
     clear

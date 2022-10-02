@@ -140,7 +140,7 @@ def main(urls):
             torrents.append(f)
 
         sp.run([
-            'aria2c', '-q', '--dir', dl_dir,
+            'aria2c', '--dir', dl_dir,
             '--bt-stop-timeout=500',
             '--seed-time=0'
         ] + torrents)

@@ -10,23 +10,9 @@ declare -r -x cache_dir=~/.cache/fzfanime_preview
 
 function start_ueberzug {
     mkfifo "${UEBERZUG_FIFO}"
-
-    # bash 
-    # <"${UEBERZUG_FIFO}" \
-    #     ueberzug layer --parser bash --silent &
-    # # prevent EOF
-    # 3>"${UEBERZUG_FIFO}" \
-    #     exec
-
-    # json
     tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json &
 }
 function finalise {
-    # bash
-    # 3>&- \
-    #     exec
-
-    # json
     printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
 
     jobs -p | xargs -r kill 2>/dev/null
@@ -105,10 +91,6 @@ function preview {
         \(.["image"])"' ~/.cache/anilist.json 2>/dev/null | sed 's/^\s*//g' | tr -d \\n)
 
     if [ -z "$title" ];then
-        # bash
-        # >"${UEBERZUG_FIFO}" declare -A -p cmd=([action]="remove" [identifier]="preview")
-
-        # json
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
 
         printf "404 - preview not found\n\n"
@@ -122,17 +104,11 @@ function preview {
     # mal_score=$(jq -r 'keys[] as $k | select(.[$k]["mal_id"]=='"$idMal"') | .[$k]["score"]' \
     #    ~/.cache/maldb.json 2>/dev/null | head -n1)
 
-    # bash
-    # >"${UEBERZUG_FIFO}" declare -A -p cmd=( \
-    #     [action]=add [identifier]="preview" \
-    #     [x]="0" [y]="0" \
-    #     [width]="$WIDTH" [height]="22" \
-    #     [scaler]=distort [scaling_position_x]=0.5 [scaling_position_y]=0.5 \
-    #     [path]="$image") &
-
-    # json
-    printf '{"action": "add", "identifier": "preview", "x": "%d", "y": "%d", "width": "%d", "height": "%d", "scaler": "distort", "path": "%s"}\n' \
-        0 0 "$WIDTH" "$HEIGHT" "$image" > "$UEBERZUG_FIFO" &
+    printf '{
+        "action": "add", "identifier": "preview",
+        "x": 0, "y": 0, "width": %d, "height": %d,
+        "scaler": "distort", "path": "%s"
+    }\n' "$WIDTH" "$HEIGHT" "$image" | jq -Mc > "$UEBERZUG_FIFO" &
 
 
     #if [ "${#title}" -gt 28 ];then

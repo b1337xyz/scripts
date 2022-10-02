@@ -122,12 +122,12 @@ fzopen() {
 fzcd() {
     cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
 }
-fzpac() {
-    pacman -Qq | fzf --header '^r ^u ^d' \
+fzpac() { 
+    pacman -Qq | fzf -m --header '^r ^s ^d' \
         --preview='pacman -Qi {}' --preview-window '70%' \
-        --bind 'ctrl-r:execute(sudo pacman -Rs {})'     \
-        --bind 'ctrl-r:execute(sudo pacman -Syu {})'    \
-        --bind 'ctrl-r:execute(sudo downgrade {})'
+        --bind 'ctrl-r:execute(sudo pacman -Rs {+})+reload(pacman -Qq)' \
+        --bind 'ctrl-s:execute(sudo pacman -Syu {+})' \
+        --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
 fzgov() {
     awk '{for (i=1;i<=NF;++i) print $i}' \
