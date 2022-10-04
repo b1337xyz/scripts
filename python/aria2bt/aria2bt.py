@@ -102,8 +102,12 @@ def remove():
     for gid in get_gid(torrents):
         torrent = s.aria2.tellStatus(gid)
         torrent_name = get_torrent_name(torrent)
-        if torrent['status'] == 'active':
-            s.aria2.remove(gid)
+        if torrent['status'] in ['active', 'waiting']:
+            try:
+                s.aria2.remove(gid)
+            except Exception as err:
+                print(err)
+                s.aria2.forceRemove(gid)
         else:
             s.aria2.removeDownloadResult(gid)
         print(torrent_name, 'removed')
