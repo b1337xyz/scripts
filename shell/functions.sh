@@ -516,12 +516,17 @@ todo() {
                 cat "$TODOFILE"; echo
             fi
         ;;
+        rm)
+            nl "$TODOFILE"
+            read -r -p ": " n
+            [[ "$n" =~ ^[0-9]+$ ]] && sed -i "${n}d" "$TODOFILE"
+        ;;
         add)
             shift
             [ -n "$1" ] && printf '[%s] %s\n' \
                 "$(date +%Y.%m.%d' '%H:%M)" "$*" | tee -a "$TODOFILE"
         ;;
-        *) echo 'Usage: todo [ed ls add] <TODO>' ;;
+        *) echo 'Usage: todo [ed ls rm add] <TODO>' ;;
     esac
 }
 ftext() {
@@ -548,7 +553,7 @@ random_color() {
     printf '\e[0m'
 }
 upload() { curl -F"file=@$*" https://0x0.st; }
-check_leek() {
+grep_secrets() {
     grep --exclude-dir=".git" --color -rniP \
         'api.key|secret|token|password|passwd|(\d{1,3}\.){3}\d+'
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
 from html import unescape
+from random import choice
 import googleapiclient.discovery
 import json
 import os
@@ -41,6 +42,7 @@ def parse_arguments():
     parser = OptionParser()
     parser.add_option('--dmenu', action='store_true')
     parser.add_option('--fzf', action='store_true', default=True)
+    parser.add_option('--random', action='store_true')
     parser.add_option('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
     parser.add_option('--history', action='store_true')
@@ -57,6 +59,11 @@ def main():
     try:
         with open(HIST, 'r') as fp:
             hist = [i.strip() for i in fp.readlines() if i][::-1]
+        uniq_hist = list()
+        for i in hist:
+            if i not in uniq_hist:
+                uniq_hist.append(i)
+        hist = uniq_hist
     except FileNotFoundError:
         hist = list()
     hist_len = len(hist)
@@ -78,17 +85,17 @@ def main():
         else:
             query = input('search: ').strip()
 
-    if query not in hist:
-        with open(HIST, 'a') as fp:
-            fp.write(query + '\n')
+    with open(HIST, 'a') as fp:
+        fp.write(query + '\n')
 
     youtube = googleapiclient.discovery.build(
         'youtube', 'v3', developerKey=API_KEY)
     request = youtube.search().list(
         q=query.replace(' ', '-'),
-        type='video,playlist',
+        type='video',
         part="id,snippet",
         safeSearch='none',
+        videoCategoryId='10',
         videoDuration='long' if opts.long else 'any',
         maxResults=25
     )
@@ -102,11 +109,14 @@ def main():
         else:
             _id = i['id']['videoId']
         videos[title] = _id
+    keys = list(videos.keys())
 
-    if opts.dmenu:
-        output = run('dmenu', videos.keys(), ['-c', '-i', '-l', '25'])
+    if opts.random:
+        output = [choice(keys)]
+    elif opts.dmenu:
+        output = run('dmenu', keys, ['-c', '-i', '-l', '25'])
     else:
-        output = run('fzf', videos.keys(), ['-m', '--height', '25'])
+        output = run('fzf',   keys, ['-m', '--height', '25'])
 
     playlist = "/tmp/mpv.m3u"
     with open(playlist, "w") as fp:

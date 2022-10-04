@@ -57,7 +57,6 @@ if opts.id:
 
 
 data = dict()
-regex = re.compile(r"(?ui)\W")
 if url in cache and not opts.update:
     data = cache[url]
 else:
@@ -66,7 +65,7 @@ else:
         j = json.load(r)['data']
         for i in [j] if opts.id else j:
             mal_id = str(i['mal_id'])
-            title = regex.sub(" ", i['title'])
+            title = re.sub(r"(?ui)\W", ' ', i['title'])
             title = title.encode('ascii', 'ignore').decode()
             title = re.sub(r'\s{2,}', ' ', title).strip()
             year = i['year']

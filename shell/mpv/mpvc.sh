@@ -14,5 +14,4 @@ case "$1" in
     loop)     cmd='"cycle", "loop-file"'    ;;
 esac
 
-[ -n "$cmd" ] &&
-    echo '{"command": ['"${cmd}"']}' | socat - "$SOCKET"
+[ -n "$cmd" ] && echo '{"command": ['"${cmd}"']}' | socat - "$SOCKET"

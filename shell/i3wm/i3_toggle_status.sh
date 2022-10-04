@@ -5,4 +5,4 @@ if grep -q ' status_command' "$conf" ;then
 elif grep -q '#status_command' "$conf" ;then
     sed -i 's/#status_command/status_command/g' "$conf"
 fi
-i3-msg restart >/dev/null 2>&1
+DISPLAY=:0 i3-msg restart >/dev/null 2>&1

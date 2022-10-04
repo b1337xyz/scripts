@@ -39,6 +39,7 @@ title_regex   = re.compile(r'<h1 id="gn">([^<]*)</h1>')
 title_regex_fallback = re.compile(r'<title>([^<]*)</title>')
 next_regex    = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
 artist_regex  = re.compile(r'<a id="ta_artist:([^\"]*)')
+skip_regex    = re.compile(r'twitter|patreon')
 
 
 url = argv[1]
@@ -93,6 +94,10 @@ for gid, token in gallery:
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
 
+    # if skip_regex.search(title.lower()):
+    #     logging.info(f'Ignoring: {title}')
+    #     continue
+
     curr_page = 0
     next_page = curr_page + 1
     att = 0
@@ -100,8 +105,13 @@ for gid, token in gallery:
         assert att < 5
         r = s.get(url)
         img = img_regex.search(r.text).group(1)
+        if '509.gif' in img:
+            logging.warning(f'509 ERROR, {url} - {img}')
+            break
+
         p = sp.run([
-            'wget', '-L', '-t', '2', '-nc', '-P', dl_dir, '-U', UA, img
+            'wget', '-L', '-t', '2', '-nc', '-P', dl_dir, '-U', UA,
+            '-nv', '--show-progress', img
         ])
         if p.returncode != 0:
             att += 1
