@@ -1,5 +1,6 @@
 #!/usr/bin/env dash
 set -e
+cd ~/.cache/torrents
 
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
 do

@@ -11,7 +11,7 @@ import sys
 
 # HOW TO GET THE API_KEY -> https://developers.google.com/youtube/v3/quickstart/python
 # before running this start mpv with:
-# mpv --keep-open=yes --idle=yes --ytdl-format="ba" \
+# mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
 SOCKET_PATH = '/tmp/mpvradio'
@@ -90,12 +90,13 @@ def main():
 
     youtube = googleapiclient.discovery.build(
         'youtube', 'v3', developerKey=API_KEY)
+
     request = youtube.search().list(
         q=query.replace(' ', '-'),
         type='video',
         part="id,snippet",
         safeSearch='none',
-        videoCategoryId='10',
+        videoCategoryId='10', # Music
         videoDuration='long' if opts.long else 'any',
         maxResults=25
     )
