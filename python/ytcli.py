@@ -91,12 +91,12 @@ def main():
     youtube = googleapiclient.discovery.build(
         'youtube', 'v3', developerKey=API_KEY)
 
+    # videoCategoryId='10', # Music
     request = youtube.search().list(
         q=query.replace(' ', '-'),
         type='video',
         part="id,snippet",
         safeSearch='none',
-        videoCategoryId='10', # Music
         videoDuration='long' if opts.long else 'any',
         maxResults=25
     )
