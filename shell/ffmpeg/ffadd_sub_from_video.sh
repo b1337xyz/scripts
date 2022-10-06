@@ -2,10 +2,16 @@
 
 set -e
 
-# -metadata:s:a:0 language=jpn        \
+if ffmpeg -i "$1" 2>&1 | grep -q 'Stream #0:.(jpn): Audio:' 
+then
+    audio="0:a:m:language:jpn"
+else
+    audio="0:a"
+fi
+
 output=new_"${1##*/}"
 ffmpeg -i "$1" -i "$2" -map_metadata 0 -map 0:v \
-    -map 0:a:m:language:jpn \
+    -map "$audio" \
     -map 1:s \
     -map 0:s:m:language:eng? \
     -map 0:t? -map 1:t? \
