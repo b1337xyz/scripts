@@ -52,14 +52,15 @@ alljpg() {
     # find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
     #     -exec sh -c 'convert "$1" "${1%.*}.jpg" && rm -v "$1"' _ '{}' \;
     #     # \( -exec convert '{}' '{}.jpg' \; -a -exec rm -v '{}' \; \)
-    find "${@:-.}" -maxdepth 1 -type f \! -name '*.jpg' | while read -r i;do
-        mime=$(file -Lbi "$i")
+    find "${@:-.}" -maxdepth 1 -type f \! -name '*.jpg' | while read -r i
+    do
+        mime=$(file -Lbi -- "$i")
         case "$mime" in
             image/gif*) continue ;;
             image/jpeg*)
-                [ "${i##*.}" != "jpg" ] && mv -vn "$i" "${i%.*}.jpg" ;;
+                [ "${i##*.}" != "jpg" ] && mv -vn -- "$i" "${i%.*}.jpg" ;;
             image/*)
-                convert -verbose "$i" "${i%.*}.jpg" && rm -v "$i" ;;
+                convert -verbose "$i" "${i%.*}.jpg" && rm -v -- "$i" ;;
         esac
     done
 }
