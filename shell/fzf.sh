@@ -129,8 +129,3 @@ fzpac() {
         --bind 'ctrl-s:execute(sudo pacman -Syu {+})' \
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
-fzgov() {
-    awk '{for (i=1;i<=NF;++i) print $i}' \
-        /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors |
-        fzf --height 8 | xargs -ro sudo cpupower frequency-set -g 
-}
