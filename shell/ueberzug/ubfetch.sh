@@ -51,11 +51,11 @@ done
 clear
 draw_img "$img"
 
-#OS=$(awk -F'"' '/DISTRIB_DESCRIPTION/{print $2}' /etc/lsb-release)
+# OS=$(awk -F'"' '/DISTRIB_DESCRIPTION/{print $2}' /etc/lsb-release)
 OS=$(awk -F'"' '/PRETTY_NAME/{print $2}' /etc/os-release)
 KERNEL=$(uname -r)
 UPTIME=$(uptime -p | sed 's/up //g')
-PKGS=$(pacman -Q | wc -l )
+PKGS=$(pacman -Qq | wc -l )
 MEM=$(free -m | awk '/^Mem:/{printf("%-4sMiB | %sMiB", $3, $2)}')
 SWAP=$(free -m | awk '/^Swap:/{printf("%-4sMiB | %sMiB", $3, $2)}')
 IP=$(ip -br a | awk '/wlan0/{print substr($3, 1, length($3)-3)}')
