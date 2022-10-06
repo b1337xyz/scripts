@@ -7,7 +7,7 @@ import xmlrpc.client
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 
-def get_gid(torrents):
+def get_torrents(torrents):
     if not torrents:
         return
     for i, v in enumerate(torrents):
@@ -16,19 +16,20 @@ def get_gid(torrents):
             torrent_name = torrent_name[:47] + '...'
         size = get_psize(int(v['totalLength']))
         print(f'{i:3}: [{v["status"]}] {torrent_name:50} {size:10}')
+
     while True:
         try:
-            gids = [
-                torrents[int(i.strip())]['gid']
+            torrents = [
+                torrents[int(i.strip())]
                 for i in input(': ').split()
             ]
             break
         except Exception as err:
             print(err)
         except KeyboardInterrupt:
-            print('bye')
+            print('\nbye')
             sys.exit(0)
-    return gids
+    return torrents
 
 
 def get_all():
@@ -86,22 +87,23 @@ def list_torrents():
 
 def pause():
     torrents = s.aria2.tellActive()
-    if torrents:
-        for gid in get_gid(torrents):
-            s.aria2.pause(gid)
+    for torrent in get_torrents(torrents):
+        s.aria2.pause(torrent['gid'])
 
 
 def unpause():
     torrents = s.aria2.tellWaiting(0, 100)
-    for gid in get_gid(torrents):
-        s.aria2.unpause(gid)
+    for torrent in get_torrents(torrents):
+        s.aria2.unpause(torrent['gid'])
 
 
-def remove():
-    torrents = get_all()
-    for gid in get_gid(torrents):
-        torrent = s.aria2.tellStatus(gid)
+def remove(torrents=[]):
+    if not torrents:
+        torrents = get_torrents(get_all())
+
+    for torrent in torrents:
         torrent_name = get_torrent_name(torrent)
+        gid = torrent['gid']
         if torrent['status'] in ['active', 'waiting']:
             try:
                 s.aria2.remove(gid)
@@ -115,29 +117,20 @@ def remove():
 
 def remove_all(dont_ask=False, status=None):
     if dont_ask or yes():
-        for torrent in get_all():
-            if status and status != torrent['status']:
+        for i in get_all():
+            if status and status != i['status']:
                 continue
-            gid = torrent['gid']
-            torrent_name = get_torrent_name(torrent)
-            if torrent['status'] == 'active':
-                s.aria2.remove(gid)
-                sleep(1)
-
-            try:
-                s.aria2.removeDownloadResult(gid)
-                print(torrent_name, 'removed')
-            except Exception as err:
-                print(err)
+            remove([i])
 
 
 def remove_metadata():
     torrents = s.aria2.tellStopped(0, 100)
-    for i in torrents:
-        torrent_name = get_torrent_name(i)
+    for torrent in torrents:
+        torrent_name = get_torrent_name(torrent)
+        gid = torrent['gid']
         if torrent_name.startswith('[METADATA]'):
             try:
-                s.aria2.removeDownloadResult(i['gid'])
+                s.aria2.removeDownloadResult(gid)
                 print(torrent_name, 'removed')
             except Exception as err:
                 print(err)
@@ -146,7 +139,7 @@ def remove_metadata():
 def move_to_top():
     torrents = s.aria2.tellWaiting(0, 100)
     try:
-        gid = get_gid(torrents)[0]
+        gid = get_torrents(torrents)[0]['gid']
     except IndexError:
         return
     s.aria2.changePosition(gid, 0, 'POS_SET')
