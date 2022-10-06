@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-pgrep -x ffmpeg && pkill -15 -x ffmpeg
+pgrep -x ffmpeg | xargs -r kill
 
 parse_display() {
     sed 's/\([0-9]*\)x\([0-9]*\)\(.[0-9]*\)\(.[0-9]*\)/\1 \2 \3 \4/'
