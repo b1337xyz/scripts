@@ -14,6 +14,7 @@ mkfifo "$FIFO"
 tail --follow "$FIFO" | ueberzug layer --parser json &
 
 draw
+read
 
 printf '{"action": "remove", "identifier": "test"}\n' > "$FIFO"
 

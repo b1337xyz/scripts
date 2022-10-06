@@ -19,7 +19,6 @@ function finalise {
         exec
     rm "${UEBERZUG_FIFO}" &>/dev/null
 }
-
 function draw_img {
     >"${UEBERZUG_FIFO}" declare -A -p cmd=( \
         [action]=add [identifier]="${PREVIEW_ID}" \
