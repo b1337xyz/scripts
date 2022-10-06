@@ -94,7 +94,7 @@ def main():
     # videoCategoryId='10', # Music
     request = youtube.search().list(
         q=query.replace(' ', '-'),
-        type='video',
+        type='video,playlist',
         part="id,snippet",
         safeSearch='none',
         videoDuration='long' if opts.long else 'any',

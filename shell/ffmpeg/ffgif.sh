@@ -8,5 +8,5 @@ while [ -s "$output" ];do
 done
 printf '%s -> %s\n' "$1" "$output"
 
-ffmpeg -hide_banner -nostdin -v 16 -t 1 -i "$1" \
+ffmpeg -hide_banner -nostdin -v 16 -i "$1" \
     -filter_complex 'split[a][b];[a]palettegen[p];[b][p]paletteuse' "$output"
