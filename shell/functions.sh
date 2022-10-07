@@ -157,6 +157,7 @@ bulkrename() {
     else
         i=0
         while read -r l;do
+            [ -e "$l" ] && continue
             mv -vn -- "${files[i]}" "$l" || break
             ((i++))
         done < "$tmpfile"
