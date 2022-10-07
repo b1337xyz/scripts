@@ -28,3 +28,5 @@ do
     [ -d "$tracker" ] || mkdir -v "$tracker"
     [ -f "$torrent" ] && mv -vf -- "$torrent" "$tracker"
 done
+
+aria2c -S ~/.cache/torrents/*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > ~/.cache/torrents.txt
