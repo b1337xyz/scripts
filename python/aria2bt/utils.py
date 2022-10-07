@@ -5,7 +5,6 @@ import shutil
 import logging
 import os
 
-
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
@@ -15,6 +14,7 @@ LOG  = os.path.join(ROOT, 'log')
 FIFO = '/tmp/aria2bt.fifo'
 PIDFILE = '/tmp/aria2bt.pid'
 WATCH = os.path.join(ROOT, 'watch.py')
+MAX_SIZE = 2000 * 1000 # 2 MB
 
 
 logging.basicConfig(

@@ -3,6 +3,7 @@ from utils import *
 import json
 import sys
 import xmlrpc.client
+import re
 
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
@@ -31,6 +32,10 @@ def get_torrents(torrents):
             sys.exit(0)
     return torrents
 
+def get_magnet(file):
+    out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+    return re.search(r'Magnet URI: (.*)', out).group(1)
+
 
 def get_all():
     waiting = s.aria2.tellWaiting(0, 100)
@@ -47,13 +52,20 @@ def add_torrent(torrent):
         'check-integrity': 'true'
     }
     if os.path.isfile(torrent):
-        options.update({'rpc-save-upload-metadata': 'false'})
-        with open(torrent, 'rb') as fp:
-            gid = s.aria2.addTorrent(
-                xmlrpc.client.Binary(fp.read()),
-                [], options
-            )
-        mv(torrent, CACHE)
+        if os.path.getsize(torrent) > MAX_SIZE:
+            options.update({'rpc-save-upload-metadata': 'false'})
+            with open(torrent, 'rb') as fp:
+                try:
+                    gid = s.aria2.addTorrent(
+                        xmlrpc.client.Binary(fp.read()),
+                        [], options
+                    )
+                    mv(torrent, CACHE)
+                except Exception as err:
+                    logging.error(err)
+        else:
+            magnet = get_magnet(torrent)
+            return add_torrent(magnet)
     else:
         gid = s.aria2.addUri([torrent], options)
 

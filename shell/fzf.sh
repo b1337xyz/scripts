@@ -73,7 +73,7 @@ fzbt() {
         aria2c -S "$1" # | sed '/^idx\|path\/length/q'
     }
     export -f pv 
-    find . -maxdepth 1 -iname '*.torrent' | fzf \
+    find . -maxdepth 3 -iname '*.torrent' | fzf \
         --preview 'pv {}' --preview-window 'border-sharp'
     unset pv
 }
