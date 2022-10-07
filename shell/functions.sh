@@ -167,12 +167,11 @@ crc32check() {
     # How it works:
     #   anime_[12345678].ext > 12345678 = crc32
 
-    [ $# -eq 0 ] && { printf 'Usage: anime_check_crc FILE\n'; return 1; }
+    [ $# -eq 0 ] && { printf 'Usage: crc32check <FILES>\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
     # command -v crc32 >/dev/null || { printf '"crc32" command not found\n'; return 1; }
 
     for i in "$@";do
-        [ -f "$i" ] || { printf 'File "%s" not found\n' "$i"; continue; }
         # [12345678] or (12345678)
         fname_crc=$(echo "$i" | grep -oP '(?<=(\[|\())[[:alnum:]]{8}(?=(\)|\]))' | tail -1)
         [ -z "$fname_crc" ] && {
@@ -190,27 +189,28 @@ crc32check() {
     done
 }
 crc32rename() {
-    [ $# -eq 0 ] && { printf 'Usage: crcrename FILE\n'; return 1; }
+    [ $# -eq 0 ] && { printf 'Usage: crc32rename <FILES>\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
 
     for i in "$@";do
-        [ -f "$i" ] || { printf 'Not a file: %s\n' "$i"; continue; }
         file -Lbi -- "$i" | grep -q '^video/' || { printf 'Not a video: %s\n' "$i"; continue; }
         crc=$(cksfv -b "$i" | sed '/^;/d; s/.*\(.\{8\}\)$/\1/')
         mv -vn "$i" "${i%.*} [${crc}].${i##*.}" || return 1
     done
 }
 chgrubbg() {
+    local image mime
     if [ -f "$1" ];then
         image="$1"
     elif [ -d "$1" ];then
-        image=$(sxiv -qrto "$1" | head -n1)
+        image=$(sxiv -qrto "$1" 2>/dev/null | head -1)
     else
-        image=$(sxiv -qrto ~/Pictures/wallpapers | head -1)
+        image=$(sxiv -qrto ~/Pictures/wallpapers 2>/dev/null | head -1)
     fi
-    case "${image##*.}" in
-        jpg|jpeg) sudo convert -verbose "$image" /usr/share/desktop-base/active-theme/grub/grub-16x9.png ;;
-        png) sudo cp -v "$image" /usr/share/desktop-base/active-theme/grub/grub-16x9.png ;;
+    mime=$(file -Lbi -- "$image" | cut -d';' -f1)
+    case "$mime" in
+        image/jpeg) sudo convert -verbose "$image" /usr/share/desktop-base/active-theme/grub/grub-16x9.png ;;
+        image/png)  sudo cp -v "$image" /usr/share/desktop-base/active-theme/grub/grub-16x9.png ;;
         *) return 1 ;;
     esac
 }
@@ -219,24 +219,9 @@ dn() {
         sort -h | head -n "${1:-10}" | awk -F\\t '{print $2}' |
         tr \\n \\0 | du --files0-from=- -csh | sort -h
 }
-cpdir() {
-    # copy directory structure
-    local len dst
-    declare -f -a args
-    args=("$@")
-    len=$(( $# - 1 ))
-    dst=${args[len]}
-    [ -d "$dst" ] || return 1
-    [ "${dst: -1}" = "/" ] && dst=${dst::-1}
-
-    for (( i=0 ; i < "$len" ; i++));do
-        src=${args[i]}
-        [ "${src: -1}" = "/" ] && src=${src::-1}
-        mkdir -v "${dst}/${src}"
-    done
-}
 fixext() {
     local mimetype ext
+    [ $# -eq 0 ] && set -- ./*
     for i in "$@";do
         mimetype=$(file -Lbi -- "$i")
         case "${mimetype%;*}" in
@@ -245,9 +230,9 @@ fixext() {
             image/jpeg)       ext=jpg ;;
             image/png)        ext=png ;;
             video/mp4)        ext=mp4 ;;
+            *) continue ;;
         esac
-        [ -n "$ext" ] && [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${ext}"
-        unset ext
+        [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${i%.*}.${ext}"
     done
     return 0
 }
