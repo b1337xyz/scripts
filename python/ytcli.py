@@ -46,6 +46,7 @@ def parse_arguments():
     parser.add_option('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
     parser.add_option('--history', action='store_true')
+    parser.add_option('--all', action='store_true')
     return parser.parse_args()
 
 def notify(title, *msg):
@@ -114,6 +115,8 @@ def main():
 
     if opts.random:
         output = [choice(keys)]
+    elif opts.all:
+        output = keys
     elif opts.dmenu:
         output = run('dmenu', keys, ['-c', '-i', '-l', '25'])
     else:

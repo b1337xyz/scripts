@@ -28,7 +28,7 @@ bkp() {
     local output
     if [ -n "$1" ] && ! [ -s "$1" ];then
         output="$1"
-        [ "${1##*.}" == "zip" ] && output="${1%.*}_$(date +%Y%m%d).zip"
+        [ "${1##*.}" = "zip" ] && output="${1%.*}_$(date +%Y%m%d).zip"
         shift
     else
         output="bkp_$(date +%Y%m%d).tar.gz"
@@ -112,7 +112,7 @@ lstar() {
         printf '>>> \033[1;31m%s\033[m\n' "$i"
         tar tvf "$i" 2>/dev/null | bat -l ls
         read -rp "extract '$i'? (y/N) " ask
-        [ "${ask,,}" == 'y' ] && tar axvf "$i"
+        [ "${ask,,}" = 'y' ] && tar axvf "$i"
     done
     return 0
 }
@@ -166,7 +166,7 @@ bulkrename() {
 }
 crc32check() {
     # How it works:
-    #   anime_[12345678].ext > 12345678 == crc32
+    #   anime_[12345678].ext > 12345678 = crc32
 
     [ $# -eq 0 ] && { printf 'Usage: anime_check_crc FILE\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
