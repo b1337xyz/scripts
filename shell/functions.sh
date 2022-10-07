@@ -144,22 +144,21 @@ bulkrename() {
     while IFS= read -r -d $'\0' i;do
         files+=("${i#*/}")
         printf '%s\n' "${i#*/}" >> "$tmpfile" 
-    done < <(find . -mindepth 1 -maxdepth 1 \! -path '*/\.*' -print0 | sort -z)
+    done < <(find . -mindepth 1 -maxdepth 1 \! -path '*/\.*' -print0 | sort -zV)
 
     [ "${#files[@]}" -eq 0 ] && return 1
     vim "$tmpfile"
 
     lines=$(wc -l < "$tmpfile")
     if [ "${#files[@]}" -ne "$lines" ];then
-        echo "The number of lines does not match the amount of files!"
+        printf 'The number of lines does not match the amount of files!'
+        command rm "$tmpfile"
+        return 1
     else
         i=0
-        # shellcheck disable=SC2094
         while read -r l;do
-            if ! [ -s "$l" ] && [ "${files[i]}" != "$l" ];then
-                mv -vn -- "${files[i]}" "$l" || break
-            fi
-            i=$((i+1))
+            mv -vn -- "${files[i]}" "$l" || break
+            ((i++))
         done < "$tmpfile"
     fi
     command rm "$tmpfile"
