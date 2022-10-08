@@ -124,3 +124,16 @@ fzpac() {
         --bind 'ctrl-s:execute(sudo pacman -Syu {+})' \
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
+psndl() {
+    # $db psndl.net/packages/database
+    local db tmpfile
+    tmpfile=$(mktemp)
+    db=~/.cache/psndl.csv
+    grep -oP '(?<=;)[^;]*(?=;[^;]*;https?:)' "$db" | sort -u | fzf -m --algo v1 |
+        xargs -rIV grep -F ';V;' "$db" | grep -oP '.*(?=;https?:)' >> "$tmpfile"
+
+    fzf -m < "$tmpfile" | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
+        xargs -rI{} wget --content-disposition -nc -P ~/Downloads '{}'
+
+    command rm "$tmpfile"
+}
