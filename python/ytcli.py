@@ -99,7 +99,7 @@ def main():
         part="id,snippet",
         safeSearch='none',
         videoDuration='long' if opts.long else 'any',
-        maxResults=25
+        maxResults=40
     )
     response = request.execute()
 

@@ -140,6 +140,7 @@ bulkrename() {
     local tmpfile
     declare -f -a files=()
     tmpfile=$(mktemp)
+    trap 'command rm "$tmpfile"' RETURN 
 
     while IFS= read -r -d $'\0' i;do
         files+=("${i#*/}")
@@ -152,7 +153,6 @@ bulkrename() {
     lines=$(wc -l < "$tmpfile")
     if [ "${#files[@]}" -ne "$lines" ];then
         printf 'The number of lines does not match the amount of files!'
-        command rm "$tmpfile"
         return 1
     else
         i=0
@@ -162,7 +162,6 @@ bulkrename() {
             ((i++))
         done < "$tmpfile"
     fi
-    command rm "$tmpfile"
 }
 crc32check() {
     # How it works:
@@ -550,4 +549,9 @@ fib() {
         echo -n "$a "
         fn=$((a + b)) a=$b b=$fn
     done; echo
+}
+ordinal() {
+    [[ "$1" =~ ^[0-9]+$ ]] || return 1
+    curl -s "https://conversor-de-medidas.com/mis/numero-ordinal/_$1_" | tr -d \\n |
+        grep -oP "(?<=>)[^<]* \($1.\)"
 }

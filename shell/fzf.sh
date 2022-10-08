@@ -57,14 +57,16 @@ cdanime() {
     cd ~/Videos/Anime/"$out" || return 1
 }
 fzcbt() {
-    if [ -f ~/.cache/torrents.txt ];then
-        cat ~/.cache/torrents.txt 
+    local cache
+    cache=~/.cache/torrents/torrents.txt
+    if [ -f "$cache" ];then
+        cat "$cache"
     else
         aria2c -S ~/.cache/torrents/*/*.torrent |
-            awk -F'|' '/[0-9]\|\.\//{print $2}' | tee ~/.cache/torrents.txt
+            awk -F'|' '/[0-9]\|\.\//{print $2}' | tee "$cache"
     fi | fzf $@ | awk -F'/' '{print $2}' |
-    sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
-    xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
+         sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
+         xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
 }
 fzbt() {
     find . -maxdepth 3 -iname '*.torrent' | fzf \
