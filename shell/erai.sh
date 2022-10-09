@@ -27,7 +27,7 @@ download() {
         f=$(echo -n "${i##*/}" | unquote)
         if ! [ -f "${DLDIR}/${f}" ];then
             wget -nc -q -P "$DLDIR" "${domain}/$i"
-            notify-send "Erai Sub Downloader" "$f downloading..."
+            notify-send -i "$icon" "Erai Sub Downloader" "$f downloading..."
         fi
     done
 }
@@ -85,7 +85,7 @@ case "$1" in
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf -m --header '^f favorite' \
+esac | fzf --height 25 -m --header '^f favorite' \
     --bind 'ctrl-t:last'  \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main {+})+clear-query' \

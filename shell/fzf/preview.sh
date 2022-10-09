@@ -38,7 +38,7 @@ function calculate_position {
 function draw_preview {
     local img
     calculate_position
-    file -Lbi -- "$1" 2>/dev/null | grep -q '^image/' || return 1
+    file -Lbi -- "$1" 2>/dev/null | grep -qP '^image/(jpeg|png)' || return 1
     img=$(printf '%s\n' "$1" | sed 's/"/\\&/g')
 
     # bash

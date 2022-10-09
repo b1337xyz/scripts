@@ -123,7 +123,7 @@ ren5sum() {
             path=$(realpath "$i") path=${path%/*}
             out=${path}/$(md5sum "$i" | awk '{print $1}').${i##*.}
             [ -f "$out" ] && continue
-            mv -v "$i" "$out"
+            mv -nv -- "$i" "$out"
         fi
     done
 }
@@ -156,8 +156,7 @@ bulkrename() {
     else
         i=0
         while read -r l;do
-            [ -e "$l" ] && continue
-            mv -vn -- "${files[i]}" "$l" || break
+            [ -e "$l" ] || mv -vn -- "${files[i]}" "$l"
             ((i++))
         done < "$tmpfile"
     fi

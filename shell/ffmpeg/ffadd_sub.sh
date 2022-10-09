@@ -10,14 +10,23 @@ for i in "$@";do
     esac
 done
 
+if ffmpeg -i "$1" 2>&1 | grep -q 'Stream #0:.(jpn): Audio:' 
+then
+    audio="0:a:m:language:jpn"
+else
+    audio="0:a"
+fi
+
+
 output=new_"${vid##*/}"
 ffmpeg -i "$vid" -i "$sub" -map_metadata 0 -map 0:v \
-    -map 0:a:s:language:jpn \
-    -map 1 -map 0:s:m:language:eng? -map 0:t?   \
-    -map -v:m:mimetype:image/jpeg?              \
-    -metadata:s:s:0 language=por        \
-    -metadata:s:s:0 title='Portuguese'  \
-    -disposition:s:0 default            \
+    -map "$audio" \
+    -map 1 -map 0:s:m:language:eng? \
+    -map 0:t? \
+    -map -v:m:mimetype:image/jpeg? \
+    -metadata:s:s:0 language=por \
+    -metadata:s:s:0 title='Portuguese' \
+    -disposition:s:0 default \
     -c copy "$output" || exit 1
 
-# rm -i "$vid" "$sub"
+rm -i "$vid" "$sub"
