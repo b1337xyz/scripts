@@ -52,7 +52,7 @@ def add_torrent(torrent):
         'check-integrity': 'true'
     }
     if os.path.isfile(torrent):
-        if os.path.getsize(torrent) > MAX_SIZE:
+        if os.path.getsize(torrent) < MAX_SIZE:
             options.update({'rpc-save-upload-metadata': 'false'})
             with open(torrent, 'rb') as fp:
                 try:
