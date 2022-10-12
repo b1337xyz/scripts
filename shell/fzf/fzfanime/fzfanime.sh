@@ -65,10 +65,6 @@ function main() {
             grep -vxFf <(find "$ANIME_DIR" -mindepth 1 -maxdepth 1 \
                 -xtype l -printf '%f\n') "$mainfile" | tee "$tmpfile"
         ;;
-        offline)
-            grep -xFf <(stat -c '%N' "$ANIME_DIR"/* | grep -vP 'gdrive' |
-                awk -F' -> ' '{print $1}' | cut -d'/' -f6 | sed 's/.$//g') "$mainfile" | tee "$tmpfile"
-        ;;
         by_score)
             grep -xFf "$mainfile" <(
             jq -r '[ keys[] as $k | .[$k] | {"title": $k, "score": .["score"]}] | sort_by(.score) | .[].title' "$DB") | tee "$tmpfile"
@@ -195,7 +191,6 @@ A-p A-u A-c A-a A-d A-s' \
     --bind 'ctrl-y:reload(main by_year)+first+change-prompt(BY YEAR )' \
     --bind 'ctrl-s:reload(main by_score)+first+change-prompt(BY SCORE )' \
     --bind 'ctrl-e:reload(main by_episodes)+first+change-prompt(BY EPISODE )' \
-    --bind 'ctrl-o:reload(main offline)+change-prompt(OFFLINE )' \
     --bind 'ctrl-w:reload(main watched)+first+change-prompt(WATCHED )' \
     --bind 'ctrl-l:reload(main history)+first+change-prompt(HISTORY )' \
     --bind 'ctrl-g:reload(main genre)+first+change-prompt(GENRE )' \
