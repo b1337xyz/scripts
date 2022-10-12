@@ -8,7 +8,7 @@ WALLPAPERS=~/Videos/wallpapers
 
 function preview {
     img="$THUMB_DIR/${1##*/}"
-    [ -f "$img" ] || ffmpegthumbnailer -s 300 -i "$1" -q 10 -o "$img"
+    [ -f "$img" ] || ffmpegthumbnailer -s 300 -i "$1" -o "$img"
 
     draw_preview "$img"
 }

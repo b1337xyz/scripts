@@ -250,7 +250,7 @@ odr() {
                 --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
         ;;
         http*)
-            wget -w 3 -r -nc --no-parent \
+            wget -w 3 -r -nc --no-parent --no-check-certificate \
                 -l 200 -e robots=off -R "index.html*" -x "$1" 
         ;;
     esac

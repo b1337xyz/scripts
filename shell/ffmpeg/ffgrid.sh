@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
-input=$1
-d=$2
+while (($#));do
+    if [ -f "$1" ];then
+        input="$1"
+    else
+        d=$1
+    fi
+    shift
+done
+
 cmd=(ffmpeg -hide_banner -v 16 -stats -y)
 
 [[ "$d" =~ [0-9]*x[0-9]* ]] || exit 1
@@ -15,9 +22,8 @@ for (( i=0 ; i < n ; i++ ));do
     filter="${filter}[$i:v]"
 done
 # cmd+=( -t 10)
-filter="${filter}xstack=inputs=$n:layout="
-
 cmd+=( -filter_complex )
+filter="${filter}xstack=inputs=$n:layout="
 for (( i=0 ; i < cols; i++ ));do
     case "$i" in
         0) w=0 ;;
@@ -34,7 +40,8 @@ for (( i=0 ; i < cols; i++ ));do
     done
 done
 
-cmd+=( "\"${filter}[v]\"" -map '"[v]"' -crf 16 -an -c:v libx264 \
-    -preset fast -pix_fmt yuv420p -s 1366x780 "${input%.*}_${d}.mp4")
+cmd+=( "\"${filter}[v]\"" \
+    -map '"[v]"' -crf 16 -an -c:v libx264 \
+    -preset fast -pix_fmt yuv420p -s 1366x768 "${input%.*}_${d}.mp4")
 
 eval "${cmd[*]}"

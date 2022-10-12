@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
+set -e
+
 # https://github.com/slhck/ffmpeg-normalize/issues/98
 # -af "channelmap=channel_layout=5.1"
 
@@ -16,6 +18,4 @@ case "$1" in
             -map_metadata 0 -map 0 \
             -c copy -c:a libopus "$out"
     ;;
-esac || { rm -vf "$out"; exit 1; }
-
-exit 0
+esac
