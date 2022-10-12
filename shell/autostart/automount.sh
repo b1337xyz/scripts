@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
 
+lock=/tmp/automount.lock
+[ -f "$lock" ] && exit 0
+:>"$lock"
+trap 'rm "$lock" 2>/dev/null' EXIT INT HUP
+
 get_devname() {
     udevadm info -p /sys/"$1" | awk -v FS== '/DEVNAME/{print $2}'
 }
@@ -18,6 +23,5 @@ do
         sudo mount "$devname" "$mp" -o noatime,user
         notify-send -i drive-harddisk "$label mounted" "$mp"
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
-        # notify-send -i drive-harddisk "$devname mounted at $mp"
     fi
-done #&> ~/.automount.log
+done
