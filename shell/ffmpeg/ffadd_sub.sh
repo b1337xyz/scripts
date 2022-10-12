@@ -21,8 +21,7 @@ fi
 output=new_"${vid##*/}"
 ffmpeg -i "$vid" -i "$sub" -map_metadata 0 -map 0:v \
     -map "$audio" \
-    -map 1 -map 0:s:m:language:eng? \
-    -map 0:t? \
+    -map 1 -map 0:t? \
     -map -v:m:mimetype:image/jpeg? \
     -metadata:s:s:0 language=por \
     -metadata:s:s:0 title='Portuguese' \

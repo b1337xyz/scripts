@@ -38,7 +38,7 @@ fzumount() {
 fztorrent() {
     local torrent
     find ~/.cache/torrents -iname '*.torrent' -printf '%f\n' |
-    fzf --layout=reverse --height 10 -m | sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
+    fzf --layout=reverse --height 20 -m | sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
         xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
 }
 cptorrent() { fztorrent | xargs -rI{} cp -v '{}' . ;}
