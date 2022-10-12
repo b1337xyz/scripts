@@ -49,14 +49,15 @@ def parse_arguments():
     parser.add_option('--all', action='store_true')
     return parser.parse_args()
 
+
 def notify(title, *msg):
     try:
         sp.run(['notify-send', title, '\n'.join(msg)])
     except:
         pass
 
-def main():
-    opts, args = parse_arguments()
+
+def load_history():
     try:
         with open(HIST, 'r') as fp:
             hist = [i.strip() for i in fp.readlines() if i][::-1]
@@ -64,9 +65,14 @@ def main():
         for i in hist:
             if i not in uniq_hist:
                 uniq_hist.append(i)
-        hist = uniq_hist
+        return uniq_hist
     except FileNotFoundError:
-        hist = list()
+        return list()
+
+
+def main():
+    opts, args = parse_arguments()
+    hist = load_history()
     hist_len = len(hist)
     height = str(hist_len) if hist_len <= 10 else '10'
 

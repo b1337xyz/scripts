@@ -2,7 +2,7 @@
 from optparse import OptionParser
 from urllib.parse import quote
 from urllib.request import urlopen
-from fuzzywuzzy import process
+from thefuzz import process
 import time
 import json
 import re

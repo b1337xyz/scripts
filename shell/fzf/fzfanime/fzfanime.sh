@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
-# NOTES:
+# Notes:
 #   - grep -xFf <file1> <file2> ...  will keep the order of the second file
 #   - $DB generated using Anilist APIv2 -> https://anilist.gitbook.io/anilist-apiv2-docs
 #     and Jikan APIv4 -> https://api.jikan.moe/v4/anime
 #     {
-#       "<Anime Folder> (1998)": {
+#       "<Anime> (1998)": {
 #         "idMal": 400,
 #         "isAdult": false,
 #         "title": "Anime",

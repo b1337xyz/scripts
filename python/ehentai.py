@@ -26,7 +26,7 @@ logging.basicConfig(
 
 
 def clean_filename(s: str) -> str:
-    keep = [' ', '.', '_', '[', ']', '(', ')']
+    keep = [' ', '.', '!', '_', '[', ']', '(', ')']
     s = ''.join(c for c in s if c.isalnum() or c in keep)
     return re.sub('\s{2,}', ' ', s).strip()
 

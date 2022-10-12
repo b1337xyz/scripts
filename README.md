@@ -19,3 +19,4 @@
 - [i3ipc](https://github.com/altdesktop/i3ipc-python)
 - [requests](https://requests.readthedocs.io/en/latest/)
 - [google-api-python-client](https://github.com/googleapis/google-api-python-client)
+- [thefuzz](https://github.com/seatgeek/thefuzz)
