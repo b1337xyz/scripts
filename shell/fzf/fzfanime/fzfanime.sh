@@ -13,7 +13,6 @@
 #         "genres": ["Action", ...],
 #         "episodes": 24,
 #         "score": 74,
-#         "synopsis": "In the distant future...",
 #         "image": "<local path to the image>",
 #         "type": "TV",
 #         "rated": "R+",
@@ -136,11 +135,6 @@ function main() {
                     }' | sort -u
             return
         ;;
-        contain)
-            for i in $2 ;do
-                jq -r 'keys[] as $k | select(.[$k]["synopsis"] | contains("'"$i"'")) | $k' "$DB" 
-            done | tee "$tmpfile"
-        ;;
         select)
             curr_mode=$(cat "$mode")
             if [ "$curr_mode" = genres ];then
@@ -207,7 +201,6 @@ A-p A-u A-c A-a A-d A-s' \
     --bind 'ctrl-g:reload(main genre)+first+change-prompt(GENRE )' \
     --bind 'ctrl-v:reload(main type)+first+change-prompt(TYPE )' \
     --bind 'alt-l:reload(main latest)+first+change-prompt(LATEST )' \
-    --bind 'alt-s:reload(main contain {q})+first+change-prompt(CONTAIN )' \
     --bind 'alt-p:reload(main path)+first+change-prompt(PATH )' \
     --bind 'alt-r:reload(main rated)+first+change-prompt(RATED )' \
     --bind 'alt-s:reload(main shuffle)+first+change-prompt(SHUFFLED )' \
