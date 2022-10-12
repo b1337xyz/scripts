@@ -6,7 +6,7 @@ declare -r -x WIDTH=35 # image width
 declare -r -x HEIGHT=22
 declare -r -x mpvhist=~/.cache/mpv/mpvhistory.log
 declare -r -x cache_dir=~/.cache/fzfanime_preview
-[ -d "$cache_dir" ] || mkdir "$cache_dir"
+[ -d "$cache_dir" ] || mkdir -p "$cache_dir"
 
 function start_ueberzug {
     mkfifo "${UEBERZUG_FIFO}"
@@ -14,17 +14,16 @@ function start_ueberzug {
 }
 function finalise {
     printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
-
+    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$modefile" &>/dev/null
     jobs -p | xargs -r kill 2>/dev/null
-    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$mode" &>/dev/null
 }
 function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
-    #p=$(stat -c '%N' "${ANIME_DIR}/$1" |
-    #    awk -F' -> ' '{
-    #        print substr($2, 2, length($2)-2)
-    #    }'
-    #)
+    # p=$(stat -c '%N' "${ANIME_DIR}/$1" |
+    #     awk -F' -> ' '{
+    #         print substr($2, 2, length($2)-2)
+    #     }'
+    # )
     x=$p
     [ "${#x}" -gt "$((COLUMNS - 1))" ] &&
         x=${x::$((COLUMNS - 4))}...
@@ -42,18 +41,20 @@ function check_link {
 
     declare -a files=()
     cache="${cache_dir}/${1}"
-    if [ -e "$p" ];then
+    if [ -e "$p" ]
+    then
         [ -f "$cache" ] && rm "$cache"
         ext_ptr='.*\.\(webm\|mkv\|avi\|mp4\|ogm\|mpg\|rmvb\)$'
-        size=$(du -sh "$p" | awk '{print $1}')
-        echo "$size" >> "$cache"
+        size=$(du -sh "$p" | awk '{print $1}' | tee -a "$cache")
 
-        while IFS= read -r -d $'\0' i;do
+        while IFS= read -r -d $'\0' i
+        do
             files+=("$i")
             echo "$i"
         done < <(find "$p" -iregex "$ext_ptr" -printf '%f\0' | sort -z) >> "$cache"
-    elif [ -s "$cache" ];then
-        #size=$(head -1 "$cache")
+    elif [ -s "$cache" ]
+    then
+        size=$(head -1 "$cache")
         while read -r i;do
             files+=("$i")
         done < <(tail -n +2 "$cache")
@@ -66,8 +67,8 @@ function check_link {
         n=4
         for ((i=0;i<"${#files[@]}";i++));do
             x=${files[i]}
-            #[ "${#x}" -gt "$((COLUMNS - 1))" ] &&
-            #    x=${x::$((COLUMNS - 4))}...
+            # [ "${#x}" -gt "$((COLUMNS - 1))" ] &&
+            #     x=${x::$((COLUMNS - 4))}...
 
             if [ "$i" -lt "$n" ] || [ "${#files[@]}" -le $((n*2)) ];then
                 printf '%s\n' "$x"
@@ -80,29 +81,23 @@ function check_link {
     fi
 }
 function preview {
-    IFS='|' read -r title _type genres episodes score rated image < <(\
-        jq -r '.["'"${1}"'"] | "
-        \(.["title"])|
-        \(.["type"])|
-        \(.["genres"] | join(", "))|
-        \(.["episodes"])|
-        \(.["score"])|
-        \(.["rated"])|
-        \(.["image"])"' ~/.cache/anilist.json 2>/dev/null | sed 's/^\s*//g' | tr -d \\n)
+    IFS=$'\n' read -d '' -r title _type genres episodes score rated image < <(\
+        jq -r --argjson k "\"$1\"" '.[$k] | "
+            \(.["title"])
+            \(.["type"])
+            \(.["genres"] | join(", "))
+            \(.["episodes"])
+            \(.["score"])
+            \(.["rated"])
+            \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')
 
     if [ -z "$title" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
-
         printf "404 - preview not found\n\n"
         for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
         check_link "$1"
         return 1
     fi
-
-    # _type=$(jq -r 'keys[] as $k | select(.[$k]["mal_id"]=='"$idMal"') | .[$k]["_type"]' \
-    #    ~/.cache/maldb.json 2>/dev/null | head -n1)
-    # mal_score=$(jq -r 'keys[] as $k | select(.[$k]["mal_id"]=='"$idMal"') | .[$k]["score"]' \
-    #    ~/.cache/maldb.json 2>/dev/null | head -n1)
 
     printf '{
         "action": "add", "identifier": "preview",
@@ -111,22 +106,26 @@ function preview {
     }\n' "$WIDTH" "$HEIGHT" "$image" | jq -Mc > "$UEBERZUG_FIFO" &
 
 
-    #if [ "${#title}" -gt 28 ];then
-    #    title=${title::28}
-    #    title=${title}...
-    #fi
-    #if [ "${#genres}" -gt 32 ];then
-    #    genres=${genres::32}
-    #    genres=${genres}...
-    #fi
+    # if [ "${#title}" -gt 28 ];then
+    #     title=${title::28}
+    #     title=${title}...
+    # fi
+    # if [ "${#genres}" -gt 32 ];then
+    #     genres=${genres::32}
+    #     genres=${genres}...
+    # fi
 
-    printf '%'$WIDTH's %s\n'           ' ' "$title"
+    printf '%'$WIDTH's %s\n'              ' ' "$title"
     printf '%'$WIDTH's Type: %s\n'        ' ' "${_type:-Unknown}"
     printf '%'$WIDTH's Genre: %s\n'       ' ' "$genres"
     printf '%'$WIDTH's Episodes: %s\n'    ' ' "$episodes"
-    printf '%'$WIDTH's Score: %s\n'       ' ' "$score"
     printf '%'$WIDTH's Rated: %s\n'       ' ' "$rated"
-    # printf '%'$WIDTH'Mal score: %s\n'   ' ' "$mal_score"
+    printf '%'$WIDTH's Score: %s\n'       ' ' "$score"
+    # if [ -f "$MALDB" ];then
+    #     mal_score=$(jq --argjson k "\"$1\"" '.[$k]["score"]' "$MALDB")
+    #     printf '%'$WIDTH's Mal score: %s\n'   ' ' "$mal_score"
+    # fi
+
     grep -qxF "$1" "$WATCHED_FILE" 2>/dev/null &&
         printf '%'$WIDTH's \e[1;32mWatched\e[m' ' '
 

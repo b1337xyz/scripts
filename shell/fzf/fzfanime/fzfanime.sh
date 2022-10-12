@@ -25,6 +25,7 @@
 declare -x -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.cache/anilist.json
+declare -r -x MALDB=~/.cache/maldb.json
 declare -r -x ANIME_HST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 
@@ -36,7 +37,7 @@ set -eo pipefail
 
 declare -r -x mainfile=$(mktemp) 
 declare -r -x tmpfile=$(mktemp)
-declare -r -x mode=$(mktemp)
+declare -r -x modefile=$(mktemp)
 
 rpath=$(realpath "$0")
 # shellcheck disable=SC1091
@@ -90,17 +91,17 @@ function main() {
                 tac "$ANIME_HST" | awk '!seen[$0]++')) | tee "$tmpfile"
         ;;
         genre) 
-            printf "genres" > "$mode"
+            printf "genres" > "$modefile"
             jq -r '.[]["genres"][]' "$DB" | sed 's/^$/Unknown/g' | sort -u
             return
         ;;
         type)
-            printf "type" > "$mode"
+            printf "type" > "$modefile"
             jq -r '.[]["type"]' "$DB" | sed 's/^$/Unknown/g' | sort -u
             return
         ;;
         rated)
-            printf 'rated' > "$mode"
+            printf 'rated' > "$modefile"
             jq -r '.[]["rated"]' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
             return
         ;;
@@ -117,7 +118,7 @@ function main() {
             }' | tee "$tmpfile"
         ;;
         path)
-            printf "path" > "$mode"
+            printf "path" > "$modefile"
             readlink "$ANIME_DIR"/* |
                 awk '
                     {
@@ -132,7 +133,7 @@ function main() {
             return
         ;;
         select)
-            curr_mode=$(cat "$mode")
+            curr_mode=$(cat "$modefile")
             if [ "$curr_mode" = genres ];then
 
                 if [ "$2" = "Unknown" ];then
@@ -160,16 +161,16 @@ function main() {
         ;;
         *)
             jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
-            #find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
+            # find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
         ;;
     esac
 
-    [ -f "$mode" ] && rm "$mode"
+    [ -f "$modefile" ] && rm "$modefile"
     [ -s "$tmpfile" ] && mv -f "$tmpfile" "$mainfile"
 }
 export -f main play
 
-trap finalise EXIT SIGINT
+trap finalise EXIT HUP INT
 [ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null
 
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
