@@ -1,16 +1,15 @@
-#!/usr/bin/env bash
-
-case "${2##*.}" in
-    ttf)
-        ffmpeg -v 16 -i "$1" -attach "$2" \
-            -map_metadata 0 -map 0 \
-            -metadata:s mimetype=application/x-truetype-font -c copy "$3"
-    ;;
-    otf)
-        ffmpeg -v 16 -i "$1" -attach "$2" \
-            -map_metadata 0 -map 0 \
-            -metadata:s mimetype=application/vnd.ms-opentype -c copy "$3"
-    ;;
-esac
-
-
+#!/bin/sh
+for i in "$@";do
+    mimetype=$(file -Lbi -- "$i")
+    case "$mimetype" in
+        *truetype-font|*opentype)
+            font="$i"
+            mime="$mimetype" ;;
+        video/*) video="$i"  ;;
+    esac
+done
+out="new_${vid##*/}"
+ffmpeg -nostdin -v 24 -stats  \
+    -i "$vid" -attach "$font" \
+    -map_metadata 0 -map 0    \
+    -metadata:s mimetype="$mime" -c copy "$out"

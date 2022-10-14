@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -e
 
 if ffmpeg -i "$1" 2>&1 | grep -q 'Stream #0:.(jpn): Audio:' 
 then

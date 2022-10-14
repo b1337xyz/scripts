@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -e
 
 out=opus
 [ -d "$out" ] || mkdir -v "$out"

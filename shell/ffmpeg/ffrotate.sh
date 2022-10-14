@@ -15,11 +15,8 @@ done
 # 3 - Rotate by 90 degrees clockwise and flip vertically.
 
 out=new_${vid##*/}
-if ! ffmpeg -hide_banner -i "$vid" -map 0:v -c:v libx264 \
+ffmpeg -nostdin -stats -i "$vid" \
+    -map 0:v -c:v libx264 \
     -vf "transpose=${r},scale='min(1280,iw)':'min(720,ih):force_original_aspect_ratio=decrease'" \
-    -crf 27 -preset ultrafast -tune zerolatency "$out"
-then
-    rm "$out"
-    exit 1
-fi
-
+    -crf 27 -preset ultrafast \
+    -tune zerolatency "$out"
