@@ -38,7 +38,7 @@ parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
 # parser.add_option('--nsfw', action='store_false', default=True)
 
 opts, args = parser.parse_args()
-query = quote(' '.join(args))
+query = quote(' '.join(args).lower())
 url = API_URL.format(query, opts.limit)
 if opts.order_by:
     url += f'&order_by={opts.order_by}'
@@ -99,7 +99,7 @@ else:
 
 max_len = max(len(i['title']) for i in data.values()) + 7
 
-for k in titles:
+for k in titles[:10]:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
