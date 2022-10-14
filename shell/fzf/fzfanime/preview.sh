@@ -82,12 +82,12 @@ function check_link {
 }
 function preview {
     IFS=$'\n' read -d '' -r title _type genres episodes score rated image < <(\
-        jq -r --argjson k "\"$1\"" '.[$k] | "
-            \(.["title"])
+        jq -r --argjson k "\"$1\"" '.[$k] |
+           "\(.["title"])
             \(.["type"])
-            \(.["genres"] | join(", "))
+            \(.["genres"] | if length > 0 then . | join(", ") else "Unknown" end)
             \(.["episodes"])
-            \(.["score"])
+            \(.["score"] // "Unknown")
             \(.["rated"])
             \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')
 

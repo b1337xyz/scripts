@@ -41,7 +41,7 @@ def get_all():
     waiting = s.aria2.tellWaiting(0, 100)
     stopped = s.aria2.tellStopped(0, 100)
     active  = s.aria2.tellActive()
-    return sorted([] + waiting + stopped + active, key=lambda x: x['status'])
+    return sorted([] + waiting + stopped + active, key=lambda x: x['status'], reverse=True)
 
 
 def add_torrent(torrent):
