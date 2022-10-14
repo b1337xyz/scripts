@@ -111,7 +111,7 @@ function main() {
             shuf "$mainfile"
         ;;
         latest)
-            ls --color=never -1Ltc "$ANIME_DIR" | tee "$tmpfile" ;;
+            grep -Ff "$mainfile" <(ls --color=never -1Ltc "$ANIME_DIR") | tee "$tmpfile" ;;
         by_size)
             sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 | du -L --files0-from=- | sort -n | awk '{
                 split($0, a, "/");

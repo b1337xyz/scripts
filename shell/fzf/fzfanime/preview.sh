@@ -14,16 +14,12 @@ function start_ueberzug {
 }
 function finalise {
     printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
-    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$modefile" &>/dev/null
+    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$modefile" &>/dev/null || true
     jobs -p | xargs -r kill 2>/dev/null
 }
 function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
-    # p=$(stat -c '%N' "${ANIME_DIR}/$1" |
-    #     awk -F' -> ' '{
-    #         print substr($2, 2, length($2)-2)
-    #     }'
-    # )
+    # p=$(stat -c '%N' "${ANIME_DIR}/$1" | awk -F' -> ' '{print substr($2, 2, length($2)-2)}')
     x=$p
     [ "${#x}" -gt "$((COLUMNS - 1))" ] &&
         x=${x::$((COLUMNS - 4))}...
@@ -99,12 +95,8 @@ function preview {
         return 1
     fi
 
-    printf '{
-        "action": "add", "identifier": "preview",
-        "x": 0, "y": 0, "width": %d, "height": %d,
-        "scaler": "distort", "path": "%s"
-    }\n' "$WIDTH" "$HEIGHT" "$image" | jq -Mc > "$UEBERZUG_FIFO" &
-
+    printf '{"action": "add", "identifier": "%s", "x": 0, "y": 0, "width": %d, "height": %d, "scaler": "%s", "path": "%s"}\n' \
+        "preview" "$WIDTH" "$HEIGHT" "distort" "$image" > "$UEBERZUG_FIFO" &
 
     # if [ "${#title}" -gt 28 ];then
     #     title=${title::28}
