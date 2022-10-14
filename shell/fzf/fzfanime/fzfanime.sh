@@ -24,8 +24,8 @@
 
 declare -x -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
-declare -r -x DB=~/.cache/anilist.json
-declare -r -x MALDB=~/.cache/maldb.json
+declare -r -x DB=~/.scripts/python/myanimedb/anilist.json
+declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
 declare -r -x ANIME_HST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 
@@ -67,15 +67,17 @@ function main() {
                 -xtype l -printf '%f\n') "$mainfile" | tee "$tmpfile"
         ;;
         by_score)
-            grep -xFf "$mainfile" <(
-            jq -r '[ keys[] as $k | .[$k] | {"title": $k, "score": .["score"]}] | sort_by(.score) | .[].title' "$DB") | tee "$tmpfile"
+            grep -xFf "$mainfile" <(jq -r \
+            '[ keys[] as $k | .[$k] | {"title": $k, "score": .["score"]}] | sort_by(.score) | .[].title' "$DB") |
+            tee "$tmpfile"
         ;;
         by_year)
             sed 's/.*(\([0-9]\{4\}\)).*/\1;\0/g' "$mainfile" | sort -n | sed 's/^[0-9]\{4\}\;//g' | tee "$tmpfile"
         ;;
         by_episodes)
-            grep -xFf "$mainfile" <(
-            jq -r '[keys[] as $k | {id: "\($k)", episodes: .[$k]["episodes"]}] | sort_by(.episodes)[] | .id' "$DB") | tee "$tmpfile"
+            grep -xFf "$mainfile" <(jq -r \
+            '[keys[] as $k | {id: "\($k)", episodes: .[$k]["episodes"]}] | sort_by(.episodes)[] | .id' "$DB") |
+            tee "$tmpfile"
         ;;
         watched)
             grep -xFf "$mainfile" "$WATCHED_FILE" | tac | tee "$tmpfile"
@@ -92,24 +94,23 @@ function main() {
         ;;
         genre) 
             printf "genres" > "$modefile"
-            jq -r '.[]["genres"][]' "$DB" | sed 's/^$/Unknown/g' | sort -u
+            jq -r '.[].genres[]' "$DB" | sed 's/^$/Unknown/g' | sort -u
             return
         ;;
         type)
             printf "type" > "$modefile"
-            jq -r '.[]["type"]' "$DB" | sed 's/^$/Unknown/g' | sort -u
+            jq -r '.[].type' "$DB" | sed 's/^$/Unknown/g' | sort -u
             return
         ;;
         rated)
             printf 'rated' > "$modefile"
-            jq -r '.[]["rated"]' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
+            jq -r '.[].rated' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
             return
         ;;
         shuffle)
             shuf "$mainfile"
         ;;
         latest)
-            # shellcheck disable=SC2012
             ls --color=never -1Ltc "$ANIME_DIR" | tee "$tmpfile" ;;
         by_size)
             sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 | du -L --files0-from=- | sort -n | awk '{
@@ -133,35 +134,33 @@ function main() {
             return
         ;;
         select)
-            curr_mode=$(cat "$modefile")
+            curr_mode=$(<"$modefile")
             if [ "$curr_mode" = genres ];then
 
                 if [ "$2" = "Unknown" ];then
                     grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["genres"] == [""]) | $k' "$DB") "$mainfile"
                 else
-                    grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["'"$curr_mode"'"] | index("'"$2"'")) | $k' "$DB") \
-                        "$mainfile"
+                    grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "$2" \
+                        'keys[] as $k | select(.[$k][$mode] | index($v)) | $k' "$DB") "$mainfile"
                 fi | tee "$tmpfile"
 
             elif [[ "$curr_mode" =~ (type|rated) ]];then
 
-                grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["'"$curr_mode"'"] == "'"${2/Unknown/}"'") | $k' "$DB") \
-                    "$mainfile" | tee "$tmpfile"
+                grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "${2/Unknown/}" \
+                    'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile" | tee "$tmpfile"
 
             elif [ "$curr_mode" = "path" ];then
-                stat -c '%N' "$ANIME_DIR"/* |
-                    awk -F' -> ' '/'"$2"'/{split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' | tee "$tmpfile"
-            else
-                play "$2"
-                cat "$mainfile"
+                stat -c '%N' "$ANIME_DIR"/* | awk -F' -> ' -v mode="$2" \
+                    '$0 ~ mode {split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' |
+                    tee "$tmpfile"
             fi
         ;;
         nsfw)
             jq -Sr 'keys[] as $k | select(.[$k].isAdult) | $k' "$DB" | tee "$mainfile"
         ;;
         *)
-            jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
-            # find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
+            # jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
+            find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
         ;;
     esac
 

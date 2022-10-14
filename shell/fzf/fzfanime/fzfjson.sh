@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-declare -r -x anidb=~/.cache/anilist.json
-declare -r -x maldb=~/.cache/maldb.json
+declare -r -x anidb=~/.scripts/python/myanimedb/anilist.json
+declare -r -x maldb=~/.scripts/python/myanimedb/maldb.json
 
 preview() {
     echo ">>> $anidb"
-    jq -C '.["'"$1"'"]' "$anidb"
+    jq -C --arg k "$1" '.[$k]' "$anidb"
     echo ">>> $maldb"
-    jq -C '.["'"$1"'"]' "$maldb"
+    jq -C --arg k "$1" '.[$k]' "$maldb"
 }
 export -f preview
 

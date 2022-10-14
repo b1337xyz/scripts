@@ -39,9 +39,9 @@ fztorrent() {
     local torrent
     find ~/.cache/torrents -iname '*.torrent' -printf '%f\n' |
     fzf --layout=reverse --height 20 -m | sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
-        xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
+        xargs -0rI{} find ~/.cache/torrents -type f -name '{}'
 }
-cptorrent() { fztorrent | xargs -rI{} cp -v '{}' . ;}
+cptorrent() { fztorrent | tr \\n \\0 | xargs -0rI{} cp -v '{}' . ;}
 cdanime() {
     pv() {
         p=$(readlink -m ~/Videos/Anime/"$1")

@@ -10,7 +10,7 @@ import os
 
 API_URL = "https://api.jikan.moe/v4/anime?q={}&limit={}"
 HOME = os.getenv('HOME')
-CACHE = os.path.join(HOME, '.cache/jikan.json')
+CACHE = os.path.join(HOME, '.cache/mal.json')
 
 try:
     with open(CACHE, 'r') as fp:
@@ -79,9 +79,11 @@ else:
                 'year':     year if year else '?',
                 'score':    i['score'] if i['score'] else '?'
             }
+
     if not data:
         print('Nothing to do...')
         exit(0)
+
     cache[url] = data
     with open(CACHE, 'w') as fp:
         json.dump(cache, fp)

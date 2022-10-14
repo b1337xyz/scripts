@@ -82,8 +82,8 @@ function check_link {
 }
 function preview {
     IFS=$'\n' read -d '' -r title _type genres episodes score rated image < <(\
-        jq -r --argjson k "\"$1\"" '.[$k] |
-           "\(.["title"])
+        jq -Mr --argjson k "\"$1\"" '.[$k] |
+           "\(.["title"] // "404")
             \(.["type"])
             \(.["genres"] | if length > 0 then . | join(", ") else "Unknown" end)
             \(.["episodes"])
@@ -91,7 +91,7 @@ function preview {
             \(.["rated"])
             \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')
 
-    if [ -z "$title" ];then
+    if [ "$title" = "404" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
         printf "404 - preview not found\n\n"
         for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
