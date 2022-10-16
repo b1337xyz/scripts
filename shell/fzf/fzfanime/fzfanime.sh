@@ -35,9 +35,9 @@ set -eo pipefail
 
 [ -d "$ANIME_DIR" ] || { printf '%s not found\n' "${ANIME_DIR}"; exit 1; }
 
-declare -r -x mainfile=$(mktemp) 
-declare -r -x tmpfile=$(mktemp)
-declare -r -x modefile=$(mktemp)
+declare -r -x mainfile=$(mktemp --dry-run) 
+declare -r -x tempfile=$(mktemp --dry-run)
+declare -r -x modefile=$(mktemp --dry-run)
 
 rpath=$(realpath "$0")
 # shellcheck disable=SC1091
@@ -64,33 +64,44 @@ function main() {
         ;;
         avail)
             grep -vxFf <(find "$ANIME_DIR" -mindepth 1 -maxdepth 1 \
-                -xtype l -printf '%f\n') "$mainfile" | tee "$tmpfile"
+                -xtype l -printf '%f\n') "$mainfile" | tee "$tempfile"
         ;;
         by_score)
             grep -xFf "$mainfile" <(jq -r \
             '[ keys[] as $k | .[$k] | {"title": $k, "score": .["score"]}] | sort_by(.score) | .[].title' "$DB") |
-            tee "$tmpfile"
+            tee "$tempfile"
         ;;
         by_year)
-            sed 's/.*(\([0-9]\{4\}\)).*/\1;\0/g' "$mainfile" | sort -n | sed 's/^[0-9]\{4\}\;//g' | tee "$tmpfile"
+            sed 's/.*(\([0-9]\{4\}\)).*/\1;\0/g' "$mainfile" | sort -n | sed 's/^[0-9]\{4\}\;//g' | tee "$tempfile"
         ;;
         by_episodes)
             grep -xFf "$mainfile" <(jq -r \
             '[keys[] as $k | {id: "\($k)", episodes: .[$k]["episodes"]}] | sort_by(.episodes)[] | .id' "$DB") |
-            tee "$tmpfile"
+            tee "$tempfile"
         ;;
         watched)
-            grep -xFf "$mainfile" "$WATCHED_FILE" | tac | tee "$tmpfile"
+            grep -xFf "$mainfile" "$WATCHED_FILE" | tac | tee "$tempfile"
         ;;
         unwatched)
-            grep -xvFf "$WATCHED_FILE" "$mainfile" | tee "$tmpfile"
+            grep -xvFf "$WATCHED_FILE" "$mainfile" | tee "$tempfile"
         ;;
         history)
-            grep -xFf "$mainfile" <(tac "$ANIME_HST" | awk '!seen[$0]++') | tee "$tmpfile"
+            grep -xFf "$mainfile" <(tac "$ANIME_HST" | awk '!seen[$0]++') | tee "$tempfile"
         ;;
         continue)
             grep -vxFf "$WATCHED_FILE" <(grep -xFf "$mainfile" <(
-                tac "$ANIME_HST" | awk '!seen[$0]++')) | tee "$tmpfile"
+                tac "$ANIME_HST" | awk '!seen[$0]++')) | tee "$tempfile"
+        ;;
+        latest)
+            grep -xFf "$mainfile" <(ls --color=never -1Ltc "$ANIME_DIR") | tee "$tempfile"
+        ;;
+        shuffle) shuf "$mainfile" ;;
+        by_size)
+            sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 |
+            du -L --files0-from=- | sort -n | awk '{
+                split($0, a, "/");
+                print a[length(a)];
+            }' | tee "$tempfile"
         ;;
         genre) 
             printf "genres" > "$modefile"
@@ -107,65 +118,52 @@ function main() {
             jq -r '.[].rated' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
             return
         ;;
-        shuffle)
-            shuf "$mainfile"
-        ;;
-        latest)
-            grep -Ff "$mainfile" <(ls --color=never -1Ltc "$ANIME_DIR") | tee "$tmpfile" ;;
-        by_size)
-            sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 | du -L --files0-from=- | sort -n | awk '{
-                split($0, a, "/");
-                print a[length(a)];
-            }' | tee "$tmpfile"
-        ;;
+
         path)
             printf "path" > "$modefile"
-            readlink "$ANIME_DIR"/* |
-                awk '
-                    {
-                        split($1, a, "/");
-                        x=a[length(a)-2];
-                        if (x == "..") {
-                            print a[length(a)-1]
-                        } else {
-                            print x
-                        }
-                    }' | sort -u
+            readlink "$ANIME_DIR"/* | awk '{
+                split($1, a, "/");
+                x=a[length(a)-2];
+                if (x == "..") {
+                    print a[length(a)-1]
+                } else {
+                    print x
+                }
+            }' | sort -u
             return
         ;;
         select)
             curr_mode=$(<"$modefile")
             if [ "$curr_mode" = genres ];then
-
                 if [ "$2" = "Unknown" ];then
                     grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["genres"] == [""]) | $k' "$DB") "$mainfile"
                 else
                     grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "$2" \
                         'keys[] as $k | select(.[$k][$mode] | index($v)) | $k' "$DB") "$mainfile"
-                fi | tee "$tmpfile"
-
+                fi | tee "$tempfile"
             elif [[ "$curr_mode" =~ (type|rated) ]];then
-
                 grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "${2/Unknown/}" \
-                    'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile" | tee "$tmpfile"
-
+                    'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile" | tee "$tempfile"
             elif [ "$curr_mode" = "path" ];then
                 stat -c '%N' "$ANIME_DIR"/* | awk -F' -> ' -v mode="$2" \
                     '$0 ~ mode {split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' |
-                    tee "$tmpfile"
+                    tee "$tempfile"
+            else
+                play "$2"
+                cat "$mainfile"
             fi
         ;;
         nsfw)
             jq -Sr 'keys[] as $k | select(.[$k].isAdult) | $k' "$DB" | tee "$mainfile"
         ;;
         *)
-            # jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
-            find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
+            jq -Sr 'keys[] as $k | select(.[$k].isAdult | not) | $k' "$DB" | tee "$mainfile"
+            # find "$ANIME_DIR" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | tee "$mainfile"
         ;;
     esac
 
     [ -f "$modefile" ] && rm "$modefile"
-    [ -s "$tmpfile" ] && mv -f "$tmpfile" "$mainfile"
+    [ -f "$tempfile" ] && mv -f "$tempfile" "$mainfile"
 }
 export -f main play
 
@@ -173,11 +171,10 @@ trap finalise EXIT HUP INT
 [ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null
 
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
-main "$@" | fzf -e --no-sort --preview 'preview {}' \
-    --color dark \
+main "$@" | fzf -e --no-sort --color dark \
+    --border none --prompt "NORMAL " \
+    --preview 'preview {}' \
     --preview-window 'left:53%:border-sharp:border-right' \
-    --prompt "NORMAL " \
-    --border none \
     --header '^p ^s ^l ^r ^w ^o ^a ^e ^g ^v 
 A-p A-u A-c A-a A-d A-s' \
     --bind 'ctrl-t:last' \
