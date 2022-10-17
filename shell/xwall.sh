@@ -20,7 +20,7 @@ declare -a opts=()
 declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
-        -h|--help) printf 'Usage: %s [--sxiv --dmenu --<xwallpaper option>]\n' "${0##*/}"; exit 0 ;;
+        -h|--help) printf 'Usage: %s [--sxiv --dmenu --<xwallpaper option>] IMAGE\n' "${0##*/}"; exit 0 ;;
         --dmenu) use_dmenu=1    ;;
         --sxiv)  use_sxiv=1     ;;
         -*) opts+=("$1")        ;; # xwallpaper options
