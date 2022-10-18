@@ -1,0 +1,2 @@
+#!/bin/sh
+awk '{printf("%s %s %s\n", $1, $2, $2)}' /proc/loadavg

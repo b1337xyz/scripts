@@ -1,0 +1,2 @@
+#!/bin/sh
+ip -br a | awk '/UP/{print substr($3, 1, length($3)-3); exit}'

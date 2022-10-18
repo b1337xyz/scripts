@@ -18,7 +18,8 @@ line() {
 webdav_server() {
     local ip
     ip=$(command ip -br a | awk '/UP/{print substr($3, 1, length($3)-3); exit}')
-    rclone serve webdav -L --read-only --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
+    rclone serve webdav -L --read-only --no-modtime --no-checksum \
+        --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
 frep() {
     find . -type f -printf '%f\n' | sort | uniq -d |
@@ -333,8 +334,13 @@ if .properties.default_track then "(default)" else "" end)"'
     done
 }
 random_str() {
-    chr=${1:-a-zA-Z0-9@!<&%\$#_\\-\\.}
-    tr -dc "$chr" < /dev/urandom | fold -w "${2:-10}" | head -1
+    local chr n
+    while (($#));do
+        if [[ "$1" =~ ^[0-9]+$ ]];then n=$1 ;else chr=$1 ;fi
+        shift
+    done
+    chr=${chr:-a-zA-Z0-9@!<&%\$#_\\-\\.}
+    tr -dc "$chr" < /dev/urandom | fold -w "${n:-10}" | head -1
 }
 iommu_groups() {
     for d in /sys/kernel/iommu_groups/*/devices/*

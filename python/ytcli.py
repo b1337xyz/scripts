@@ -14,7 +14,8 @@ import sys
 # mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
-SOCKET_PATH = '/tmp/mpvradio'
+TMPDIR = os.getenv('TMPDIR', '/tmp/')
+SOCKET_PATH = os.path.join(TMPDIR, 'mpvradio')
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
 CONF = os.path.join(HOME, '.config/.ytapi')

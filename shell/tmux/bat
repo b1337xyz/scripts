@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+printf '%s %s%%\n' \
+    $(sed 's/^Disch.*/BAT/;s/^Char.*/CHR/' /sys/class/power_su*/BAT?/status) \
+    "$(< /sys/class/power_supply/BAT?/capacity)"

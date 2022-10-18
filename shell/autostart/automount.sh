@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
 
-lock=/tmp/automount.lock
+lock=/tmp/.automount.lock
 [ -f "$lock" ] && exit 0
 :>"$lock"
 trap 'rm "$lock" 2>/dev/null' EXIT INT HUP

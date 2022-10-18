@@ -5,7 +5,7 @@ cd ~/.cache/torrents
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
 do
     torrent=$(aria2c -S "$i" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
-    mv -vn -- "$i" "$torrent"
+    mv -vn -- "$i" "$torrent" || true
 done
 
 aria2c -S ./*.torrent | awk '

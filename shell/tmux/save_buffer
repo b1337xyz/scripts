@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+out=~/tmux-buffer_$(date +%Y%m%d%H%M%S).txt
+grep . "$1" > "$out"
+tmux display "Saved: $out"
+

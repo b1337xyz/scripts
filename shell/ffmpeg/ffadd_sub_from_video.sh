@@ -10,8 +10,7 @@ fi
 output=new_"${1##*/}"
 ffmpeg -nostdin -v 24 -stats -i "$1" -i "$2" \
     -map_metadata 0 -map 0:v -map "$audio" \
-    -map 1:s -map 0:s:m:language:eng? \
-    -map 1:t? \
+    -map 1:s -map 1:t? \
     -map -v:m:mimetype:image/jpeg?  \
     -metadata:s:s:0 language=por        \
     -metadata:s:s:0 title='Portuguese'  \
