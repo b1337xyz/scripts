@@ -137,3 +137,8 @@ psndl() {
 
     command rm "$tmpfile"
 }
+fzman() {
+    man -P cat "$1" | grep '^[A-Z]' | sed -e '1d' -e '$ d' | fzf |
+        sed -e 's/[]\[?\*\$()]/\\\\&/g' |
+        xargs -rI{} man -P 'less -p"^{}"' "$1"
+}
