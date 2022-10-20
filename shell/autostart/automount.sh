@@ -19,8 +19,8 @@ do
         devname=$(get_devname "$devpath")
         [[ "$devname" =~ [0-9]$ ]] || continue
         grep -q "^$devname" /proc/mounts && continue
-        label=$(lsblk -o LABEL "$devname" | tail -1)
-        [ -z "$label" ] && continue
+        read -r label uuid < <(lsblk -o UUID,LABEL "$devname" | tail -1)
+        label=${label:-$uuid}
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
         sudo mount "$devname" "$mp" -o noatime,user
