@@ -65,10 +65,12 @@ def add_torrent(torrent):
                     logging.error(err)
         else:
             magnet = get_magnet(torrent)
+            notify('Magnet', magnet)
             return add_torrent(magnet)
     else:
         gid = s.aria2.addUri([torrent], options)
 
+    sleep(1)
     if os.path.exists(FIFO):
         with open(FIFO, 'w') as fifo:
             fifo.write(f'{gid}\n')
@@ -186,11 +188,15 @@ if __name__ == '__main__':
         move_to_top()
     elif args:
         for arg in args:
-            if os.path.isfile(arg):
+            if arg.starswith('magnet:?'):
+                add_torrent(arg)
+            elif os.path.isfile(arg):
                 file = os.path.realpath(arg)
                 if is_torrent(file):
                     add_torrent(file)
-            elif 'magnet:' in arg:
-                add_torrent(arg)
+                elif file.endswith('.magnet'):
+                    with open(arg, 'r') as fp:
+                        magnet = fp.readline().strip()
+                    add_torrent(magnet)
     else:
         list_torrents()

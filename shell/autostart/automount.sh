@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
 
+MP=/mnt/"$USER"
+[ -w "$MP" ] || exit 1
+
 lock=/tmp/.automount.lock
 [ -f "$lock" ] && exit 0
 :>"$lock"
@@ -18,8 +21,8 @@ do
         grep -q "^$devname" /proc/mounts && continue
         label=$(lsblk -o LABEL "$devname" | tail -1)
         [ -z "$label" ] && continue
-        mp=/mnt/anon/"$label"
-        [ -d "$mp" ] || mkdir -v "$mp"
+        mp="${MP}/$label"
+        [ -d "$mp" ] || mkdir -vp "$mp"
         sudo mount "$devname" "$mp" -o noatime,user
         notify-send -i drive-harddisk "$label mounted" "$mp"
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime

@@ -170,13 +170,13 @@ export -f main play
 trap finalise EXIT HUP INT
 [ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null
 
+n=$'\n'
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
 main "$@" | fzf -e --no-sort --color dark \
     --border none --prompt "NORMAL " \
     --preview 'preview {}' \
     --preview-window 'left:53%:border-sharp:border-right' \
-    --header '^p ^s ^l ^r ^w ^o ^a ^e ^g ^v 
-A-p A-u A-c A-a A-d A-s' \
+    --header "^p ^s ^l ^r ^w ^o ^a ^e ^g ^v${n}A-p A-u A-c A-a A-d A-s" \
     --bind 'ctrl-t:last' \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main select {})+clear-query' \

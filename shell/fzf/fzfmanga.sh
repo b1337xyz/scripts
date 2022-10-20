@@ -21,8 +21,9 @@ export -f main preview open safe_remove
 trap finalise EXIT
 start_ueberzug
 
-main | fzf --preview "preview {}" --print0 \
+n=$'\n'
+main | fzf --header "ctrl-o open${n}ctrl-r remove" --preview "preview {}" --print0 \
     --preview-window "left:40%:border-none" \
     --border none \
-    --bind 'ctrl-d:execute(safe_remove {})+reload(main)' \
+    --bind 'ctrl-r:execute(safe_remove {})+reload(main)' \
     --bind 'ctrl-o:execute(open {})' | xargs -0rI{} nsxiv -rfqs w '{}' 2>/dev/null

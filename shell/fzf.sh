@@ -31,9 +31,9 @@ c() {
 fzumount() {
     command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
         awk '!/sda/{printf("%-20s %s\n", $1, $6)}' |
-        fzf -m --layout=reverse --height 10 | awk '{print $1}' | xargs -roI{} sudo umount '{}'
-
-    command df -h -x tmpfs -x devtmpfs | grep -v '/dev/sda'
+        fzf -m --layout=reverse --height 10 | awk '{print $1}' |
+        xargs -roI{} sudo umount '{}' &&
+        command df -h -x tmpfs -x devtmpfs | grep -v '/dev/sda'
 }
 fztorrent() {
     local torrent

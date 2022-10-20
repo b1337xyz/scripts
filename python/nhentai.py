@@ -6,6 +6,8 @@ import os
 import re
 import requests
 import subprocess as sp
+import xmlrpc.client
+
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
@@ -14,6 +16,7 @@ CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 DOMAIN = 'nhentai.net'
 
+aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
@@ -58,10 +61,10 @@ def download(session, url, dl_dir, fname):
     #     torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', out).group(1)
     # except:
     #     return file
-
     # new_file = os.path.join(dl_dir, torrent_name + '.torrent')
     # if not os.path.exists(new_file):
     #     os.rename(file, new_file)
+
     return file
 
 
@@ -114,6 +117,7 @@ def main(urls):
             if 'english' not in div.text.lower():
                 continue
             posts.append(a)
+
         last_page = soup.find('a', {'class': 'last'})
         if last_page:
             last_page = int(last_page.get('href').split('=')[-1])
@@ -136,14 +140,32 @@ def main(urls):
             url = f'https://{DOMAIN}{post}download'
             print(f'[{i}/{len(posts)}] {url}')
             fname = post.split('/')[-2] + '.torrent'
-            f = download(s, url, dl_dir, fname)
-            torrents.append(f)
+            torrent = download(s, url, dl_dir, fname)
+            torrents.append(torrent)
 
-        sp.run([
-            'aria2c', '--dir', dl_dir,
-            '--bt-stop-timeout=500',
-            '--seed-time=0'
-        ] + torrents)
+            try:
+                with open(torrent, 'rb') as fp:
+                    data = fp.read()
+            except Exception as err:
+                print(f'Error reading torrent\n{err}')
+                continue
+
+            try:
+                aria2.aria2.addTorrent(
+                    xmlrpc.client.Binary(data), [], {
+                    'rpc-save-upload-metadata': 'false',
+                    'force-save': 'false',
+                    'dir': dl_dir
+                })
+            except Exception as err:
+                print(f'Error downloading torrent\n{err}')
+                continue
+
+        # sp.run([
+        #     'aria2c', '--dir', dl_dir,
+        #     '--bt-stop-timeout=500',
+        #     '--seed-time=0'
+        # ] + torrents)
         [os.remove(i) for i in torrents if os.path.exists(i)]
 
 
