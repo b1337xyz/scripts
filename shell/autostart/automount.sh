@@ -19,7 +19,7 @@ do
         devname=$(get_devname "$devpath")
         [[ "$devname" =~ [0-9]$ ]] || continue
         grep -q "^$devname" /proc/mounts && continue
-        read -r label uuid < <(lsblk -o UUID,LABEL "$devname" | tail -1)
+        read -r label uuid < <(lsblk -o LABEL,UUID "$devname" | tail -1)
         label=${label:-$uuid}
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
