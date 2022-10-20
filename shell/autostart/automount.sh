@@ -2,7 +2,7 @@
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
 
 MP=/mnt/"$USER"
-[ -w "$MP" ] || exit 1
+[ -w "$MP" ] || { printf "Can't write to '%s': Permission denied\n" "$MP";  exit 1; }
 
 lock=/tmp/.automount.lock
 [ -f "$lock" ] && exit 0
