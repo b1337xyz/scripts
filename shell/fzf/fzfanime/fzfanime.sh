@@ -105,20 +105,19 @@ function main() {
         ;;
         genre) 
             printf "genres" > "$modefile"
-            jq -r '.[].genres[]' "$DB" | sed 's/^$/Unknown/g' | sort -u
+            q -r '.[].genres | if . == [] then "Unknown" else "\(.[])" end' | sort -u
             return
         ;;
         type)
             printf "type" > "$modefile"
-            jq -r '.[].type' "$DB" | sed 's/^$/Unknown/g' | sort -u
+            jq -r '.[] | .type // "Unknown"' "$DB" | sort -u
             return
         ;;
         rated)
             printf 'rated' > "$modefile"
-            jq -r '.[].rated' "$DB" | sed 's/\(^$\|null\)/Unknown/g;' | sort -u
+            jq -r '.[] | .rated // "Unknown"' "$DB" | sort -u
             return
         ;;
-
         path)
             printf "path" > "$modefile"
             readlink "$ANIME_DIR"/* | awk '{
@@ -136,14 +135,19 @@ function main() {
             curr_mode=$(<"$modefile")
             if [ "$curr_mode" = genres ];then
                 if [ "$2" = "Unknown" ];then
-                    grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["genres"] == [""]) | $k' "$DB") "$mainfile"
+                    grep -xFf <(jq -r 'keys[] as $k | select(.[$k]["genres"] == []) | $k' "$DB") "$mainfile"
                 else
                     grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "$2" \
                         'keys[] as $k | select(.[$k][$mode] | index($v)) | $k' "$DB") "$mainfile"
                 fi | tee "$tempfile"
             elif [[ "$curr_mode" =~ (type|rated) ]];then
-                grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "${2/Unknown/}" \
-                    'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile" | tee "$tempfile"
+                if [ "$2" = "Unknown" ];then
+                    grep -xFf <(jq -r --arg mode "$curr_mode" \
+                        'keys[] as $k | select(.[$k][$mode] | not) | $k' "$DB") "$mainfile"
+                else
+                    grep -xFf <(jq -r --arg mode "$curr_mode" --arg v "$2" \
+                        'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile"
+                fi | tee "$tempfile"
             elif [ "$curr_mode" = "path" ];then
                 stat -c '%N' "$ANIME_DIR"/* | awk -F' -> ' -v mode="$2" \
                     '$0 ~ mode {split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' |
