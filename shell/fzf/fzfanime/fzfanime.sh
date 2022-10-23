@@ -105,7 +105,8 @@ function main() {
         ;;
         genre) 
             printf "genres" > "$modefile"
-            q -r '.[].genres | if . == [] then "Unknown" else "\(.[])" end' | sort -u
+            # jq -r '.[].genres | if . == [] then "Unknown" else "\(.[])" end' "$DB" | sort -u
+            jq -r '.[] | .genres[] // "Unknown"' "$DB" | sort -u
             return
         ;;
         type)
