@@ -188,7 +188,7 @@ if __name__ == '__main__':
         move_to_top()
     elif args:
         for arg in args:
-            if arg.starswith('magnet:?'):
+            if arg.startswith('magnet:?'):
                 add_torrent(arg)
             elif os.path.isfile(arg):
                 file = os.path.realpath(arg)

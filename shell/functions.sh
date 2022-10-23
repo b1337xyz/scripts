@@ -8,6 +8,15 @@ wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
+arc() {
+    local target="${1}.tar"
+    n=2
+    while [ -e "$target" ];do
+        target=${target}.${n}.tar
+        n=$((n+1))
+    done
+    tar cf "${1##*/}.tar" "$@"
+}
 line() {
     if [ -n "$2" ];then
         sed "${1}!d" "$2"
@@ -173,14 +182,12 @@ crc32check() {
 
     for i in "$@";do
         # [12345678] or (12345678)
-        fname_crc=$(echo "$i" | grep -oP '(?<=(\[|\())[[:alnum:]]{8}(?=(\)|\]))' | tail -1)
+        fname_crc=$(printf '%s' "$i" | grep -oP '(?<=(\[|\())[[:alnum:]]{8}(?=(\)|\]))' | tail -1)
         [ -z "$fname_crc" ] && {
             printf 'crc32 pattern not found in "%s"\n' "$i" 1>&2;
             continue;
         }
-
         src_crc=$(cksfv -v "$i" | sed '/^;/d; s/.*\(.\{8\}\)$/\1/')
-
         if [ "$fname_crc" = "$src_crc" ];then
             printf '%s \t\e[1;32m%s\e[m\n' "$i" "$src_crc"
         else
