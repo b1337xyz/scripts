@@ -82,7 +82,7 @@ function preview {
            "\(.["title"] // "404")
             \(.["type"])
             \(.["genres"] | if length > 0 then . | join(", ") else "Unknown" end)
-            \(.["episodes"])
+            \(.["episodes"] // "Unknown")
             \(.["score"] // "Unknown")
             \(.["rated"])
             \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')

@@ -80,10 +80,10 @@ def main():
     if opts.dmenu:
         if opts.history and hist:
             query = run('dmenu', hist, [
-                '-c', '-l', height, '-p', 'search:'
+                '-i', '-c', '-l', height, '-p', 'search:'
             ])[-1]
         else:
-            query = run('dmenu', [], ['-c', '-p', 'search:'])[-1]
+            query = run('dmenu', [], ['-c', '-i', '-p', 'search:'])[-1]
     else:
         if hist:
             query = run('fzf', hist, [
