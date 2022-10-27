@@ -93,7 +93,7 @@ function main() {
                 tac "$ANIME_HST" | awk '!seen[$0]++')) | tee "$tempfile"
         ;;
         latest)
-            grep -xFf "$mainfile" <(ls --color=never -1Ltc "$ANIME_DIR") | tee "$tempfile"
+            grep -xFf "$mainfile" <(ls --color=never -N1Ltc "$ANIME_DIR") | tee "$tempfile"
         ;;
         shuffle) shuf "$mainfile" ;;
         by_size)

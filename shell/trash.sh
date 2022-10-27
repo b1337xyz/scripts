@@ -23,8 +23,9 @@ while [ $# -gt 0 ];do
         ;;
         -*) printf 'usage: %s -r <files*>\n' "${0##*/}"; exit 1 ;;
         *)
-            if [ -f "$1" ];then
-                fname="${1##*/}"
+            f=$(printf '%s' "$1" | sed 's/\/*$//')
+            if [ -f "$f" ];then
+                fname="${f##*/}"
                 f="${TRASH_DIR}/$fname"
                 rp=$(realpath "$1")
                 n=1

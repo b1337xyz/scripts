@@ -9,13 +9,19 @@ lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 arc() {
-    local target="${1}.tar"
+    local filename basename archive
+    shopt -s extglob
+    filename=${1%%+(/)}
+    shopt -u extglob
+    basename=${filename##*/}
+    archive=${basename}.tar
     n=2
-    while [ -e "$target" ];do
-        target=${target}.${n}.tar
+    while [ -e "$archive" ];do
+        archive=${basename}.${n}.tar
         n=$((n+1))
     done
-    tar cf "${1##*/}.tar" "$@"
+    printf '%s\n' "$archive" 
+    tar cf "$archive" "$@"
 }
 line() {
     if [ -n "$2" ];then
@@ -101,6 +107,7 @@ loop() {
     local s
     [[ "$1" =~ ^[0-9]+$ ]] && { s=$1; shift; }
     [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
+    eval "$*"
     while sleep "${s:-15}";do eval "$*"; done
 }
 lst() {
