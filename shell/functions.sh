@@ -107,8 +107,7 @@ loop() {
     local s
     [[ "$1" =~ ^[0-9]+$ ]] && { s=$1; shift; }
     [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
-    eval "$*"
-    while sleep "${s:-15}";do eval "$*"; done
+    while :;do eval "$*"; sleep "${s:-15}"; done
 }
 lst() {
     local total
