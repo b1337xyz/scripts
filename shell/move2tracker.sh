@@ -26,7 +26,8 @@ do
     tracker=${tracker:-unknown}
     torrent=${i#*:}
     [ -d "$tracker" ] || mkdir -v "$tracker"
-    [ -f "$torrent" ] && mv -vf -- "$torrent" "$tracker"
+    [ -f "$torrent" ] && mv -vf -- "$torrent" "$tracker" || true
 done
 
+printf 'please wait...\n'
 aria2c -S ~/.cache/torrents/*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > torrents.txt

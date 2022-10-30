@@ -2,9 +2,8 @@
 # shellcheck disable=SC2155
 # shellcheck disable=SC2154
 declare -r -x UEBERZUG_FIFO=$(mktemp --dry-run --suffix "fzf-$$-ueberzug")
-declare -r -x WIDTH=35 # image width
-declare -r -x HEIGHT=22
-declare -r -x mpvhist=~/.cache/mpv/mpvhistory.log
+declare -r -x WIDTH=32 # image width
+declare -r -x HEIGHT=20
 declare -r -x cache_dir=~/.cache/fzfanime_preview
 [ -d "$cache_dir" ] || mkdir -p "$cache_dir"
 
@@ -21,35 +20,30 @@ function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
     # p=$(stat -c '%N' "${ANIME_DIR}/$1" | awk -F' -> ' '{print substr($2, 2, length($2)-2)}')
     x=$p
-    [ "${#x}" -gt "$((COLUMNS - 1))" ] &&
-        x=${x::$((COLUMNS - 4))}...
+    [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
     printf '%s\n' "$x"
 
-    if [ -f "$mpvhist" ];then
-        last_ep=$(grep -F "/${1}/" "$mpvhist" | tail -n1)
+    if [ -f "$MPVHIST" ];then
+        last_ep=$(grep -F "/${1}/" "$MPVHIST" | tail -n1)
         last_ep=${last_ep##*/}
         if [ -f "${p}/${last_ep}" ];then
-            #[ "${#last_ep}" -gt "$((COLUMNS - 15))" ] &&
-            #   last_ep=${last_ep::$((COLUMNS - 15))}...
+            # [ "${#last_ep}" -gt "$((COLUMNS - 15))" ] && last_ep=${last_ep::$((COLUMNS - 15))}...
             printf 'Continue: \e[1;32m%s\e[m\n' "$last_ep"
         fi
     fi
 
     declare -a files=()
     cache="${cache_dir}/${1}"
-    if [ -e "$p" ]
-    then
+    if [ -e "$p" ]; then
         [ -f "$cache" ] && rm "$cache"
         ext_ptr='.*\.\(webm\|mkv\|avi\|mp4\|ogm\|mpg\|rmvb\)$'
         size=$(du -sh "$p" | awk '{print $1}' | tee -a "$cache")
 
-        while IFS= read -r -d $'\0' i
-        do
+        while IFS= read -r -d $'\0' i; do
             files+=("$i")
             echo "$i"
         done < <(find "$p" -iregex "$ext_ptr" -printf '%f\0' | sort -z) >> "$cache"
-    elif [ -s "$cache" ]
-    then
+    elif [ -s "$cache" ]; then
         size=$(head -1 "$cache")
         while read -r i;do
             files+=("$i")
@@ -63,8 +57,7 @@ function check_link {
         n=4
         for ((i=0;i<"${#files[@]}";i++));do
             x=${files[i]}
-            # [ "${#x}" -gt "$((COLUMNS - 1))" ] &&
-            #     x=${x::$((COLUMNS - 4))}...
+            [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
 
             if [ "$i" -lt "$n" ] || [ "${#files[@]}" -le $((n*2)) ];then
                 printf '%s\n' "$x"
@@ -90,22 +83,16 @@ function preview {
     if [ "$title" = "404" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
         printf "404 - preview not found\n\n"
-        for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
-        check_link "$1"
-        return 1
+        # for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
+        # check_link "$1"
+        return 0
     fi
 
     printf '{"action": "add", "identifier": "%s", "x": 0, "y": 0, "width": %d, "height": %d, "scaler": "%s", "path": "%s"}\n' \
         "preview" "$WIDTH" "$HEIGHT" "distort" "$image" > "$UEBERZUG_FIFO" &
 
-    # if [ "${#title}" -gt 28 ];then
-    #     title=${title::28}
-    #     title=${title}...
-    # fi
-    # if [ "${#genres}" -gt 32 ];then
-    #     genres=${genres::32}
-    #     genres=${genres}...
-    # fi
+    # [ "${#title}"  -gt 35 ] && title=${title::35}...
+    # [ "${#genres}" -gt 35 ] && genres=${genres::35}...
 
     printf '%'$WIDTH's %s\n'              ' ' "$title"
     printf '%'$WIDTH's Type: %s\n'        ' ' "${_type:-Unknown}"
@@ -121,8 +108,8 @@ function preview {
     grep -qxF "$1" "$WATCHED_FILE" 2>/dev/null &&
         printf '%'$WIDTH's \e[1;32mWatched\e[m' ' '
 
-    for _ in {1..17};do echo ;done
-    for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
+    for _ in {1..15};do echo ;done
+    # for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
     check_link "$1" &
 }
 export -f preview check_link

@@ -26,8 +26,9 @@ declare -x -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.scripts/python/myanimedb/anilist.json
 declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
-declare -r -x ANIME_HST=~/.cache/anime_history.txt
+declare -r -x ANIMEHIST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
+declare -r -x MPVHIST=~/.cache/mpv/mpvhistory.log
 
 ### END OF USER SETTINGS
 
@@ -39,17 +40,17 @@ declare -r -x mainfile=$(mktemp --dry-run)
 declare -r -x tempfile=$(mktemp --dry-run)
 declare -r -x modefile=$(mktemp --dry-run)
 
-rpath=$(realpath "$0")
+root=$(realpath "$0") root=${root%/*}
 # shellcheck disable=SC1091
-source "${rpath%/*}/preview.sh" || {
-    printf 'Failed to source %s\n' "${rpath%/*}/preview.sh";
+source "${root}/preview.sh" || {
+    printf 'Failed to source %s\n' "${root}/preview.sh";
     exit 1;
 }
 
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
     $PLAYER "${ANIME_DIR}/$1" &>/dev/null &
-    echo "$1" >> "$ANIME_HST"
+    echo "$1" >> "$ANIMEHIST"
 }
 function main() {
     case "$1" in
@@ -86,11 +87,11 @@ function main() {
             grep -xvFf "$WATCHED_FILE" "$mainfile" | tee "$tempfile"
         ;;
         history)
-            grep -xFf "$mainfile" <(tac "$ANIME_HST" | awk '!seen[$0]++') | tee "$tempfile"
+            grep -xFf "$mainfile" <(tac "$ANIMEHIST" | awk '!seen[$0]++') | tee "$tempfile"
         ;;
         continue)
             grep -vxFf "$WATCHED_FILE" <(grep -xFf "$mainfile" <(
-                tac "$ANIME_HST" | awk '!seen[$0]++')) | tee "$tempfile"
+                tac "$ANIMEHIST" | awk '!seen[$0]++')) | tee "$tempfile"
         ;;
         latest)
             grep -xFf "$mainfile" <(ls --color=never -N1Ltc "$ANIME_DIR") | tee "$tempfile"
@@ -180,7 +181,7 @@ n=$'\n'
 main "$@" | fzf -e --no-sort --color dark \
     --border none --prompt "NORMAL " \
     --preview 'preview {}' \
-    --preview-window 'left:53%:border-sharp:border-right' \
+    --preview-window 'left:53%:border-none' \
     --header "^p ^s ^l ^r ^w ^o ^a ^e ^g ^v${n}A-p A-u A-c A-a A-d A-s" \
     --bind 'ctrl-t:last' \
     --bind 'ctrl-b:first' \
