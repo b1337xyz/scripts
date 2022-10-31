@@ -101,11 +101,11 @@ else:
 
 max_len = max(len(i['title']) for i in data.values()) + 7
 
-for k in titles[:10]:
+for k in titles:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
-    print('{0:{1}} | {2:8} | {3:<4} | {4:<4} | {5}'.format(
-        title, max_len, obj['type'],
+    print('{0} | {1:{2}} | {3:8} | {4:<4} | {5:<4} | {6}'.format(
+        k, title, max_len, obj['type'],
         obj['episodes'], obj['score'], obj['rating']
     ))

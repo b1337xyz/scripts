@@ -20,7 +20,7 @@ function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
     # p=$(stat -c '%N' "${ANIME_DIR}/$1" | awk -F' -> ' '{print substr($2, 2, length($2)-2)}')
     x=$p
-    [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
+    # [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
     printf '%s\n' "$x"
 
     if [ -f "$MPVHIST" ];then
@@ -57,7 +57,7 @@ function check_link {
         n=4
         for ((i=0;i<"${#files[@]}";i++));do
             x=${files[i]}
-            [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
+            # [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
 
             if [ "$i" -lt "$n" ] || [ "${#files[@]}" -le $((n*2)) ];then
                 printf '%s\n' "$x"

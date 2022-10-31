@@ -245,7 +245,9 @@ fixext() {
             video/mp4)        ext=mp4 ;;
             *) continue ;;
         esac
-        [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${i%.*}.${ext}"
+        fname=${i%.*}
+        fname=${fname:-$i}.
+        [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${fname}.${ext}"
     done
     return 0
 }
