@@ -81,20 +81,21 @@ alljpg() {
     done
 }
 ex() {
-    [ -f "$1" ] || return 1
-    case "$1" in
-        *.tar.zst) tar --zstd -xf "$1" ;;
-        *.tar.bz2) tar xvjf "$1"   ;;
-        *.tar.gz)  tar xvzf "$1"   ;;
-        *.tar)     tar xvf "$1"    ;;
-        *.bz2)     bunzip2 "$1"    ;;
-        *.zst)     unzstd "$1"     ;;
-        *.rar)     unrar x -op"${1%.*}" "$1" ;;
-        *.zip)     unzip "$1" -d "${1%.*}"   ;;
-        *.gz)      gunzip "$1"     ;;
-        *.7z)      7z x "$1"       ;;
-        *.Z)       uncompress "$1" ;;
-    esac
+    for i in "$@";do
+        case "$i" in
+            *.tar.zst) tar --zstd -xf "$i" ;;
+            *.tar.bz2) tar xvjf "$i"   ;;
+            *.tar.gz)  tar xvzf "$i"   ;;
+            *.tar)     tar xvf "$i"    ;;
+            *.bz2)     bunzip2 "$i"    ;;
+            *.zst)     unzstd "$i"     ;;
+            *.rar)     unrar x -op"${i%.*}" "$i" ;;
+            *.zip)     unzip "$i" -d "${i%.*}"   ;;
+            *.gz)      gunzip "$i"     ;;
+            *.7z)      7z x "$i"       ;;
+            *.Z)       uncompress "$i" ;;
+        esac || return 1
+    done
 }
 repeat() {
     # Repeat n times command

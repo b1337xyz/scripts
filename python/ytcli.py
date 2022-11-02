@@ -77,7 +77,9 @@ def main():
     hist_len = len(hist)
     height = str(hist_len) if hist_len <= 10 else '10'
 
-    if opts.dmenu:
+    if args:
+        query = ' '.join(args)
+    elif opts.dmenu:
         if opts.history and hist:
             query = run('dmenu', hist, [
                 '-i', '-c', '-l', height, '-p', 'search:'

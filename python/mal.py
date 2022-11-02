@@ -23,11 +23,14 @@ parser.add_option('--tolerance', type='int', default=10)
 parser.add_option('-u', '--update', action='store_true', help='update cache')
 parser.add_option('-l', '--limit', type='int', default=25)
 parser.add_option('--id', type='int')
+parser.add_option('--show-malid', action='store_true')
+parser.add_option('-s', '--score', type='float')
+parser.add_option('-m', '--max', help='max printed results',
+    type='int', default=10)
 parser.add_option('-t', '--type', type='string',
     help='tv, movie, ova, special, ona, music')
 parser.add_option('-r', '--rating', type='string',
     help='g, pg, pg13, r17, r, rx')
-parser.add_option('-s', '--score', type='float')
 parser.add_option('-o', '--order-by', type='string', default='',
     help='mal_id, title, type, rating, start_date, end_date,\
     episodes, score, scored_by, rank, popularity')
@@ -70,7 +73,7 @@ else:
             title = re.sub(r'\s{2,}', ' ', title).strip()
             year = i['year']
             year = i['aired']['prop']['from']['year'] if not year else year
-            rating = i['rating'].split('-')[0][:-1] if i['rating'] else '?'
+            rating = i['rating'].split()[0] if i['rating'] else '?'
             data[mal_id] = {
                 'title':    title,
                 'type':     i['type'] if i['type'] else '?',
@@ -101,11 +104,11 @@ else:
 
 max_len = max(len(i['title']) for i in data.values()) + 7
 
-for k in titles:
+for k in titles[:opts.max]:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
-    print('{0} | {1:{2}} | {3:8} | {4:<4} | {5:<4} | {6}'.format(
-        k, title, max_len, obj['type'],
+    print('{0:{1}} | {2:8} | {3:<4} | {4:<4} | {5}'.format(
+        title, max_len, obj['type'],
         obj['episodes'], obj['score'], obj['rating']
-    ))
+    ), end=f' | {k}\n' if opts.show_malid else '\n')

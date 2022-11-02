@@ -137,9 +137,11 @@ def remove_all(dont_ask=False, status=None):
             remove([i])
 
 
-def remove_metadata():
+def remove_metadata(status=None):
     torrents = s.aria2.tellStopped(0, 100)
     for torrent in torrents:
+        if status and status != torrent['status']:
+            continue
         torrent_name = get_torrent_name(torrent)
         gid = torrent['gid']
         if torrent_name.startswith('[METADATA]'):
@@ -183,7 +185,7 @@ if __name__ == '__main__':
     elif opts.gid:
         print(json.dumps(s.aria2.tellStatus(opts.gid), indent=2))
     elif opts.remove_metadata:
-        remove_metadata()
+        remove_metadata(opts.status)
     elif opts.top:
         move_to_top()
     elif args:

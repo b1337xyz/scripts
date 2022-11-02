@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 tmpfile=$(mktemp tmp.XXXXXXXX)
 trap 'rm "$tmpfile"' EXIT INT HUP
@@ -9,9 +10,9 @@ done > "$tmpfile"
 tac "$tmpfile" >> "$tmpfile"
 
 ffmpeg -nostdin -v 24 -stats -y \
-    -r 12 -f concat -safe 0     \
+    -r 9 -f concat -safe 0     \
     -i "$tmpfile" -c:v libx264  \
-    -crf 16 -preset fast \
-    -pix_fmt yuv420p output.mp4
+    -crf 5 -preset fast -tune animation \
+    output.mp4
 
-mpv output.mp4 --loop-file=inf
+# mpv output.mp4 --loop-file=inf
