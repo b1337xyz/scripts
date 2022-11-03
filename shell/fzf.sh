@@ -118,10 +118,10 @@ fzcd() {
     cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
 }
 fzpac() { 
-    pacman -Qq | fzf -m --header '^r ^s ^d' \
+    pacman -Qqe | fzf -m --header '^r ^s ^d' \
         --preview='pacman -Qi {}' --preview-window '70%' \
         --bind 'enter:reload(yay -Ssq {q})' \
-        --bind 'ctrl-r:execute(sudo pacman -Rs {+})+reload(pacman -Qq)' \
+        --bind 'ctrl-r:execute(sudo pacman -Rs {+})+reload(pacman -Qqe)' \
         --bind 'ctrl-s:execute(yay -Syu {+})' \
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }

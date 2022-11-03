@@ -6,9 +6,11 @@ ff() {
     inp="$1"
     out=opus_${1##*/}
     shift
-    ffmpeg -nostdin -v 24 -stats -i "$inp"-map_metadata 0 -map 0:v \
+    ffmpeg -nostdin -v 24 -stats -i "$inp" -map_metadata 0 -map 0:v \
         -map 0:a:m:language:jpn \
-        -map 0:s -map 0:t?   \
+        -map 0:s:m:language:por? \
+        -map 0:s:m:language:eng? \
+        -map 0:t? \
         -c copy -c:a libopus "$@" "$out"
 }
 

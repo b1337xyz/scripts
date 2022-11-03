@@ -84,18 +84,18 @@ def list_torrents():
         psize = get_psize(size)
         plen = get_psize(completed_length)
         torrent_name = get_torrent_name(i)
-        if len(torrent_name) > 60:
-            torrent_name = torrent_name[:57] + '...'
+        if len(torrent_name) > 70:
+            torrent_name = torrent_name[:67] + '...'
         status = i['status']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
-            print('{}: [{:>3}% {:>10}/{:>10} {:>10}/s ({:2})] [{}] - {}'.format(
-                i['gid'], p, plen, psize, dlspeed, i['numSeeders'],
-                status, torrent_name[:60]
+            # seeders = i['numSeeders']
+            print('[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
+                p, plen, psize, dlspeed, status, torrent_name[:60]
             ))
         else:
-            print('{}: [{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
-                i['gid'], p, plen, psize, status, torrent_name[:60]
+            print('[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
+                p, plen, psize, status, torrent_name[:60]
             ))
 
 
