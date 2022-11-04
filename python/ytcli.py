@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
 from html import unescape
-from random import choice
+from random import choice, shuffle
 import googleapiclient.discovery
 import json
 import os
@@ -44,6 +44,7 @@ def parse_arguments():
     parser.add_option('--dmenu', action='store_true')
     parser.add_option('--fzf', action='store_true', default=True)
     parser.add_option('--random', action='store_true')
+    parser.add_option('--shuffle', action='store_true')
     parser.add_option('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
     parser.add_option('--history', action='store_true')
@@ -121,8 +122,10 @@ def main():
             _id = i['id']['videoId']
         videos[title] = _id
     keys = list(videos.keys())
-
-    if opts.random:
+    if opts.shuffle:
+        shuffle(keys)
+        output = keys
+    elif opts.random:
         output = [choice(keys)]
     elif opts.all:
         output = keys
