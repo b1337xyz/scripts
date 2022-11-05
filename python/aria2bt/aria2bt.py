@@ -107,7 +107,7 @@ def list_torrents():
             ))
         else:
             print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
-                f'{gid}: ' if SHOW_GID else '', plen, psize,
+                f'{gid}: ' if SHOW_GID else '', p, plen, psize,
                 status, torrent_name[:60]
             ))
 
