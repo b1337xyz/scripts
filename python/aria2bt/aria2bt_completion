@@ -1,0 +1,23 @@
+_aria2bt() {
+    local cur prev split=false
+    COMPREPLY=()
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//=}
+
+    cmd=${COMP_WORDS[0]}
+    _get_comp_words_by_ref cur prev
+    case $prev in
+        --status)
+            COMPREPLY=( $( compgen -W 'active complete error paused removed waiting' -- "$cur" ) )
+            return
+        ;;
+    esac
+    case $cur in
+        -*)
+            COMPREPLY=( $( compgen -W '-h --help --fzf -l --list --remove -p --pause -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes' -- "$cur" ) )
+        ;;
+    esac
+    return 0
+}
+complete -F _aria2bt aria2bt.py
+
+# ex: filetype=sh

@@ -97,15 +97,18 @@ def list_torrents():
         if len(torrent_name) > 70:
             torrent_name = torrent_name[:67] + '...'
         status = i['status']
+        gid = i['gid']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             # seeders = i['numSeeders']
-            print('[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
-                p, plen, psize, dlspeed, status, torrent_name[:60]
+            print('{}[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
+                f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed,
+                status, torrent_name[:60]
             ))
         else:
-            print('[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
-                p, plen, psize, status, torrent_name[:60]
+            print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
+                f'{gid}: ' if SHOW_GID else '', plen, psize,
+                status, torrent_name[:60]
             ))
 
 
@@ -179,6 +182,7 @@ if __name__ == '__main__':
 
     opts, args = parse_arguments()
     USE_FZF = opts.fzf
+    SHOW_GID = opts.show_gid
 
     if opts.list:
         list_torrents()

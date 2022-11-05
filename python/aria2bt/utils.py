@@ -54,9 +54,11 @@ def parse_arguments():
     parser.add_option('--top', action='store_true',
         help='move a torrent to the top of the queue')
     parser.add_option('--status', type='string',
-        help='used with --remove-all to remove torrents with STATUS')
+        help='active complete error paused removed waiting')
     parser.add_option('--gid', type='string',
         help='return a JSON of given GID')
+    parser.add_option('--show-gid', action='store_true',
+        help='show gid')
     parser.add_option('-y', '--yes', action='store_true',
         help='don\'t ask')
 
