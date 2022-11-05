@@ -10,7 +10,17 @@ s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 def get_torrents(torrents):
     if not torrents:
-        return
+        return []
+
+    if USE_FZF:
+        return [
+            torrents[ int(i.split(':')[0]) ]
+            for i in fzf([
+                f'{i}:{get_torrent_name(v)} [{v["status"]}]'
+                for i, v in enumerate(torrents)
+            ])
+        ]
+
     for i, v in enumerate(torrents):
         torrent_name = get_torrent_name(v)
         if len(torrent_name) > 50:
@@ -101,7 +111,7 @@ def list_torrents():
 
 def pause():
     torrents = s.aria2.tellActive()
-    for torrent in get_torrents(torrents):
+    for torrent in get_torrents(torrents if torrents else []):
         s.aria2.pause(torrent['gid'])
 
 
@@ -168,6 +178,8 @@ if __name__ == '__main__':
         sleep(1)
 
     opts, args = parse_arguments()
+    USE_FZF = opts.fzf
+
     if opts.list:
         list_torrents()
     elif opts.remove:

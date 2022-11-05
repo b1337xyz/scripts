@@ -15,6 +15,9 @@ FIFO = '/tmp/aria2bt.fifo'
 PIDFILE = '/tmp/aria2bt.pid'
 WATCH = os.path.join(ROOT, 'watch.py')
 MAX_SIZE = 2000 * 1000 # 2 MB
+FZF_ARGS = [
+    '-m',
+]
 
 
 logging.basicConfig(
@@ -31,6 +34,7 @@ def parse_arguments():
     from optparse import OptionParser
     usage = 'Usage: %prog [options] [TORRENT_FILE | MAGNET]'
     parser = OptionParser(usage=usage)
+    parser.add_option('--fzf', action='store_true')
     parser.add_option('-l', '--list',    action='store_true',
         help='list all torrents')
     parser.add_option('-r', '--remove',  action='store_true',
@@ -101,3 +105,16 @@ def get_torrent_name(torrent):
         return torrent['bittorrent']['info']['name']
     except KeyError:
         return torrent['files'][0]['path']
+
+def fzf(args):
+    proc = sp.Popen(
+       ["fzf"] + FZF_ARGS,
+       stdin=sp.PIPE,
+       stdout=sp.PIPE,
+       universal_newlines=True
+    )
+    out = proc.communicate('\n'.join(args))
+    if proc.returncode != 0:
+        exit(proc.returncode)
+    return [i for i in out[0].split('\n') if i]
+
