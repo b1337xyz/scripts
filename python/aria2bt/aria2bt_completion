@@ -16,7 +16,7 @@ _aria2bt() {
             COMPREPLY=( $( compgen -W '-h --help --fzf -l --list --remove -p --pause -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes' -- "$cur" ) )
         ;;
         *)
-            _filedir '@(torrent|meta4|metalink|text|txt|list|lst)'
+            _filedir '@(torrent|magnet|txt)'
         ;;
     esac
     return 0
