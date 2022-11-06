@@ -44,11 +44,12 @@ def parse_arguments():
     parser.add_option('--dmenu', action='store_true')
     parser.add_option('--fzf', action='store_true', default=True)
     parser.add_option('--random', action='store_true')
-    parser.add_option('--shuffle', action='store_true')
-    parser.add_option('--long', action='store_true',
-        help='Only include videos longer than 20 minutes.')
     parser.add_option('--history', action='store_true')
     parser.add_option('--all', action='store_true')
+    parser.add_option('--shuffle', action='store_true',
+        help='shuffle playlist')
+    parser.add_option('--long', action='store_true',
+        help='Only include videos longer than 20 minutes.')
     return parser.parse_args()
 
 

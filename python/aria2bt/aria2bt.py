@@ -5,6 +5,9 @@ import sys
 import xmlrpc.client
 import re
 
+# Before running this start aria2c with:
+# aria2c --enable-rpc
+
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 

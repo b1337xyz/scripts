@@ -108,6 +108,7 @@ def get_torrent_name(torrent):
     except KeyError:
         return torrent['files'][0]['path']
 
+
 def fzf(args):
     proc = sp.Popen(
        ["fzf"] + FZF_ARGS,
