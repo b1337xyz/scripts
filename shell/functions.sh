@@ -8,6 +8,7 @@ wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
+upload() { curl -F"file=@$*" https://0x0.st; }
 arc() {
     local filename basename archive
     shopt -s extglob
@@ -272,24 +273,6 @@ odr() {
         ;;
     esac
 }
-fscripts() {
-    find ~/.scripts -type f -size -100k \! -path '*__*__*' \
-        \! -iregex '.*\(jpg\|png\)' -print0
-}
-loc() {
-    fscripts | wc -l --files0-from=- | sort -n 
-}
-toc() {
-    fscripts | wc -m --files0-from=- | sort -n
-}
-soc() {
-    fscripts | du -csh --files0-from=- | sort -h
-}
-aloc() {
-    # "actual" lines of code a.k.a without empty lines
-    fscripts | xargs -r0 -I{} awk '{ if ( NF > 0 ) l+=1 } END { printf("%4s %s\n", l, FILENAME) }' {} |
-        sort -n | awk '{ print $0; total+=$1+0 } END { printf("total: %s\n", total) }'
-}
 dul() {
     local size files
     for i in */;do
@@ -306,7 +289,7 @@ edalt() {
 save_page() {
     wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
 }
-mgrep() {
+magrep() {
     [ -z "$1" ] && return 1
     curl -s "$1" | sed 's/<.\?br>//g; s/\&amp;/\&/g' |
         grep -oP 'magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]+(?=&dn=)'
@@ -343,8 +326,7 @@ mvbyext() {
 }
 mkj() {
     for i in "$@";do
-        mkvmerge -J "$i" | jq -r '
-.tracks[] |
+        mkvmerge -J "$i" | jq -r '.tracks[] |
 "\(.type): \(.id) - \(.codec) - \(.properties.language) - \(.properties.track_name) \(
 if .properties.default_track then "(default)" else "" end)"'
     done
@@ -370,12 +352,11 @@ iommu_groups() {
 toggle_btf_jit() {
     local target value
     target=/proc/sys/net/core/bpf_jit_enable
-    value=$(cat "$target")
-    if [ "$value" -eq 1 ];then
-        echo 0 | sudo tee "$target"
-    else
-        echo 1 | sudo tee "$target"
-    fi
+    value=$(<"$target")
+    case "$value" in
+        1) echo 0 | sudo tee "$target" ;;
+        0) echo 1 | sudo tee "$target" ;;
+    esac
 }
 keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
@@ -536,7 +517,7 @@ todo() {
     esac
 }
 ftext() {
-    find . -type f -exec file -i {} + | grep -oP '.*(?=:[\t ]*text/)'
+    find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
 }
 paclog() {
     # last pkgs of <status>
@@ -552,24 +533,26 @@ random_anime_quote() {
     local url="https://animechan.vercel.app/api/random"
     curl -s "$url" | jq -Mc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
 }
+random_notepadpp_quote() {
+    # https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Notepad_plus.cpp#L7103
+    local target=~/.cache/notepadpp_quotes.txt
+    shuf -n1 "$target" | awk -F':' '{
+        a=$1; $1="";
+        sub(/^ +/, "", $0);
+        gsub(/\\n/, "\n");
+        gsub(/\\"/, "\"");
+        printf("%s\n\t- %s\n", $0, a);
+    }'
+}
 random_color() {
     clear
     find ~/.scripts/playground/shell/Colors \
         -maxdepth 1 -type f -print0 | shuf -zn 1 | xargs -r0 bash
     printf '\e[0m'
 }
-upload() { curl -F"file=@$*" https://0x0.st; }
 grep_secrets() {
     grep --exclude-dir=".git" --color -rniP \
         'api.key|secret|token|password|passwd|(\d{1,3}\.){3}\d+'
-}
-fib() {
-    local a b n
-    a=0 b=1 n=${1:-5}
-    for (( i = 0; i <= n; i++ ));do
-        echo -n "$a "
-        fn=$((a + b)) a=$b b=$fn
-    done; echo
 }
 ordinal() {
     [[ "$1" =~ ^[0-9]+$ ]] || return 1
