@@ -134,7 +134,7 @@ psndl() {
         xargs -rIV grep -F ';V;' "$db" | grep -oP '.*(?=;https?:)' >> "$tmpfile"
 
     fzf -m < "$tmpfile" | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
-        xargs -rI{} wget --content-disposition -nc -P ~/Downloads '{}'
+        xargs -rI{} aria2c -s 4 -x 4 --dir ~/Downloads '{}'
 
     command rm "$tmpfile"
 }

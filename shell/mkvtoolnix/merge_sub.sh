@@ -9,6 +9,7 @@ while [ "$1" ];do
     esac
     shift
 done
+sub=${sub:-${vid%.*}.ass}
 
 out=new_${vid##*/}
 mkvmerge -o "$out" -a jpn -M -S "$vid" --language 0:por "$sub"
