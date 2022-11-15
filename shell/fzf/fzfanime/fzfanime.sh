@@ -96,15 +96,12 @@ function main() {
         latest)
             # grep -xFf "$mainfile" <(ls --color=never -N1Ltc "$ANIME_DIR") | tee "$tempfile"
             awk -v p="$ANIME_DIR" '{printf("%s/%s\0", p, $0)}' "$mainfile" |
-                xargs -r0 ls --color=never -dN1Ltc | grep -oP '[^/]*$'
+                xargs -r0 ls --color=never -dN1Ltc | grep -oP '[^/]*$' | tee "$tempfile"
         ;;
         shuffle) shuf "$mainfile" ;;
         by_size)
-            sed "s/^/${ANIME_DIR//\//\\/}\//" "$mainfile" | tr \\n \\0 |
-            du -L --files0-from=- | sort -n | awk '{
-                split($0, a, "/");
-                print a[length(a)];
-            }' | tee "$tempfile"
+            awk -v p="$ANIME_DIR" '{printf("%s/%s\0", p, $0)}' "$mainfile" |
+            du -L --files0-from=- | sort -n | grep -oP '[^/]*$' | tee "$tempfile"
         ;;
         genre) 
             printf "genres" > "$modefile"
