@@ -23,7 +23,7 @@ do
         label=${label:-$uuid}
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
-        sudo mount "$devname" "$mp" -o noatime,user
+        sudo mount "$devname" "$mp" -o noatime
         notify-send -i drive-harddisk "$label mounted" "$mp"
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
     fi

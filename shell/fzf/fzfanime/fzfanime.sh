@@ -94,7 +94,9 @@ function main() {
                 tac "$ANIMEHIST" | awk '!seen[$0]++')) | tee "$tempfile"
         ;;
         latest)
-            grep -xFf "$mainfile" <(ls --color=never -N1Ltc "$ANIME_DIR") | tee "$tempfile"
+            # grep -xFf "$mainfile" <(ls --color=never -N1Ltc "$ANIME_DIR") | tee "$tempfile"
+            awk -v p="$ANIME_DIR" '{printf("%s/%s\0", p, $0)}' "$mainfile" |
+                xargs -r0 ls --color=never -dN1Ltc | grep -oP '[^/]*$'
         ;;
         shuffle) shuf "$mainfile" ;;
         by_size)
