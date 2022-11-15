@@ -125,19 +125,6 @@ fzpac() {
         --bind 'ctrl-s:execute(yay -Syu {+})' \
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
-psndl() {
-    # $db psndl.net/packages/database
-    local db tmpfile
-    tmpfile=$(mktemp)
-    db=~/.cache/psndl.csv
-    grep -oP '(?<=;)[^;]*(?=;[^;]*;https?:)' "$db" | sort -u | fzf -m --algo v1 |
-        xargs -rIV grep -F ';V;' "$db" | grep -oP '.*(?=;https?:)' >> "$tmpfile"
-
-    fzf -m < "$tmpfile" | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
-        aria2c -j 1 -s 4 -x 4 --dir ~/Downloads --input-file=-
-
-    command rm "$tmpfile"
-}
 fzman() {
     man -P cat "$1" 2>/dev/null | grep '^[A-Z]' |
         sed -e '1d' -e '$ d' | fzf |
