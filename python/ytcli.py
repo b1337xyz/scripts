@@ -121,6 +121,11 @@ def main():
             _id = i['id']['playlistId']
         else:
             _id = i['id']['videoId']
+        c = 0
+        _title = title
+        while title in videos:
+            title = f'{_title} {c}'
+            c += 1
         videos[title] = _id
     keys = list(videos.keys())
     if opts.shuffle:

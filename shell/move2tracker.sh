@@ -1,5 +1,5 @@
 #!/usr/bin/env dash
-set -e
+# set -e
 cd ~/.cache/torrents
 
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
@@ -8,7 +8,7 @@ do
     mv -vn -- "$i" "$torrent"
 done
 
-aria2c -S ./*.torrent | awk '
+aria2c -S ./*.torrent 2>/dev/null | awk '
 {
     if ($0 ~ /^Announce:/) {
         getline
@@ -25,8 +25,11 @@ do
     tracker=${i%%:*}
     tracker=${tracker:-unknown}
     torrent=${i#*:}
-    [ -d "$tracker" ] || mkdir -v "$tracker"
-    [ -f "$torrent" ] && mv -vn -- "$torrent" "$tracker"
+    if [ -f "$torrent" ] ;then
+        [ -d "$tracker" ] || mkdir -v "$tracker"
+        mv -vn -- "$torrent" "$tracker" || exit 1
+        [ -f "$torrent" ] && rm -v "$torrent"
+    fi
 done
 
 printf 'please wait...\n'

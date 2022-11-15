@@ -510,8 +510,8 @@ todo() {
         ;;
         add)
             shift
-            [ -n "$1" ] && printf '[%s] %s\n' \
-                "$(date +%Y.%m.%d' '%H:%M)" "$*" | tee -a "$TODOFILE"
+            [ -n "$1" ] && printf '%s: %s\n' \
+                "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
         ;;
         *) echo 'Usage: todo [ed ls rm add] <TODO>' ;;
     esac
