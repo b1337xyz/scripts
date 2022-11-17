@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
+set -e
 
 MP=/mnt/"$USER"
 [ -w "$MP" ] || { printf "Can't write to '%s': Permission denied\n" "$MP";  exit 1; }
@@ -21,10 +22,12 @@ do
         grep -q "^$devname" /proc/mounts && continue
         read -r label uuid < <(lsblk -o LABEL,UUID "$devname" | tail -1)
         label=${label:-$uuid}
+        [ -z "$label" ] && continue
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
         sudo mount "$devname" "$mp" -o noatime
-        notify-send -i drive-harddisk "$label mounted" "$mp"
+	ln -sf "$mp" ~/mnt
+        notify-send -i drive-harddisk "$label mounted" "$mp" 2>/dev/null || true
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
     fi
 done

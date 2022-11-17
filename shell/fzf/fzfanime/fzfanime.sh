@@ -101,7 +101,7 @@ function main() {
         shuffle) shuf "$mainfile" ;;
         by_size)
             awk -v p="$ANIME_DIR" '{printf("%s/%s\0", p, $0)}' "$mainfile" |
-            du -L --files0-from=- | sort -n | grep -oP '[^/]*$' | tee "$tempfile"
+                du -L --files0-from=- | sort -n | grep -oP '[^/]*$' | tee "$tempfile"
         ;;
         genre) 
             printf "genres" > "$modefile"

@@ -12,6 +12,7 @@ case "$1" in
     down)     cmd='"add", "volume", "-10"'  ;;
     fs)       cmd='"cycle", "fullscreen"'   ;;
     loop)     cmd='"cycle", "loop-file"'    ;;
+    *) echo "${0##*/} [toggle next prev forward backward mute up down fs loop]"; exit ; ;;
 esac
 
 [ -n "$cmd" ] && echo '{"command": ['"${cmd}"']}' | socat - "$SOCKET"

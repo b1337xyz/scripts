@@ -38,7 +38,7 @@ webdav_server() {
         --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
 frep() {
-    find . -type f -printf '%f\n' | sort | uniq -d |
+    find -L . -maxdepth "${1:-3}" -type f -printf '%f\n' | sort | uniq -d |
     sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type f -name '{}'
 }
 bkp() {
