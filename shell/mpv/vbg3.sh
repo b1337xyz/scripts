@@ -1,21 +1,14 @@
 #!/usr/bin/env bash
 # https://github.com/CalinLeafshade/dots/blob/master/bin/bin/bg.sh
 
-set -eo pipefail
-
-command -v xwinwrap &>/dev/null || { echo 'install xwinwrap'; exit 1; }
-
-if pgrep -x xwinwrap &>/dev/null;then
-    pkill -15 xwinwrap || { echo 'failed to kill xwinwrap'; exit 1; }
-    [ -f "$1" ] && sleep 0.5
-fi
+pkill -x xwinwrap >/dev/null 2>&1
 
 main() {
-    xwinwrap -ov -ni -g "$1" -- mpv -wid WID \
+    xwinwrap -ov -ni -sub 10 -g "$1" -- mpv -wid=10 \
         --no-config --no-audio --no-osc --no-osd-bar \
         --loop-file                 \
-        --really-quiet              \
         --fullscreen                \
+        --really-quiet              \
         --no-stop-screensaver       \
         --vo=gpu --hwdec=vaapi      \
         --no-input-default-bindings \
@@ -30,11 +23,11 @@ main() {
         --sigmoid-upscaling=no      \
         --deband=no                 \
         --vd-lavc-fast              \
-        "$2" &>/dev/null &
+        "$2" >/dev/null 2>&1 &
 }
 
 if [ -f "$1" ];then
-    # xrandr -q | grep -iF "HDMI1 connected"
+    sleep 1
     while read -r i;do
         main "$i" "$1"
     done < <(xrandr -q | grep ' connected' | grep -oP '\d+x\d+\+\d+\+\d+')
