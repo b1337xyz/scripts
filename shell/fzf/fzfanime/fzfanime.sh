@@ -30,7 +30,7 @@ declare -r -x ANIMEHIST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 declare -r -x MPVHIST=~/.cache/mpv/mpvhistory.log
 if [ -n "$DISPLAY" ];then
-    declare -r -x BACKEND=kitty # ueberzug kitty
+    declare -r -x BACKEND=ueberzug # ueberzug kitty
 fi
 
 ### END OF USER SETTINGS
