@@ -29,6 +29,9 @@ declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
 declare -r -x ANIMEHIST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 declare -r -x MPVHIST=~/.cache/mpv/mpvhistory.log
+if [ -n "$DISPLAY" ];then
+    declare -r -x BACKEND=kitty # ueberzug kitty
+fi
 
 ### END OF USER SETTINGS
 
@@ -173,7 +176,7 @@ function main() {
 export -f main play
 
 trap finalise EXIT HUP INT
-[ -n "$DISPLAY" ] && start_ueberzug 2>/dev/null
+[ "$BACKEND" = "ueberzug" ] && start_ueberzug >/dev/null 2>&1
 
 n=$'\n'
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \

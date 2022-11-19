@@ -12,9 +12,12 @@ function start_ueberzug {
     tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json &
 }
 function finalise {
-    printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
-    rm "$UEBERZUG_FIFO" "$tmpfile" "$mainfile" "$modefile" &>/dev/null || true
-    jobs -p | xargs -r kill 2>/dev/null
+    jobs -p | xargs -r kill 2>/dev/null || true
+    rm "$tempfile" "$mainfile" "$modefile" 2>/dev/null || true
+    if [ -S "$UEBERZUG_FIFO" ];then
+        printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
+        rm "$UEBERZUG_FIFO" 2>/dev/null
+    fi
 }
 function check_link {
     p=$(readlink -m "${ANIME_DIR}/$1")
@@ -80,6 +83,9 @@ function preview {
             \(.["rated"])
             \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')
 
+    [ "$BACKEND" = "kitty" ] && kitty icat --transfer-mode=file \
+        --stdin=no --clear --silent >/dev/null 2>&1 </dev/tty
+
     if [ "$title" = "404" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
         printf "404 - preview not found\n\n"
@@ -87,9 +93,6 @@ function preview {
         # check_link "$1"
         return 0
     fi
-
-    printf '{"action": "add", "identifier": "%s", "x": 0, "y": 0, "width": %d, "height": %d, "scaler": "%s", "path": "%s"}\n' \
-        "preview" "$WIDTH" "$HEIGHT" "distort" "$image" > "$UEBERZUG_FIFO" &
 
     # [ "${#title}"  -gt 35 ] && title=${title::35}...
     # [ "${#genres}" -gt 35 ] && genres=${genres::35}...
@@ -111,5 +114,17 @@ function preview {
     for _ in {1..15};do echo ;done
     # for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
     check_link "$1" &
+
+    case "$BACKEND" in
+        kitty)
+            kitty icat --transfer-mode=file \
+                --stdin=no --silent --align=left --scale-up \
+                --place "${WIDTH}x${HEIGHT}@0x0" "$image" >/dev/null 2>&1 </dev/tty
+        ;;
+        ueberzug) 
+            printf '{"action": "add", "identifier": "%s", "x": 0, "y": 0, "width": %d, "height": %d, "scaler": "%s", "path": "%s"}\n' \
+                "preview" "$WIDTH" "$HEIGHT" "distort" "$image" > "$UEBERZUG_FIFO"
+        ;;
+    esac
 }
 export -f preview check_link
