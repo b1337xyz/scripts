@@ -314,7 +314,8 @@ grep_archive() {
     grep --color=never -i '\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$' "$1"
 }
 random_img() {
-    find ~/Pictures/random -iname '*.jpg' -print0 | shuf -zn1 | xargs -0roI{} drawimg.sh '{}'
+    find "${@:-$HOME/Pictures/random}" -iname '*.jpg' -print0 |
+        shuf -zn1 | xargs -0roI{} drawimg.sh '{}'
 }
 mvbyext() {
     find "${1:-.}" -maxdepth 1 -type f | while read -r i;do
