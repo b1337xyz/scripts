@@ -181,7 +181,7 @@ trap finalise EXIT HUP INT
 n=$'\n'
 # --color 'gutter:-1,bg+:-1,fg+:6:bold,hl+:1,hl:1,border:7:bold,header:6:bold,info:7,pointer:1' \
 main "$@" | fzf -e --no-sort --color dark \
-    --border none --prompt "NORMAL " \
+    --border none --no-separator --prompt "NORMAL " \
     --preview 'preview {}' \
     --preview-window 'left:53%:border-none' \
     --header "^p ^s ^l ^r ^w ^o ^a ^e ^g ^v${n}A-p A-u A-c A-a A-d A-s" \
