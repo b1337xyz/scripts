@@ -3,11 +3,16 @@ from time import sleep
 import subprocess as sp
 import requests
 import json
+import re
 import os
 
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/twitch.json')
 CONFIG = os.path.join(HOME, '.config/twitch.json')
+LOCK = '/tmp/.twitch_notify.lock'
+assert not os.path.exists(LOCK)
+
+
 # {
 #     "client_id": <str>,
 #     "secret": <str>,
@@ -79,7 +84,8 @@ class Twitch:
                     fp.write(img)
 
                 if i['user_id'] not in users:
-                    title = i['title']
+                    title = re.sub(r"(?ui)\W", ' ', i['title'])
+                    title = re.sub(r'\s{2,}', ' ', title).strip()
                     title = title[:97] + '...' if len(title) > 100 else title
                     sp.run([
                         'notify-send', '-i', icon,
@@ -91,4 +97,8 @@ class Twitch:
 
 
 if __name__ == '__main__':
-    Twitch().run()
+    open(LOCK, 'w').close()
+    try:
+        Twitch().run()
+    finally:
+        os.remove(LOCK)

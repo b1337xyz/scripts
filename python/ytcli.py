@@ -15,7 +15,8 @@ import sys
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
 TMPDIR = os.getenv('TMPDIR', '/tmp')
-SOCKET_PATH = os.path.join(TMPDIR, 'mpvradio')
+PLAYLIST = os.path.join(TMPDIR, 'mpv.m3u')
+SOCKET_PATH = os.path.join(TMPDIR, 'mpvsocket')
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
 CONF = os.path.join(HOME, '.config/.ytapi')
@@ -140,8 +141,7 @@ def main():
     else:
         output = run('fzf',   keys, ['-m', '--height', '25'])
 
-    playlist = "/tmp/mpv.m3u"
-    with open(playlist, "w") as fp:
+    with open(PLAYLIST, "w") as fp:
         fp.write("#EXTM3U\n")
         for k in output:
             url = f'https://www.youtube.com/watch?v={videos[k]}'
@@ -149,9 +149,10 @@ def main():
 
     mpv = socket.socket(socket.AF_UNIX)
     mpv.connect(SOCKET_PATH)
-    cmd = {"command": ["loadlist", playlist]}
+    cmd = {"command": ["loadlist", PLAYLIST]}
     mpv.send(json.dumps(cmd).encode('utf-8') + b'\n')
     notify('♫ Playing now...', output[0])
+    mpv.close()
 
 
 if __name__ == '__main__':
