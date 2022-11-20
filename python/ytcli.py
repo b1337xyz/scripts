@@ -11,21 +11,23 @@ import sys
 
 # HOW TO GET THE API_KEY -> https://developers.google.com/youtube/v3/quickstart/python
 # before running this start mpv with:
-# mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
+# mpv --keep-open=yes --idle=yes --ytdl-format="ba" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
 TMPDIR = os.getenv('TMPDIR', '/tmp')
 PLAYLIST = os.path.join(TMPDIR, 'mpv.m3u')
-SOCKET_PATH = os.path.join(TMPDIR, 'mpvsocket')
+SOCKET_PATH = os.path.join(TMPDIR, 'mpvradio')
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
 CONF = os.path.join(HOME, '.config/.ytapi')
+SAVE = os.path.join(HOME, '.config/ytcli.json')
 if not os.path.exists(CONF):
     API_KEY = input('API KEY: ').strip()
     with open(CONF, 'w') as fp:
         fp.write(API_KEY)
 else:
-    API_KEY = open(CONF, 'r').readline().strip()
+    with open(CONF, 'r') as fp:
+        API_KEY = fp.readline().strip()
 
 
 def run(prog: str, args: list, opts: list):
@@ -51,14 +53,11 @@ def parse_arguments():
         help='shuffle playlist')
     parser.add_option('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
+    parser.add_option('--save', action='store_true',
+        help='save playlist')
+    parser.add_option('--load', action='store_true',
+        help='load playlist')
     return parser.parse_args()
-
-
-def notify(title, *msg):
-    try:
-        sp.run(['notify-send', title, '\n'.join(msg)])
-    except:
-        pass
 
 
 def load_history():
@@ -76,12 +75,24 @@ def load_history():
 
 def main():
     opts, args = parse_arguments()
+    try:
+        with open(SAVE, 'r') as fp:
+            save = json.load(fp)
+    except FileNotFoundError:
+        save = dict()
+
     hist = load_history()
     hist_len = len(hist)
     height = str(hist_len) if hist_len <= 10 else '10'
 
     if args:
         query = ' '.join(args)
+    elif opts.load:
+        keys = list(save.keys())
+        query = run('fzf', keys, [
+            '--height', height, '--prompt', 'query: ',
+            '--print-query'
+        ])[-1]
     elif opts.dmenu:
         if opts.history and hist:
             query = run('dmenu', hist, [
@@ -89,47 +100,50 @@ def main():
             ])[-1]
         else:
             query = run('dmenu', [], ['-c', '-i', '-p', 'search:'])[-1]
+    elif hist:
+        query = run('fzf', hist, [
+            '--height', height, '--prompt', 'search: ',
+            '--print-query'
+        ])[-1]
     else:
-        if hist:
-            query = run('fzf', hist, [
-                '--height', height, '--prompt', 'search: ',
-                '--print-query'
-            ])[-1]
-        else:
-            query = input('search: ').strip()
+        query = input('search: ').strip()
 
     with open(HIST, 'a') as fp:
         fp.write(query + '\n')
 
-    youtube = googleapiclient.discovery.build(
-        'youtube', 'v3', developerKey=API_KEY)
+    if not opts.load:
+        youtube = googleapiclient.discovery.build(
+            'youtube', 'v3', developerKey=API_KEY)
 
-    # videoCategoryId='10', # Music
-    request = youtube.search().list(
-        q=query.replace(' ', '-'),
-        type='video,playlist',
-        part="id,snippet",
-        safeSearch='none',
-        videoDuration='long' if opts.long else 'any',
-        maxResults=40
-    )
-    response = request.execute()
+        # videoCategoryId='10', # Music
+        request = youtube.search().list(
+            q=query.replace(' ', '-'),
+            type='video,playlist',
+            part="id,snippet",
+            safeSearch='none',
+            videoDuration='long' if opts.long else 'any',
+            maxResults=40
+        )
+        response = request.execute()
 
-    videos = dict()
-    for i in response['items']:
-        title = unescape(i['snippet']['title'])
-        if 'playlistId' in i['id']:
-            _id = i['id']['playlistId']
-        else:
-            _id = i['id']['videoId']
-        c = 0
-        _title = title
-        while title in videos:
-            title = f'{_title} {c}'
-            c += 1
-        videos[title] = _id
-    keys = list(videos.keys())
-    if opts.shuffle:
+        videos = dict()
+        for i in response['items']:
+            title = unescape(i['snippet']['title'])
+            if 'playlistId' in i['id']:
+                _id = i['id']['playlistId']
+            else:
+                _id = i['id']['videoId']
+            c = 0
+            _title = title
+            while title in videos:
+                title = f'{_title} {c}'
+                c += 1
+            videos[title] = _id
+
+    if opts.load:
+        videos = save[query]
+        output = list(videos.keys())
+    elif opts.shuffle:
         shuffle(keys)
         output = keys
     elif opts.random:
@@ -141,6 +155,13 @@ def main():
     else:
         output = run('fzf',   keys, ['-m', '--height', '25'])
 
+    if opts.save:
+        save[query] = dict()
+        for k in output:
+            save[query][k] = videos[k]
+        with open(SAVE, 'w') as fp:
+            json.dump(save, fp)
+
     with open(PLAYLIST, "w") as fp:
         fp.write("#EXTM3U\n")
         for k in output:
@@ -151,7 +172,6 @@ def main():
     mpv.connect(SOCKET_PATH)
     cmd = {"command": ["loadlist", PLAYLIST]}
     mpv.send(json.dumps(cmd).encode('utf-8') + b'\n')
-    notify('♫ Playing now...', output[0])
     mpv.close()
 
 
