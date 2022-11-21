@@ -139,6 +139,7 @@ def main():
                 title = f'{_title} {c}'
                 c += 1
             videos[title] = _id
+        keys = list(videos.keys())
 
     if opts.load:
         videos = save[query]
