@@ -8,7 +8,6 @@ import re
 # Before running this start aria2c with:
 # aria2c --enable-rpc
 
-s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
 
 def get_torrents(torrents):
@@ -184,6 +183,8 @@ if __name__ == '__main__':
         sleep(1)
 
     opts, args = parse_arguments()
+
+    s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
     USE_FZF = opts.fzf
     SHOW_GID = opts.show_gid
 

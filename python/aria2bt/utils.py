@@ -19,7 +19,6 @@ FZF_ARGS = [
     '-m',
 ]
 
-
 logging.basicConfig(
     filename=LOG,
     encoding='utf-8',
@@ -35,6 +34,7 @@ def parse_arguments():
     usage = 'Usage: %prog [options] [TORRENT_FILE | MAGNET]'
     parser = OptionParser(usage=usage)
     parser.add_option('--fzf', action='store_true')
+    parser.add_option('--port', type='string', default='6800')
     parser.add_option('-l', '--list',    action='store_true',
         help='list all torrents')
     parser.add_option('-r', '--remove',  action='store_true',
