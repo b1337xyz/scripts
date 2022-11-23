@@ -25,7 +25,7 @@ _screen() {
         --sigmoid-upscaling=no      \
         --deband=no                 \
         --vd-lavc-fast              \
-        "$2" >/dev/null 2>&1 &
+        "$2" >&2
     PIDs+=($!)
 }
 
@@ -51,6 +51,7 @@ done
 
 if [ -f "$input" ];then
     sleep 0.5
+    printf '%s\n' "$input" >&2
     tmpfile=$(mktemp)
     if [ -n "$scr" ];then
         xrandr -q | grep -iF "${scr} connected"

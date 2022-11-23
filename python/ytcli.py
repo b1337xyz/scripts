@@ -11,7 +11,7 @@ import sys
 
 # HOW TO GET THE API_KEY -> https://developers.google.com/youtube/v3/quickstart/python
 # before running this start mpv with:
-# mpv --keep-open=yes --idle=yes --ytdl-format="ba" \
+# mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
 TMPDIR = os.getenv('TMPDIR', '/tmp')

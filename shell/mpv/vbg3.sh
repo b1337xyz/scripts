@@ -4,11 +4,12 @@
 pkill -x xwinwrap >/dev/null 2>&1
 
 main() {
-    xwinwrap -ov -ni -sub 10 -g "$1" -- mpv -wid=10 \
+    echo "$@"
+    xwinwrap -ov -ni -g "$1" -- mpv --wid=%WID \
         --no-config --no-audio --no-osc --no-osd-bar \
+        --really-quiet \
         --loop-file                 \
         --fullscreen                \
-        --really-quiet              \
         --no-stop-screensaver       \
         --vo=gpu --hwdec=vaapi      \
         --no-input-default-bindings \
@@ -22,7 +23,6 @@ main() {
         --correct-downscaling=no    \
         --sigmoid-upscaling=no      \
         --deband=no                 \
-        --vd-lavc-fast              \
         "$2" >/dev/null 2>&1 &
 }
 

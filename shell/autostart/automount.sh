@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # https://wiki.archlinux.org/title/Udisks#udevadm_monitor
 set -e
+umask 0077 # rwx-----
 
 MP=/mnt/"$USER"
 [ -w "$MP" ] || { printf "Can't write to '%s': Permission denied\n" "$MP";  exit 1; }
@@ -26,7 +27,7 @@ do
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
         sudo mount "$devname" "$mp" -o noatime
-	ln -sf "$mp" ~/mnt
+	ln -vsf "$mp" ~/mnt
         notify-send -i drive-harddisk "$label mounted" "$mp" 2>/dev/null || true
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
     fi
