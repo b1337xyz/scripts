@@ -19,10 +19,9 @@ else
             "https://docs.google.com/uc?export=download&id=$FILEID" -O- |
             sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p'
     )
+    trap 'rm /tmp/cookies.txt 2>/dev/null' EXIT HUP INT
     [ -z "$CONFIRM" ] && { printf "Can\'t confirm: %s\n" "$1"; exit 1; }
 
     wget -nc --content-disposition --load-cookies /tmp/cookies.txt \
         "https://docs.google.com/uc?export=download&confirm=${CONFIRM}&id=$FILEID"
-
-    rm -f /tmp/cookies.txt
 fi
