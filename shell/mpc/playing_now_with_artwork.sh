@@ -41,8 +41,6 @@ main() {
         [ -n "${INFO[Title]}" ] && [ "$k" = "Filename" ] || [ -z "${INFO[$k]}" ] && continue
         printf '%s: %s\\n' "$k" "${INFO[$k]}"
     done | xargs -0 notify-send -t 5000 "♫ Playing now - $(date +%d/%m/%y' '%H:%M:%S)"
-    # I din't find wet, a way to show icons with dunst at the awesome window manager.
-    #done | xargs -0 notify-send -i "$COVERS"/"$check".jpg -t 5000 "♫ Playing now - $(date +%d/%m/%y' '%H:%M:%S)"
 }
 main || exit 1
 case $1 in
