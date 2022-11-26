@@ -15,7 +15,6 @@ HIST = os.path.join(HOME, '.cache/nhentai_history')
 CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 DOMAIN = 'nhentai.net'
-FIFO = '/tmp/aria2bt.fifo'
 
 aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
@@ -161,10 +160,6 @@ def main(urls):
             except Exception as err:
                 print(f'Error downloading torrent\n{err}')
                 continue
-
-            if os.path.exists(FIFO):
-                with open(FIFO, 'w') as fifo:
-                    fifo.write(f'{gid}\n')
 
         # sp.run([
         #     'aria2c', '--dir', dl_dir,

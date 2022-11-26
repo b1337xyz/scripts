@@ -11,9 +11,6 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG  = os.path.join(ROOT, 'log')
-FIFO = '/tmp/aria2bt.fifo'
-PIDFILE = '/tmp/aria2bt.pid'
-WATCH = os.path.join(ROOT, 'watch.py')
 MAX_SIZE = 2000 * 1000 # 2 MB
 FZF_ARGS = [
     '-m',
@@ -22,7 +19,7 @@ FZF_ARGS = [
 logging.basicConfig(
     filename=LOG,
     encoding='utf-8',
-    filemode='w',
+    filemode='a',
     level=logging.INFO,
     format='%(asctime)s:%(levelname)s: %(message)s',
     datefmt='%d-%m-%Y %H:%M:%S',

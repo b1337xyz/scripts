@@ -6,8 +6,7 @@ import xmlrpc.client
 import re
 
 # Before running this start aria2c with:
-# aria2c --enable-rpc
-
+#     aria2c --enable-rpc
 
 
 def get_torrents(torrents):
@@ -81,11 +80,6 @@ def add_torrent(torrent):
             return add_torrent(magnet)
     else:
         gid = s.aria2.addUri([torrent], options)
-
-    sleep(1)
-    if os.path.exists(FIFO):
-        with open(FIFO, 'w') as fifo:
-            fifo.write(f'{gid}\n')
 
 
 def list_torrents():
@@ -177,11 +171,6 @@ def move_to_top():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(PIDFILE):
-        sp.Popen([WATCH], shell=True,
-                stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-        sleep(1)
-
     opts, args = parse_arguments()
 
     s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')

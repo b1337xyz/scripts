@@ -2,6 +2,9 @@
 NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio
+
+[ -d "$COVER" ] || mkdir -vp "$COVER"
+
 get_info() {
     cmus-remote -Q 2>/dev/null | awk '{
     if ( $0 ~ /^(file|duration|status)/) {
@@ -15,6 +18,7 @@ get_info() {
         print $0
     }}'
 }
+
 last_played=
 while :;do
     while read -r i;do
