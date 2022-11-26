@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 NID=$$
 COVER=~/.cache/thumbnails/albums
-DEFAULT_ICON=/usr/share/icons/Chicago95/devices/32/media-optical-audio.png
+DEFAULT_ICON=media-optical-audio
 get_info() {
     cmus-remote -Q 2>/dev/null | awk '{
     if ( $0 ~ /^(file|duration|status)/) {

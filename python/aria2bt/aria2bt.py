@@ -185,6 +185,7 @@ if __name__ == '__main__':
     opts, args = parse_arguments()
 
     s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
+
     USE_FZF = opts.fzf
     SHOW_GID = opts.show_gid
 

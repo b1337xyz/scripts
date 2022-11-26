@@ -13,7 +13,7 @@ if command -v gdrive; then
     # https://github.com/prasmussen/gdrive
     gdrive download --path ~/Downloads --skip -r "$FILEID"
 else
-    print 'gdrive not installed, using wget\n'
+    printf 'gdrive not installed, using wget\n'
     CONFIRM=$(
         wget -q --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
             "https://docs.google.com/uc?export=download&id=$FILEID" -O- |

@@ -56,6 +56,7 @@ function play {
     echo "$1" >> "$ANIMEHIST"
 }
 function main() {
+    # filters
     case "$1" in
         add_watched)
             grep -qxF "$2" "$WATCHED_FILE" 2>/dev/null ||
