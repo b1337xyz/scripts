@@ -20,11 +20,11 @@ cp -v "$dunstrc" "${dunstrc%/*}/dunstrc.bkp" || exit 1
 sed -i 's/icon_path\s=\s.*/icon_path = '"$string"'/' "$dunstrc"
 grep 'icon_path' "$dunstrc"
 
-. reload.sh
+./reload.sh
 
 read -r -p 'Undo? (y/n) ' ask
 if [ "$ask" = "y" ];then
     cp -v "${dunstrc%/*}/dunstrc.bkp" "$dunstrc"
 
-    . reload.sh
+    ./reload.sh
 fi
