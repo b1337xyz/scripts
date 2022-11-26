@@ -36,8 +36,8 @@ if [ -d "$1" ];then
 else
     fc-list -f '%{file}\n' | grep -i '\.ttf'
 fi | sort -uV |
-    fzf -e --preview "preview {}"      \
-    --bind 'enter:execute(copy {})' \
-    --bind 'ctrl-t:last'            \
-    --bind 'ctrl-b:first'           \
-    --preview-window "right:48%"
+    fzf -e --preview "preview {}"       \
+        --bind 'enter:execute(copy {})' \
+        --bind 'ctrl-t:last'            \
+        --bind 'ctrl-b:first'           \
+        --preview-window "right:48%"

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 source ~/.scripts/shell/fzf/preview.sh
 
-function preview {
+preview() {
     img=$(find -L "$1" -type f -iregex '.*\.\(jpg\|png\|webp\)' | sort -V | head -1)
     draw_preview "$img"
     for _ in $(seq $((LINES - 1)));do echo ;done
     files=$(find "$1" -type f | wc -l)
     printf 'Files: %s\n' "$files"
 }
-function open { nsxiv -fqrs w "$1" 2>/dev/null; }
-function safe_remove() {
+open() { nsxiv -fqrs w "$1" 2>/dev/null; }
+safe_remove() {
     local target
     target=$(realpath -- "$1")
     [ -d "$target" ] || return 1

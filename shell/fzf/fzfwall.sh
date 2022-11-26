@@ -3,8 +3,6 @@ source ~/.scripts/shell/fzf/preview.sh
 declare -r -x WALL_DIR=~/Pictures/wallpapers
 declare -r -x DEFAULT_PREVIEW_POSITION=top
 
-set -e
-
 function preview {
     img=$(find "$1" -iname '*.jpg' | shuf -n1)
     draw_preview "$img"

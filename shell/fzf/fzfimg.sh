@@ -2,12 +2,12 @@
 source ~/.scripts/shell/fzf/preview.sh
 declare -r -x DEFAULT_PREVIEW_POSITION="left"
 
-function copy {
+copy() {
     t=$(file -Lbi -- "$1" | cut -d';' -f1)
     xclip -t "$t" -sel clip "$1"
 }
-function find_imgs {
-    find "${1:-.}" -iregex '.*\.\(jpg\|png\|jpeg\)' | sort -V
+find_imgs() {
+    find "${1:-.}" -maxdepth 3 -iregex '.*\.\(jpg\|png\|jpeg\)' | sort -V
 }
 export -f find_imgs copy
 
