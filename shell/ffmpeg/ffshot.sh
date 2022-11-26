@@ -6,6 +6,5 @@ printf '\nOutput: %s\n' "$out"
 
 ffmpeg -nostdin -hide_banner -v 16 \
     -f v4l2 -i /dev/video0 -vframes 1 "$out"
-sxiv "$out"
-rm -i "$out"
 
+sxiv "$out"
