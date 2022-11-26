@@ -2,7 +2,7 @@
 
 set -e
 
-INFO_FILE=~/.local/share/mytrash/info
+declare -r -x INFO_FILE=~/.local/share/mytrash/info
 declare -r -x TRASH_DIR=~/.local/share/mytrash/files
 [ -d "$TRASH_DIR" ] || mkdir -p "$TRASH_DIR"
 
