@@ -11,10 +11,10 @@ case "$1" in
     --dmenu) use_dmenu=1 ;;
 esac
 
-#font_name=$(fc-list | cut -d':' -f2 | sort | uniq | fzf | sed 's/^\s*//;s/\s*$//')
-#[ -z "$font_name" ] && exit 1
-#font_path=$(fc-list | grep -F "$font_name" | head -n1 | cut -d':' -f1)
-#image="/tmp/.${font_name}.jpg"
+# font_name=$(fc-list | cut -d':' -f2 | sort | uniq | fzf | sed 's/^\s*//;s/\s*$//')
+# [ -z "$font_name" ] && exit 1
+# font_path=$(fc-list | grep -F "$font_name" | head -n1 | cut -d':' -f1)
+# image="/tmp/.${font_name}.jpg"
 if [ "$use_dmenu" -eq 1 ];then
     font_path=$(fc-list | cut -d':' -f1 | dmenu -i -l 20 -c)
 else
