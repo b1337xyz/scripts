@@ -11,7 +11,14 @@ while [ $1 ];do
     esac
     shift
 done
-sockect=${sockect:-/tmp/mpvradio}
+sockect=${sockect:-/tmp/mpvsocket}
+echo "$sockect"
+
+check_status() {
+    echo '{"command":["get_property", "pid"]}' | socat - "$1"
+}
+
+check_status "$sockect" || exit 1
 
 case "$arg" in
     toggle)   cmd='"cycle", "pause"'        ;;
@@ -24,6 +31,9 @@ case "$arg" in
     down)     cmd='"add", "volume", "-10"'  ;;
     fs)       cmd='"cycle", "fullscreen"'   ;;
     loop)     cmd='"cycle", "loop-file"'    ;;
+    nextc)    cmd='"add", "chapter", "1"'   ;;
+    prevc)    cmd='"add", "chapter", "-1"'  ;;
+    show)     cmd='"script-binding", "stats/display-stats"' ;;
     *) echo "${0##*/} [-s <SOCKET>] [toggle next prev forward backward mute up down fs loop]"; exit 1 ;;
 esac
 
