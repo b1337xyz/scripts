@@ -16,12 +16,11 @@ workspace = focused.workspace()
 border = 4
 scr_width = workspace.rect.width
 scr_height = workspace.rect.height
-scr_height = 768 if scr_height < 768 else scr_height
 scr_x = workspace.rect.x
 scr_y = workspace.rect.y
-bar_height = 28
-bottom_bar = 1
-scr_height = scr_height - bottom_bar if bottom_bar > 0 else scr_height
+bar_height = 24
+# bottom_bar = 0
+# scr_height = scr_height - bottom_bar if bottom_bar > 0 else scr_height
 arg = args[0]
 
 
@@ -80,12 +79,9 @@ def main(arg):
         y = (scr_height // 2) - (height // 2) + bar_height
     #y -= border
 
-    def run_cmd(cmd):
-        con.command(cmd)
-
     if opts.resize:
-        run_cmd('resize set {} {}'.format(width, height))
-    run_cmd('move position {} {}'.format(x, y))
+        con.command('resize set {} {}'.format(width, height))
+    con.command('move position {} {}'.format(x, y))
 
 
 if __name__ == '__main__' and arg != 'debug':
