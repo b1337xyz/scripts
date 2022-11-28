@@ -19,16 +19,16 @@ bar = 24
 
 if 'off' in focused.floating:
     focused.command('floating toggle')
-if 'top' in args:
+if 'up' in args:
     y = bar
-if 'bottom' in args:
+if 'down' in args:
     y = scr_height - win_height
 if 'left' in args:
     x = scr_x
 if 'right' in args:
     x = scr_width - win_width
-if 'middle' in args:
-    x = scr_x + (workspace.rect.width  // 2) - (win_width // 2)
+if 'center' in args:
+    x = scr_x + (workspace.rect.width  // 2) - (win_width  // 2)
     y = scr_y + (workspace.rect.height // 2) - (win_height // 2)
 
 con.command('move position {} {}'.format(x, y))
