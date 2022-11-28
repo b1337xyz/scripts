@@ -1,6 +1,6 @@
 ## Dependencies
 > Shell 
-- aria2c
+- aria2
 - bat
 - cksfv
 - dash
