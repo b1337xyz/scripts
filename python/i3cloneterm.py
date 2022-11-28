@@ -14,9 +14,9 @@ y = focused.rect.y
 if 'off' in focused.floating:
     print('nothing to do')
     sys.exit(1)
-if terminal not in focused.window_class.lower():
-    print('nothing to do')
-    sys.exit(1)
+# if terminal not in focused.window_class.lower():
+#     print('nothing to do')
+#     sys.exit(1)
 
 sp.call('alacritty --class floating_terminal &', shell=True)
 fid = focused.id

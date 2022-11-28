@@ -10,7 +10,7 @@
 - mediainfo
 - [nsxiv](https://github.com/nsxiv/nsxiv)
 - tmux
-- [ueberzug](https://github.com/seebye/ueberzug)
+- [ueberzug](https://github.com/b1337xyz/ueberzug)
 - xclip
 - xwallpaper
 
