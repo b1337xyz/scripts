@@ -4,7 +4,7 @@ from sys import argv, exit
 import xmlrpc.client
 
 logging.info(' '.join(f"'{i}'" for i in argv[1:]))
-sleep(1)
+sleep(3)
 gid = argv[1]
 s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 try:
