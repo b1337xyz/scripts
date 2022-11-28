@@ -8,7 +8,7 @@ wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
-upload() { curl -F"file=@$*" https://0x0.st; }
+upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
 arc() {
     local filename basename archive
     shopt -s extglob
