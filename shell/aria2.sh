@@ -2,63 +2,60 @@ bcat() { aria2c -S "$1";  }
 bthead() {
     aria2c -S "$1" | sed '/^idx\|path\/length/q'
 }
-btdu() {
-    [ $# -eq 0 ] && { btdu ./*.torrent; return; }
-    aria2c -S "$@" | awk '
-/^Total| 1\|\.\//{
-    if ($0 ~ /^Total/) {
-        size = $3
-        psize = substr($3, 1, length($3) - 3) + 0
-        if (size ~ /GiB/) {
-            total += psize * 1024
-        } else if (size ~ /KiB/) {
-            total += psize / 1024
-        } else {
-            total += psize
+dubt() {
+    [ $# -eq 0 ] && set -- ./*.torrent
+    aria2c -S "$@" | awk '/^Total | 1\|\.\//{
+        if ($0 ~ /^Total/) {
+            unit = $3
+            psize = substr($3, 1, length($3) - 3) + 0
+            if (unit ~ /GiB/) {
+                total += psize * 1024
+            } else if (unit ~ /KiB/) {
+                total += psize / 1024
+            } else {
+                total += psize
+            }
+            next
         }
-    } else if ($0 ~ / 1\|\.\//) {
         split($0, a, "/")
         torrent_name = a[2]
-    } 
-    if (size && torrent_name) {
-        printf("%8s\t%s\n", size, torrent_name)
-        size = ""
-        psize = ""
-        torrent_name = ""
-    }
-} END {
+        printf("%8s\t%s\n", unit, torrent_name)
+    } END {
         if (total >= 1024) {
             total /= 1024
             printf("%.1fGiB total\n", total)
         } else {
             printf("%.1fMiB total\n", total)
         }
-}'
+    }'
 }
 dubt2() {
-    aria2c -S "$1" | awk '/^Total|\|/{
-    if ($0 ~ /^Total/) total = $3
-    if ($0 ~ /[0-9]\|\.\//) {
-        split($0, a, "/")
-        fname = a[length(a)]
-        idx = substr(a[1], 1, length(a[1]) - 2)
-    } else if ($0 ~ / \|[0-9]*\.?[0-9]*?[KMG]iB/) {
-        size = substr($1, 2)
-        printf("%8s \033[1;31m%4s\033[m: %s\n", size, idx, fname)
-    }
-} END {
-    printf("%s total\n", total)
-}'
+    [ -f "$1" ] || { printf 'Usage: dubt2 <TORRENT>\n'; return 1; }
+    aria2c -S "$1" | awk '/^Total |\|/{
+        if ($0 ~ /^Total/) total = $3
+        if ($0 ~ /[0-9]\|\.\//) {
+            split($0, a, "/")
+            fname = a[length(a)]
+            idx = substr(a[1], 1, length(a[1]) - 2)
+        } else if ($0 ~ / \|[0-9]*\.?[0-9]*?[KMG]iB/) {
+            size = substr($1, 2)
+            printf("%8s \033[1;31m%4s\033[m: %s\n", size, idx, fname)
+        }
+    } END {
+        if (total)
+            printf("%s total\n", total)
+    }'
 }
 dubt3() {
-    [ $# -eq 0 ] && { dubt3 ./*.torrent; return; }
-    aria2c -S "$@" | awk '{
-    if ($0 ~ /^Total/) size = $3
-    if ($0 ~ / 1\|\.\//) {
+    [ $# -eq 0 ] && set -- ./*.torrent
+    aria2c -S "$@" | awk '/^Total | 1\|\.\//{
+        if ($0 ~ /^Total/) {
+            size = $3
+            next
+        }
         split($0, a, "/")
         printf("%-8s\t%s\n", size, a[2])
-    }
-}'
+    }'
 }
 rentorrent() {
     local torrent

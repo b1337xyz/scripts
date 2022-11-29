@@ -128,7 +128,7 @@ lstar() {
     for i in "$@";do
         [ -f "$i" ] || continue
         printf '>>> \033[1;31m%s\033[m\n' "$i"
-        tar tvf "$i" 2>/dev/null | bat -l ls
+        tar tvf "$i" 2>/dev/null | less
         read -rp "extract '$i'? (y/N) " ask
         [ "${ask,,}" = 'y' ] && tar axvf "$i"
     done
