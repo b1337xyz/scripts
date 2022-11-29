@@ -135,6 +135,6 @@ btsel() {
         sub(/^[ \t]*/, "", $0);
         split($2, a, "/");
         printf("%s|%s\n", $1, a[length(a)])
-    }' | fzf -m | grep -oP '^\d+(?=\|)' | tr \\n ',' | sed 's/,$//' |
+    }' | fzf -m --bind 'ctrl-a:select-all' | grep -oP '^\d+(?=\|)' | tr \\n ',' | sed 's/,$//' |
         xargs -rI{} aria2c --bt-remove-unselected-file --select-file '{}' "$1" 
 }

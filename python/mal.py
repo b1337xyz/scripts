@@ -41,8 +41,8 @@ parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
 # parser.add_option('--nsfw', action='store_false', default=True)
 
 opts, args = parser.parse_args()
-query = quote(' '.join(args).lower())
-url = API_URL.format(query, opts.limit)
+query = ' '.join(args).lower()
+url = API_URL.format(quote(query), opts.limit)
 if opts.order_by:
     url += f'&order_by={opts.order_by}'
 if opts.start_date:
@@ -94,16 +94,15 @@ else:
 if args:
     titles = [
         i[-1] for i in process.extract(
-            ' '.join(args),
+            query,
             {k: v['title'] for k,v in data.items()},
             limit=len(data)
         ) if i[1] > opts.tolerance
     ]
 else:
-    titles = data.keys()
+    titles = list(data.keys())
 
 max_len = max(len(i['title']) for i in data.values()) + 7
-
 for k in titles[:opts.max]:
     obj = data[k]
     title = obj['title']
