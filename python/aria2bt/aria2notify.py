@@ -10,10 +10,14 @@ s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 try:
     torrent = s.aria2.tellStatus(gid)
 except Exception as err:
-    logging.error(err)
+    # Probably not a torrent or not started from the rpc server
     exit(0)
 
 torrent_name = get_torrent_name(torrent)
+if not torrent_name:
+    logging.warn(f'Ignoring torrent, {gid}')
+    exit(0)
+
 torrent_dir = torrent['dir']
 status = torrent['status']
 size = get_psize(int(torrent["totalLength"]))

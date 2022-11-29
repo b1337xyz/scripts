@@ -6,7 +6,7 @@ import xmlrpc.client
 import re
 
 # Before running this start aria2c with:
-#     aria2c --enable-rpc
+# $ aria2c --enable-rpc
 
 
 def get_torrents(torrents):
@@ -42,6 +42,7 @@ def get_torrents(torrents):
             print('\nbye')
             sys.exit(0)
     return torrents
+
 
 def get_magnet(file):
     out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()

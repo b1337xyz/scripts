@@ -338,7 +338,7 @@ random_str() {
         if [[ "$1" =~ ^[0-9]+$ ]];then n=$1 ;else chr=$1 ;fi
         shift
     done
-    chr=${chr:-a-zA-Z0-9@!<&%\$#_\\-\\.}
+    chr=${chr:-a-zA-Z0-9@!<>&%\$#_\\-\\.~}
     tr -dc "$chr" < /dev/urandom | fold -w "${n:-10}" | head -1
 }
 iommu_groups() {
