@@ -2,16 +2,15 @@
 pkill -e -f -- 'aria2c -D -V --enable-rpc' && sleep 5
 
 session="${HOME}"/.cache/aria2/session
-if [ -f "$session" ];then
-    aria2c -D -V --enable-rpc --input-file="$session"
-else
-    aria2c -D -V --enable-rpc --save-session="$session"
-fi
+script="${HOME}"/.local/bin/aria2notify.py
+set -- -D -V --enable-rpc \
+    --on-bt-download-complete="${script}" \
+    --on-download-complete="${script}" \
+    --on-download-error="${script}" \
+    --on-download-start="${script}"
 
-# session="${HOME}"/.cache/aria2/prowlarr.session
-# config="${HOME}"/.config/aria2/prowlarr.conf
-# if [ -f "$session" ];then
-#     aria2c -D -V --enable-rpc --conf-path="$config" --input-file="$session"
-# else
-#     aria2c -D -V --enable-rpc --conf-path="$config" --save-session="$session"
-# fi
+if [ -f "$session" ];then
+    aria2c "$@" --input-file="$session"
+else
+    aria2c "$@" --save-session="$session"
+fi
