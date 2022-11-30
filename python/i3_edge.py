@@ -15,7 +15,7 @@ win_width  = focused.rect.width
 win_height = focused.rect.height
 x = focused.rect.x
 y = focused.rect.y
-bar = 24
+bar = scr_height - focused.workspace().rect.height
 resize = '-r' in args
 
 if 'off' in focused.floating:
