@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-get_volume() {
-    pactl list sinks | sed 's/\s*//;s/%//g' | grep ^Volume | awk '{print $5}'
-}
-
 case "$1" in
     up)     pactl set-sink-volume @DEFAULT_SINK@ +5%    ;;
     down)   pactl set-sink-volume @DEFAULT_SINK@ -5%    ;;

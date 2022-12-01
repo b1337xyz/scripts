@@ -24,10 +24,11 @@ def get_torrents(torrents):
 
     for i, v in enumerate(torrents):
         torrent_name = get_torrent_name(v)
-        if len(torrent_name) > 50:
-            torrent_name = torrent_name[:47] + '...'
+        max_len = 100
+        if len(torrent_name) > max_len:
+            torrent_name = torrent_name[:max_len-3] + '...'
         size = get_psize(int(v['totalLength']))
-        print(f'{i:3}: [{v["status"]}] {torrent_name:50} {size:10}')
+        print(f'{i:3}: [{v["status"]}] {torrent_name} {size:10}')
 
     while True:
         try:
@@ -91,8 +92,9 @@ def list_torrents():
         psize = get_psize(size)
         plen = get_psize(completed_length)
         torrent_name = get_torrent_name(i)
-        if len(torrent_name) > 70:
-            torrent_name = torrent_name[:67] + '...'
+        max_len = 100
+        if len(torrent_name) > max_len:
+            torrent_name = torrent_name[:max_len-3] + '...'
         status = i['status']
         gid = i['gid']
         if status == 'active':
@@ -100,12 +102,12 @@ def list_torrents():
             # seeders = i['numSeeders']
             print('{}[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed,
-                status, torrent_name[:60]
+                status, torrent_name
             ))
         else:
             print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize,
-                status, torrent_name[:60]
+                status, torrent_name
             ))
 
 
@@ -135,7 +137,12 @@ def remove(torrents=[]):
                 print(err)
                 s.aria2.forceRemove(gid)
         else:
-            s.aria2.removeDownloadResult(gid)
+            try:
+                s.aria2.removeDownloadResult(gid)
+            except Exception as err:
+                print(err)
+                s.aria2.forceRemove(gid)
+
         print(torrent_name, 'removed')
 
 
