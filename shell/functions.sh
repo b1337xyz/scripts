@@ -248,8 +248,8 @@ fixext() {
             *) continue ;;
         esac
         fname=${i%.*}
-        fname=${fname:-$i}.
-        [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "${fname}.${ext}"
+        fname=${fname:-$i}.${ext}
+        [ "${i##*.}" != "$ext" ] && mv -vn -- "$i" "$fname"
     done
     return 0
 }
