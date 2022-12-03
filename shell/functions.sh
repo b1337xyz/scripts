@@ -302,13 +302,13 @@ trackers_best() {
     xclip -sel clip -i "$output" 
 }
 fvideo() {
-    find . -iregex '.*\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
+    find . -iregex '.*\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)'
 }
 fimage() {
-    find . -iregex '.*\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)$'
+    find . -iregex '.*\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)'
 }
 grep_video() {
-    grep --color=never -i '\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|anitsu\)$' "$1"
+    grep --color=never -i '\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\)$' "$1"
 }
 grep_archive() {
     grep --color=never -i '\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$' "$1"
@@ -521,10 +521,13 @@ ftext() {
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
 }
 paclog() {
-    # last pkgs of <status>
-    grep "${1:-upgraded}" /var/log/pacman.log | tac | awk -F'T' '{
-        if ( substr($1, length($1)-1) != x && x)
-            exit
+    grep "${1:-upgraded}" /var/log/pacman.log | tac | awk -F'T' -v n=3 '{
+        if ( substr($1, length($1)-1) != x && x) {
+            c += 1
+            if (c >= n)
+                exit
+            print "---"
+        }
         print $0
         x = substr($1, length($1)-1)
     }' | tac
