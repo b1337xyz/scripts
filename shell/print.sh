@@ -5,7 +5,6 @@ set -e
 
 command -v scrot >/dev/null 2>&1 || { printf 'install scrot\n'; exit 1; }
 command -v xclip >/dev/null 2>&1 || { printf 'install xclip\n'; exit 1; }
-command -v notify-send >/dev/null 2>&1 || { printf 'install libnotify\n'; exit 1; }
 
 DIR=~/Pictures/screenshots
 [ -d "$DIR"  ] || mkdir -vp "$DIR"
@@ -37,4 +36,4 @@ case $1 in
     *) scrot -q 100 -m ~/Pictures/screenshots/screenshot_%Y%m%d%H%M.png -e 'notify-send -i $f Print $f' ;;
 esac
 
-[ -f "$tmpimg" ] && { sleep 5m ; rm "$tmpimg"; } &
+[ -f "$tmpimg" ] && sleep 5m && rm "$tmpimg"

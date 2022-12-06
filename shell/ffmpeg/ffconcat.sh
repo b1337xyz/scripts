@@ -10,7 +10,7 @@ done > "$tmpfile"
 tac "$tmpfile" >> "$tmpfile"
 
 ffmpeg -nostdin -v 24 -stats -y \
-    -r 5 -f concat -safe 0     \
+    -r 8 -f concat -safe 0     \
     -i "$tmpfile" -c:v libx264  \
     -crf 5 -preset fast -tune animation \
     output.mp4

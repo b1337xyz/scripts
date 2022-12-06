@@ -26,9 +26,11 @@ if torrent_name.startswith('[METADATA]') and status == 'complete':
         s.aria2.removeDownloadResult(gid)
 elif status == 'complete':
     notify(f"aria2 - {status}", torrent_name, f'Size: {size}')
-    path = os.path.join(torrent_dir, torrent_name)
-    if os.path.exists(path):
-        mv(path, DL_DIR)
+    logging.info(torrent_dir)
+    if torrent_dir == TEMP_DIR:
+        path = os.path.join(torrent_dir, torrent_name)
+        if os.path.exists(path):
+            mv(path, DL_DIR)
     s.aria2.removeDownloadResult(gid)
 else:
     notify(f"aria2 - {status}", torrent_name, f'Size: {size}')
