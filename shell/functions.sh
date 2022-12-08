@@ -521,7 +521,7 @@ ftext() {
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
 }
 paclog() {
-    grep "${1:-upgraded}" /var/log/pacman.log | tac | awk -F'T' -v n=3 '{
+    awk -v x="${1:-upgraded}" '$3 == x' /var/log/pacman.log | tac | awk -F'T' -v n=3 '{
         if ( substr($1, length($1)-1) != x && x) {
             c += 1
             if (c >= n)

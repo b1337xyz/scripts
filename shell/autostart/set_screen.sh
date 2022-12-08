@@ -17,4 +17,6 @@ if xrandr | grep -q 'HDMI1 connected';then
         sleep 1
         ~/.cache/xwallpaper
     fi
+else
+    echo "Xft.dpi: 102" | xrdb -merge
 fi
