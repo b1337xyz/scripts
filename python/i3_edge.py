@@ -30,7 +30,7 @@ if resize and ('left' in args or 'right' in args):
     win_width  = workspace.rect.width // 2
     win_height = workspace.rect.height
 if resize and 'center' in args:
-    win_width  = (workspace.rect.width  * 70) // 100
+    win_width  = (workspace.rect.width  * 60) // 100
     win_height = (workspace.rect.height * 65) // 100
 
 if 'up' in args:

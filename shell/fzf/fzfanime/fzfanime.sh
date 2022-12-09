@@ -52,7 +52,7 @@ source "${root}/preview.sh" || {
 
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
-    $PLAYER "${ANIME_DIR}/$1" &>/dev/null &
+    $($PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 &)
     echo "$1" >> "$ANIMEHIST"
 }
 function main() {
