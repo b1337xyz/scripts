@@ -34,7 +34,7 @@ start_ueberzug
 if [ -d "$1" ];then
     find "$1" -iname '*.ttf'
 else
-    fc-list -f '%{file}\n' | grep -i '\.ttf'
+    fc-list -f '%{file}\n' | grep -iP '\.(ttf|otf)'
 fi | sort -uV |
     fzf -e --preview "preview {}"       \
         --bind 'enter:execute(copy {})' \

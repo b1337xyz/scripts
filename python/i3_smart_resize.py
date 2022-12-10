@@ -12,19 +12,22 @@ def smart_resize(i3, e):
         scr_height = scr_y + workspace.rect.height
         win_width  = focused.rect.width
         win_height = focused.rect.height
-        x = focused.rect.x
-        y = focused.rect.y
+        old_x = focused.rect.x
+        old_y = focused.rect.y
+        x = old_x
+        y = old_y
 
         if x < scr_x:
             x = scr_x
-        if x + win_width > scr_width:
+        elif x + win_width > scr_width:
             x = scr_width - win_width
         if y < scr_y:
             y = scr_y
-        if y + win_height > scr_height:
+        elif y + win_height > scr_height:
             y = scr_height - win_height
 
-        i3.command('move position {} {}'.format(x, y))
+        if x != old_x or y != old_y:
+            i3.command('move position {} {}'.format(x, y))
 
 if __name__ == '__main__':
     i3 = Connection()
