@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+theme=$(tail -1 ~/.config/.theme_history 2>/dev/null)
+st_args=()
+while (( $# ));do
+    [ "$1" = "--" ] && { shift; break; }
+    st_args+=("$1")
+    shift
+done
+st "${st_args[@]}" -e sh -c \
+    "theme.sh ${theme:-default-dark} ; ${@:-$SHELL}"

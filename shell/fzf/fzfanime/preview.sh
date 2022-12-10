@@ -12,7 +12,7 @@ function start_ueberzug {
     tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json &
 }
 function finalise {
-    # jobs -p | xargs -r kill 2>/dev/null || true
+    jobs -p | xargs -r kill 2>/dev/null || true
     rm "$tempfile" "$mainfile" "$modefile" 2>/dev/null || true
     if [ -S "$UEBERZUG_FIFO" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"

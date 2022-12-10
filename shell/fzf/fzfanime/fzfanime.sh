@@ -20,6 +20,7 @@
 #       }
 #     }, ...
 
+
 ### USER SETTINGS
 
 declare -x -x ANIME_DIR=~/Videos/Anime
@@ -52,7 +53,7 @@ source "${root}/preview.sh" || {
 
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
-    $($PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 &)
+    nohup $PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 & disown
     echo "$1" >> "$ANIMEHIST"
 }
 function main() {
