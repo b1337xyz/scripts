@@ -4,6 +4,7 @@
 - bat
 - cksfv
 - dash
+- [devour](https://github.com/salman-abedin/devour)
 - dmenu patched with [instant](https://tools.suckless.org/dmenu/patches/instant/) and [center](https://tools.suckless.org/dmenu/patches/center/)
 - [fzf](https://github.com/junegunn/fzf)
 - [jq](https://github.com/stedolan/jq)
