@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
 # shellcheck disable=SC2154
+declare -r -x W3MIMGDISPLAY=/usr/lib/w3m/w3mimgdisplay
 declare -r -x UEBERZUG_FIFO=$(mktemp --dry-run --suffix "fzf-$$-ueberzug")
 declare -r -x WIDTH=32 # image width
 declare -r -x HEIGHT=20
@@ -86,8 +87,11 @@ function preview {
     [ "$BACKEND" = "kitty" ] && kitty icat --transfer-mode=file \
         --stdin=no --clear --silent >/dev/null 2>&1 </dev/tty
 
-    if [ "$title" = "404" ];then
+    [ "$BACKEND" = "ueberzug" ] &&
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
+
+    if [ "$title" = "404" ];then
+
         printf "404 - preview not found\n\n"
         # for _ in $(seq $((COLUMNS)));do printf '─' ;done ; echo
         # check_link "$1"
@@ -124,6 +128,12 @@ function preview {
         ueberzug) 
             printf '{"action": "add", "identifier": "%s", "x": 0, "y": 0, "width": %d, "height": %d, "scaler": "%s", "path": "%s"}\n' \
                 "preview" "$WIDTH" "$HEIGHT" "distort" "$image" > "$UEBERZUG_FIFO"
+        ;;
+        w3m)
+            # https://github.com/junegunn/fzf/issues/2551
+            read -r width height < <(printf '5;%s' "$image" | "$W3MIMGDISPLAY")
+            printf '0;1;%s;%s;%s;%s;;;;;%s\n4;\n3;' \
+                "0" "0" "$width" "$height" "$image" | "$W3MIMGDISPLAY"
         ;;
     esac
 }
