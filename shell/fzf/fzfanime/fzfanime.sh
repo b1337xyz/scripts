@@ -58,7 +58,7 @@ function play {
         nohup  $PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 & disown
     fi
 }
-function main() {
+function main {
     # filters
     case "$1" in
         add_watched)
@@ -165,7 +165,7 @@ function main() {
                 cat "$mainfile"
             fi
         ;;
-        nsfw)
+        adult)
             jq -Sr 'keys[] as $k | select(.[$k].isAdult) | $k' "$DB" | tee "$mainfile"
         ;;
         *)
@@ -195,7 +195,7 @@ main "$@" | fzf -e --no-sort --color dark \
     --bind 'ctrl-d:delete-char' \
     --bind 'ctrl-p:execute-silent(play {})' \
     --bind 'ctrl-r:reload(main)+first+change-prompt(NORMAL )' \
-    --bind 'ctrl-h:reload(main nsfw)+first+change-prompt(ADULT )' \
+    --bind 'ctrl-h:reload(main adult)+first+change-prompt(ADULT )' \
     --bind 'ctrl-a:reload(main avail)+change-prompt(AVAILABLE )' \
     --bind 'ctrl-y:reload(main by_year)+first+change-prompt(BY YEAR )' \
     --bind 'ctrl-s:reload(main by_score)+first+change-prompt(BY SCORE )' \
