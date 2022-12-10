@@ -30,9 +30,7 @@ declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
 declare -r -x ANIMEHIST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 declare -r -x MPVHIST=~/.cache/mpv/mpvhistory.log
-if [ -n "$DISPLAY" ];then
-    declare -r -x BACKEND=ueberzug # ueberzug kitty
-fi
+[ "$DISPLAY" ] && declare -r -x BACKEND=ueberzug # ueberzug kitty
 
 ### END OF USER SETTINGS
 
@@ -53,8 +51,12 @@ source "${root}/preview.sh" || {
 
 function play {
     [ -e "${ANIME_DIR}/$1" ] || return 1
-    nohup $PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 & disown
     echo "$1" >> "$ANIMEHIST"
+    if command -v devour >/dev/null 2>&1;then
+        devour $PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1
+    else
+        nohup  $PLAYER "${ANIME_DIR}/$1" >/dev/null 2>&1 & disown
+    fi
 }
 function main() {
     # filters
