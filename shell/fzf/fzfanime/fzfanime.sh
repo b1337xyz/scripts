@@ -23,7 +23,7 @@
 
 ### USER SETTINGS
 
-declare -x -x ANIME_DIR=~/Videos/Anime
+declare -r -x ANIME_DIR=~/Videos/Anime
 declare -r -x PLAYER='mpv --profile=fzfanime'
 declare -r -x DB=~/.scripts/python/myanimedb/anilist.json
 declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
