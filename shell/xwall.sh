@@ -59,4 +59,6 @@ chmod +x ~/.cache/xwallpaper && ~/.cache/xwallpaper
 ext=${wallpaper##*.}
 cp "$wallpaper" ~/.cache/current_bg."${ext}"
 
+# pkill -SIGUSR1 conky
+
 exit 0
