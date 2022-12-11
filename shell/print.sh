@@ -36,4 +36,4 @@ case $1 in
     *) scrot -q 100 -m ~/Pictures/screenshots/screenshot_%Y%m%d%H%M.png -e 'notify-send -i $f Print $f' ;;
 esac
 
-[ -f "$tmpimg" ] && sleep 5m && rm "$tmpimg"
+[ -f "$tmpimg" ] && sleep 60 && rm "$tmpimg"

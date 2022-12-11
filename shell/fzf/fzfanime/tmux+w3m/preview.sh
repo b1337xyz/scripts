@@ -2,7 +2,7 @@
 # shellcheck disable=SC2155
 # shellcheck disable=SC2154
 declare -r -x W3MIMGDISPLAY=/usr/lib/w3m/w3mimgdisplay
-declare -r -x UEBERZUG_FIFO=$(mktemp --dry-run --suffix "fzf-$$-ueberzug")
+declare -r -x UEBERZUG_FIFO=/tmp/fzfanime.ueberzug
 declare -r -x WIDTH=32 # image width
 declare -r -x HEIGHT=20
 declare -r -x cache_dir=~/.cache/fzfanime_preview
@@ -13,25 +13,28 @@ function start_ueberzug {
     tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json &
 }
 function finalise {
+    echo die > "$PREVIEW_FIFO"
     jobs -p | xargs -r kill 2>/dev/null || true
-    rm "$tempfile" "$mainfile" "$modefile" 2>/dev/null || true
+    rm "$PREVIEW_FIFO" "$tempfile" "$mainfile" "$modefile" 2>/dev/null || true
     if [ -S "$UEBERZUG_FIFO" ];then
         printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
         rm "$UEBERZUG_FIFO" 2>/dev/null
     fi
 }
 function check_link {
+    max_cols=$((COLUMNS - 10))
     p=$(readlink -m "${ANIME_DIR}/$1")
     # p=$(stat -c '%N' "${ANIME_DIR}/$1" | awk -F' -> ' '{print substr($2, 2, length($2)-2)}')
     x=$p
-    # [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
+    [ "${#x}" -gt "$max_cols" ] && x=${x::$((max_cols - 4))}...
     printf '%s\n' "$x"
 
     if [ -f "$MPVHIST" ];then
         last_ep=$(grep -F "/${1}/" "$MPVHIST" | tail -n1)
         last_ep=${last_ep##*/}
         if [ -f "${p}/${last_ep}" ];then
-            # [ "${#last_ep}" -gt "$((COLUMNS - 15))" ] && last_ep=${last_ep::$((COLUMNS - 15))}...
+            [ "${#last_ep}" -gt "$((max_cols - 15))" ] &&
+                last_ep=${last_ep::$((max_cols - 15))}...
             printf 'Continue: \e[1;32m%s\e[m\n' "$last_ep"
         fi
     fi
@@ -61,7 +64,7 @@ function check_link {
         n=4
         for ((i=0;i<"${#files[@]}";i++));do
             x=${files[i]}
-            # [ "${#x}" -gt "$((COLUMNS - 1))" ] && x=${x::$((COLUMNS - 4))}...
+            [ "${#x}" -gt "$max_cols" ] && x=${x::$((max_cols - 4))}...
 
             if [ "$i" -lt "$n" ] || [ "${#files[@]}" -le $((n*2)) ];then
                 printf '%s\n' "$x"
@@ -74,6 +77,8 @@ function check_link {
     fi
 }
 function preview {
+    clear
+    max_cols=$((COLUMNS - 10))
     IFS=$'\n' read -d '' -r title _type genres episodes score rated image < <(\
         jq -Mr --argjson k "\"$1\"" '.[$k] |
            "\(.["title"] // "404")
@@ -98,12 +103,12 @@ function preview {
         return 0
     fi
 
-    # [ "${#title}"  -gt 35 ] && title=${title::35}...
-    # [ "${#genres}" -gt 35 ] && genres=${genres::35}...
+    [ "${#title}"  -gt "$max_cols" ] && title=${title::$((max_cols - 4))}...
+    [ "${#genres}" -gt "$max_cols" ] && genres=${genres::$((max_cols - 4))}...
 
     printf '%'$WIDTH's %s\n'              ' ' "$title"
     printf '%'$WIDTH's Type: %s\n'        ' ' "${_type:-Unknown}"
-    printf '%'$WIDTH's Genre: %s\n'       ' ' "$genres"
+    # printf '%'$WIDTH's Genre: %s\n'       ' ' "$genres"
     printf '%'$WIDTH's Episodes: %s\n'    ' ' "$episodes"
     printf '%'$WIDTH's Rated: %s\n'       ' ' "$rated"
     printf '%'$WIDTH's Score: %s\n'       ' ' "$score"

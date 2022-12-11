@@ -33,5 +33,5 @@ do
 done
 
 printf 'please wait...\n'
-aria2c -S ~/.cache/torrents/*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > torrents.txt
-rm -vI ./*.torrent || exit 0
+aria2c -S ./*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > torrents.txt
+rm -vI ./*.torrent
