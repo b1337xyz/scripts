@@ -14,7 +14,18 @@ trap end EXIT INT HUP
 tail --follow "$FIFO" | ueberzug layer --parser json &
 
 clear
-printf '{"action": "add", "identifier": "test", "x": %d, "y": %d, "width": "%d", "height": "%d", "scaler": "cover", "path": "%s"}\n' \
+printf '{"action": "add", "identifier": "test", "x": "%s", "y": "%s", "width": "%s", "height": "%s", "scaler": "cover", "path": "%s"}\n' \
     "${x:-0}" "${y:-0}" "$width" "$height" "$path" > "$FIFO"
+
+# printf '{
+#     "action": "add",
+#     "identifier": "test",
+#     "x": "%s",
+#     "y": "%s",
+#     "width": "%s",
+#     "height": "%s",
+#     "scaler": "cover",
+#     "path": "%s"
+# }\n' "${x:-0}" "${y:-0}" "$width" "$height" "$path" | jq -c > "$FIFO"
 
 read -s -n1
