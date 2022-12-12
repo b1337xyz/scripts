@@ -22,7 +22,7 @@ e() {
         awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
 }
 c() { 
-    find ~/.config -maxdepth 4 -type f -size -100k \
+    find ~/.config -maxdepth 3 -type f -size -100k \
         \! \( -name '__*__' -o -iregex '.*\.\(bdic\|tdb\|lpl\|spl\|state[0-9]?\|srm\|png\|jpg\|auto\)' \) |
         awk -v home="$HOME" 'sub(home, "~")' | 
         fzf -e --layout=reverse --height 20  |
