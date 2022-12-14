@@ -24,7 +24,7 @@ def get_torrents(torrents):
 
     for i, v in enumerate(torrents):
         torrent_name = get_torrent_name(v)
-        max_len = 100
+        max_len = 80
         if len(torrent_name) > max_len:
             torrent_name = torrent_name[:max_len-3] + '...'
         size = get_psize(int(v['totalLength']))
@@ -92,7 +92,7 @@ def list_torrents():
         psize = get_psize(size)
         plen = get_psize(completed_length)
         torrent_name = get_torrent_name(i)
-        max_len = 100
+        max_len = 80
         if len(torrent_name) > max_len:
             torrent_name = torrent_name[:max_len-3] + '...'
         status = i['status']

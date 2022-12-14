@@ -16,12 +16,12 @@ arc() {
     shopt -u extglob
     basename=${filename##*/}
     archive=${basename}.tar
-    n=2
+    n=1
     while [ -e "$archive" ];do
         archive=${basename}.${n}.tar
         n=$((n+1))
     done
-    printf '%s\n' "$archive" 
+    printf '> %s\n' "$archive" 
     tar cf "$archive" "$@"
 }
 line() {
