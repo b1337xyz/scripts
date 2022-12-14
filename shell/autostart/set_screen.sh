@@ -1,6 +1,6 @@
 #!/bin/sh
 if xrandr | grep -q 'HDMI1 connected';then
-    # --set audio force-dvi # to fix overscan ¯\_(ツ)_/¯
+    # xrandr --set audio force-dvi ... # to fix overscan ¯\_(ツ)_/¯
     
     dpi=$(xrdb -query | awk '/Xft.dpi:/{print $2}')
 

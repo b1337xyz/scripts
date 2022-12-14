@@ -59,6 +59,6 @@ chmod +x ~/.cache/xwallpaper && ~/.cache/xwallpaper
 ext=${wallpaper##*.}
 cp "$wallpaper" ~/.cache/current_bg."${ext}"
 
-pgrep -x conky && pkill -SIGUSR1 conky
+# pgrep -x conky && pkill -SIGUSR1 conky
 
 exit 0
