@@ -5,7 +5,7 @@ cd ~/.cache/torrents || exit 1
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
 do
     torrent=$(aria2c -S "$i" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
-    mv -vn -- "$i" "$torrent"
+    mv -vn -- "$i" "$torrent" || true
 done
 
 aria2c -S ./*.torrent 2>/dev/null | awk '
@@ -27,7 +27,7 @@ do
     torrent=${i#*:}
     if [ -f "$torrent" ] ;then
         [ -d "$tracker" ] || mkdir -v "$tracker"
-        mv -vn -- "$torrent" "$tracker" || exit 1
+        mv -vn -- "$torrent" "$tracker" || true
         [ -f "$torrent" ] && rm -v "$torrent"
     fi
 done
