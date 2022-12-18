@@ -34,7 +34,6 @@ done
 
 printf 'please wait...\n'
 aria2c -S ./*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > torrents.txt
-ls -1d ./*.torrent 2>/dev/null
-rm -vI ./*.torrent
+ls -1d ./*.torrent 2>/dev/null && rm -vI ./*.torrent
 
 exit 0

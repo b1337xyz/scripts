@@ -7,7 +7,8 @@ set -- -D -V --enable-rpc \
     --on-bt-download-complete="${script}" \
     --on-download-complete="${script}" \
     --on-download-error="${script}" \
-    --on-download-start="${script}"
+    --on-download-start="${script}" \
+    --save-session-interval=30
 
 if [ -f "$session" ];then
     aria2c "$@" --input-file="$session"
