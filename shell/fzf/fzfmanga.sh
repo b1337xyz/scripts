@@ -11,9 +11,7 @@ preview() {
     img=$(find -L "$1" -type f -iregex '.*\.\(jpg\|png\|webp\)' | sort -V | head -1)
     draw_preview "$img"
     for _ in $(seq $((LINES - 2)));do echo ;done
-    files=$(find "$1" -type f | wc -l)
     grep -qxF "$1" "$readed_file" && printf '\033[1;32mReaded\033[m\n'
-    printf 'Files: %s\n' "$files"
 }
 finalise() {
     printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
@@ -50,27 +48,33 @@ main() {
         hide)
             grep -xvFf "$readed_file" "$mainfile"
         ;;
-        *)
-            find . -mindepth 1 -maxdepth 1 \
-                \( -type d -o -type l \) -printf '%f\n' | sort -V | tee "$mainfile"
-        ;;
+        Cd) _find "$target" | tee "$mainfile" ;;
+        *) _find | tee "$mainfile" ;;
     esac
 }
-export -f preview main
+_find() {
+    find "${1:-.}" -mindepth 1 -maxdepth 1 \
+        \( -type d -o -type l \) -printf '%f\n' | sort -V
+}
+export -f preview main _find
 trap finalise EXIT HUP INT
 start_ueberzug
 clear
 
 main | fzf --header "ctrl-o open
-ctrl-r remove
+ctrl-r reload
+ctrl-d remove
 ctrl-a toggle readed
-ctrl-h hide readed" \
+ctrl-h hide readed
+ctrl-g change directory" \
     --preview "preview {}" --print0 \
     --preview-window "left:30%:border-none" \
     --border none \
+    --bind 'ctrl-r:reload(main)' \
+    --bind 'ctrl-g:reload(main Cd {})' \
     --bind 'ctrl-a:execute(main readed {})+refresh-preview' \
     --bind 'ctrl-h:reload(main hide)' \
-    --bind 'ctrl-r:execute(main delete {})+reload(main)' \
+    --bind 'ctrl-d:execute(main delete {})+reload(main)' \
     --bind 'ctrl-o:execute(main open {})' | xargs -0rI{} nsxiv -rfqs w '{}'
 
 exit 0
