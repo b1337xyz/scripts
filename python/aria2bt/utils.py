@@ -74,10 +74,9 @@ def mv(src, dst):
         logging.error(err)
 
 
-def notify(title, *args):
-    msg = '\n'.join(args)
+def notify(title, msg, icon='emblem-downloads'):
     try:
-        sp.run(['notify-send', '-i', 'emblem-downloads', title, msg])
+        sp.run(['notify-send', '-i', icon, title, msg])
     except Exception as err:
         logging.error(err)
 

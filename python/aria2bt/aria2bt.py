@@ -78,7 +78,6 @@ def add_torrent(torrent):
                     logging.error(err)
         else:
             magnet = get_magnet(torrent)
-            notify('Magnet', magnet)
             return add_torrent(magnet)
     else:
         gid = s.aria2.addUri([torrent], options)

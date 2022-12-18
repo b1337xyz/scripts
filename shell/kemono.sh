@@ -11,7 +11,7 @@
 set -eu
 
 START=0
-JUST_THE_FIRST_PAGE=y
+JUST_THE_FIRST_PAGE=n
 
 log=~/.cache/kemono.log
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"

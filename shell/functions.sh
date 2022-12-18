@@ -564,3 +564,9 @@ ordinal() {
     curl -s "https://conversor-de-medidas.com/mis/numero-ordinal/_$1_" | tr -d \\n |
         grep -oP "(?<=>)[^<]* \($1.\)"
 }
+enable_conservation_mode() {
+    echo "${1:-1}" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
+}
+fext() {
+    find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u
+}

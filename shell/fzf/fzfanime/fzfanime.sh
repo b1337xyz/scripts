@@ -157,9 +157,9 @@ function main {
                         'keys[] as $k | select(.[$k][$mode] == $v) | $k' "$DB") "$mainfile"
                 fi | tee "$tempfile"
             elif [ "$curr_mode" = "path" ];then
-                stat -c '%N' "$ANIME_DIR"/* | awk -F' -> ' -v mode="$2" \
-                    '$0 ~ mode {split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }' |
-                    tee "$tempfile"
+                grep -xFf <(stat -c '%N' "$ANIME_DIR"/* | awk -F' -> ' -v mode="$2" \
+                    '$0 ~ mode {split($1, a, "/"); x=a[length(a)]; print substr(x, 1, length(x) - 1) }') \
+                    "$mainfile" | tee "$tempfile"
             else
                 play "$2"
                 cat "$mainfile"
