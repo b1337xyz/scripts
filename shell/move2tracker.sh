@@ -1,5 +1,4 @@
 #!/usr/bin/env dash
-set -e
 cd ~/.cache/torrents || exit 1
 
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
@@ -34,6 +33,6 @@ done
 
 printf 'please wait...\n'
 aria2c -S ./*/*.torrent | awk -F'|' '/[0-9]\|\.\//{print $2}' > torrents.txt
-ls -1d ./*.torrent 2>/dev/null && rm -vI ./*.torrent
+ls -1 ./*.torrent 2>/dev/null && rm -vI ./*.torrent
 
 exit 0

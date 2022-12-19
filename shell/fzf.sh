@@ -114,9 +114,6 @@ dlbkp() {
 fzopen() {
     fzf --bind 'enter:execute-silent(xdg-open {} & disown)'
 }
-fzcd() {
-    cd -- "$(find "$HOME" -mindepth 2 -maxdepth 6 -type d | fzf --height 10)"
-}
 fzpac() { 
     pacman "${@:--Qqe}" | fzf -m --header '^r ^s ^d' \
         --preview='pacman -Qi {}' --preview-window '70%' \
