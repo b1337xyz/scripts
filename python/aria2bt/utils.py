@@ -56,6 +56,14 @@ def parse_arguments():
         help='return a JSON of given GID')
     parser.add_option('--show-gid', action='store_true',
         help='show gid')
+    parser.add_option('--seed', action='store_true',
+        help='seed-time=0.0')
+    parser.add_option('-m', '--max-downloads', type='int', metavar='[0-9]+',
+        help='max concurrent downloads')
+    parser.add_option('--download-limit', type='string', metavar='<SPEED>',
+        help='overall download speed limit')
+    parser.add_option('--upload-limit', type='string', metavar='<SPEED>',
+        help='overall upload speed limit')
     parser.add_option('-y', '--yes', action='store_true',
         help='don\'t ask')
 
@@ -76,7 +84,7 @@ def mv(src, dst):
 
 def notify(title, msg, icon='emblem-downloads'):
     try:
-        sp.run(['notify-send', '-i', icon, title, msg])
+        sp.Popen(['notify-send', '-i', icon, title, msg])
     except Exception as err:
         logging.error(err)
 

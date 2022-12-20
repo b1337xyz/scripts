@@ -1,5 +1,5 @@
 #!/bin/sh
-pkill -e -f -- 'aria2c -D -V --enable-rpc' && sleep 5
+pkill -15 -e -f -- 'aria2c -D -V --enable-rpc' && sleep 5
 
 session="${HOME}"/.cache/aria2/session
 script="${HOME}"/.local/bin/aria2notify.py

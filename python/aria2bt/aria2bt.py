@@ -205,6 +205,20 @@ if __name__ == '__main__':
         remove_metadata(opts.status)
     elif opts.top:
         move_to_top()
+    elif opts.seed:
+        print( s.aria2.changeGlobalOption({'seed-time': '0.0'}) )
+    elif opts.max_downloads:
+        print(s.aria2.changeGlobalOption({
+            'max-concurrent-downloads': opts.max_downloads
+        }))
+    elif opts.download_limit:
+        print(s.aria2.changeGlobalOption({
+            'max-overall-download-limit': opts.download_limit
+        }))
+    elif opts.upload_limit:
+        print(s.aria2.changeGlobalOption({
+            'max-overall-upload-limit': opts.download_limit
+        }))
     elif args:
         for arg in args:
             if arg.startswith('magnet:?'):
