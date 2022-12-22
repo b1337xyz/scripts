@@ -30,7 +30,7 @@ declare -r -x MALDB=~/.scripts/python/myanimedb/maldb.json
 declare -r -x ANIMEHIST=~/.cache/anime_history.txt
 declare -r -x WATCHED_FILE=~/.cache/watched_anime.txt
 declare -r -x MPVHIST=~/.cache/mpv/mpvhistory.log
-[ "$DISPLAY" ] && declare -r -x BACKEND=ueberzug # ueberzug kitty
+[ -n "$DISPLAY" ] && declare -r -x BACKEND=ueberzug # ueberzug kitty
 
 ### END OF USER SETTINGS
 

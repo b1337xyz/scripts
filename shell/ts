@@ -7,5 +7,6 @@ while (( $# ));do
     st_args+=("$1")
     shift
 done
+[ -z "$*" ] && set -- bash
 st "${st_args[@]}" -e sh -c \
-    "theme.sh ${theme:-default-dark} ; ${@:-$SHELL}"
+    "theme.sh ${theme:-default-dark} ; $*"

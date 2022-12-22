@@ -13,10 +13,11 @@ if xrandr | grep -q 'HDMI1 connected';then
     #     --output HDMI1 --primary --auto
 
     pgrep -x i3 && i3-msg restart 
-    if [ -x ~/.cache/xwallpaper ];then
-        sleep 1
-        ~/.cache/xwallpaper
-    fi
+    [ -x ~/.cache/xwallpaper ] && sleep 1 && ~/.cache/xwallpaper
+
+    $(conky >/dev/null 2>&1 &)
+    $(conky -c ~/.config/conky/conky.2.conf >/dev/null 2>&1 &)
+
 else
     echo "Xft.dpi: 102" | xrdb -merge
 fi

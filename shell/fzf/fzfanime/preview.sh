@@ -10,7 +10,7 @@ declare -r -x cache_dir=~/.cache/fzfanime_preview
 
 function start_ueberzug {
     mkfifo "${UEBERZUG_FIFO}"
-    tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json &
+    tail --follow "$UEBERZUG_FIFO" | ueberzug layer --parser json 2>/dev/null &
 }
 function finalise {
     jobs -p | xargs -r kill 2>/dev/null || true
