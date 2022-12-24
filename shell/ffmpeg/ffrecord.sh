@@ -35,7 +35,7 @@ ffmpeg -threads 0 -hide_banner -v 16 -stats -y     \
     -framerate 30 -f x11grab            \
     -video_size "${w}x${h}" -i ":0.0$x,$y"   \
     -f pulse -ac 2 -i default                \
-    -c:v libx264 -crf 24 \
+    -ss 1 -c:v libx264 -crf 24 \
     -preset fast "$out" || rm -v "$out"
 
 ## VAAPI
