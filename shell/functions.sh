@@ -522,7 +522,7 @@ ftext() {
 }
 paclog() {
     awk -v x="${1:-upgraded}" '$3 == x' /var/log/pacman.log |
-    tac | awk -F'T' -v n=3 '{
+    tac | awk -F'T' -v n=4 '{
         if ( substr($1, length($1)-1) != x && x) {
             c += 1
             if (c >= n)
