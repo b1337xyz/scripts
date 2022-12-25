@@ -30,11 +30,11 @@ w=$(( w - ( w % 2 ) ))
 h=$(( h - ( h % 2 ) )) 
 echo ">>> ${w}x${h} $x $y"
 
+#    -f pulse -ac 2 -i default                \
 out=~/record_$(date +%Y%m%d%H%M%S).mp4
 ffmpeg -threads 0 -hide_banner -v 16 -stats -y     \
     -framerate 30 -f x11grab            \
     -video_size "${w}x${h}" -i ":0.0$x,$y"   \
-    -f pulse -ac 2 -i default                \
     -ss 1 -c:v libx264 -crf 24 \
     -preset fast "$out" || rm -v "$out"
 
