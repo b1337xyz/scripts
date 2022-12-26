@@ -149,7 +149,7 @@ ren5sum() {
 sort_by_year() {
     printf '%s\n' ./* | awk '{
         y = gensub(/.*\(([0-9]{4})\).*/, "\\1", "g")
-        sub("(" y ")", "\033[1;34m" y "\033[m", $0)
+        sub("(" y ")", "\033[1;34m" y "\033[m")
         printf("%s,%s\n", y, $0)
     }' | sort -n | cut -d',' -f2-
 }
