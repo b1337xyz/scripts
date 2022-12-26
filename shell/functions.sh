@@ -9,6 +9,7 @@ lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
+uniq_lines() { awk '!seen[$0]++' "$1"; }
 arc() {
     local filename basename archive
     shopt -s extglob
@@ -255,23 +256,18 @@ fixext() {
 }
 odr() {
     case "$1" in
-        video)
-            wget -w 3 -r -nc -A mkv,mp4,avi,mov,qt,wmv,divx,flv,vob \
-                --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
-        ;;
-        image)
-            wget -w 3 -r -nc -A jpg,jpeg,gif,png,tiff,bmp,svg \
-                --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
-        ;;
-        audio)
-            wget -w 3 -r -nc -A mp3,opus,flac,wav \
-                --no-parent -l 200 -e robots=off -R "index.html*" -x "$2" 
-        ;;
-        http*)
-            wget -w 3 -r -nc --no-parent --no-check-certificate \
-                -l 200 -e robots=off -R "index.html*" -x "$1" 
-        ;;
+        video) set -- "$2" -A mkv,mp4,avi,mov,qt,wmv,divx,flv,vob ;;
+        image) set -- "$2" -A jpg,jpeg,gif,png,tiff,bmp,svg ;;
+        audio) set -- "$2" -A mp3,opus,flac,wav ;;
+        http*) set -- "$1" ;;
     esac
+    set -- "$@" -w 3 -r -nc --no-parent --no-check-certificate \
+           -U mozilla -l 200 -e robots=off -R "index.html*" -x
+
+    wget "$@"
+}
+save_page() {
+    wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
 }
 dul() {
     local size files
@@ -285,9 +281,6 @@ dul() {
 edalt() {
     awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
         ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
-}
-save_page() {
-    wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
 }
 magrep() {
     [ -z "$1" ] && return 1
@@ -360,7 +353,6 @@ toggle_btf_jit() {
     esac
 }
 keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
-uniq_lines() { awk '!seen[$0]++' "$1"; }
 psrmem() {
     ps axch -o cmd,rss --sort=-%mem | head -10 |
         awk 'BEGIN { printf("\033[42;30m%-30s %-6s\033[m\n", "CMD", "MEM") } {printf("%-30s %.1f\n", $1, $2/1024)}'
