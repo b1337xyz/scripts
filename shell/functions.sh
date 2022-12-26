@@ -147,13 +147,11 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    for i in *;do printf '%s\n' "$i" ;done | grep -P '(\d{4})' | sort -t '(' -k 2nr # bad but faster
-
-    # find "${@:-.}" -maxdepth 1 -regextype ed -iregex '.*([0-9]\{4\}.*' | while read -r i
-    # do
-    #     year=$(printf '%s' "$i" | grep -oP '(?<=\()[0-9]{4}(?=\))' | tail -1)
-    #     [ -n "$year" ] && printf '%s;%s\n' "$year" "$i"
-    # done | sort -n | cut -d';' -f2-
+    printf '%s\n' ./* | awk '{
+        y = gensub(/.*\(([0-9]{4})\).*/, "\\1", "g")
+        sub("(" y ")", "\033[1;34m" y "\033[m", $0)
+        printf("%s,%s\n", y, $0)
+    }' | sort -n | cut -d',' -f2-
 }
 bulkrename() {
     local tmpfile
