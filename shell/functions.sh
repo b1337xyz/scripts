@@ -570,3 +570,6 @@ enable_conservation_mode() {
 fext() {
     find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u
 }
+histcount() {
+    history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
+}

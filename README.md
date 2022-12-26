@@ -1,8 +1,8 @@
 ## Dependencies
 > Shell 
-- aria2
-- bat
-- cksfv
+- [aria2](https://aria2.github.io/)
+- [bat](https://github.com/sharkdp/bat)
+- [cksfv](http://zakalwe.fi/~shd/foss/cksfv)
 - dash
 - [devour](https://github.com/salman-abedin/devour)
 - dmenu patched with [instant](https://tools.suckless.org/dmenu/patches/instant/) and [center](https://tools.suckless.org/dmenu/patches/center/)
