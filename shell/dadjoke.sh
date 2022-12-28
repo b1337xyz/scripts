@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Inspired by:
+#   https://www.reddit.com/r/unixporn/comments/spcaec/showing_off_my_awesome_i3lock_qtile_i3lock/
+
 [ -f "$1" ] || { printf 'Usage: %s image\n'; "${0##*/}"; exit; }
 
 font="/usr/share/fonts/TTF/mononoki-Regular Nerd Font Complete.ttf"
