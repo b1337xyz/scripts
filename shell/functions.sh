@@ -10,6 +10,10 @@ calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
+fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
+histcount() {
+    HISTTIMEFORMAT= history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
+}
 arc() {
     local filename basename archive
     shopt -s extglob
@@ -556,10 +560,4 @@ ordinal() {
 }
 enable_conservation_mode() {
     echo "${1:-1}" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
-}
-fext() {
-    find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u
-}
-histcount() {
-    HISTTIMEFORMAT= history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
 }
