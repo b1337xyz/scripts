@@ -6,10 +6,10 @@ cache=~/.cache/xwallpaper
 get_path() {
     # find -L "$1" -iregex '.*\.\(jpg\|png\)' -printf '%h\n' | sort -u | dmenu -c -i -l 20 -n
     {
-        [ "$@" != "." ] && echo -e "$@\0";
+        [ "$1" != "." ] && printf '%s\0' "$1";
         find -L "$@" -iregex '.*\.\(jpg\|png\)' -printf '%h\0';
     } | sort -uz | xargs -r0 basename -a | sort -u | grep -v '^$' | dmenu -c -i -l 20 -n |
-        tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0
+        tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0 | sort -zV
 }
 get_wallpaper() {
     find -L "$@" -iregex '.*\.\(jpg\|png\)' | shuf -n1
@@ -37,15 +37,15 @@ done
 test ${#opts[@]}    -eq 0 && opts=(--stretch)
 test ${#targets[@]} -eq 0 && targets=("$default_target")
 
-if   test "${use_dmenu:-0}" -eq 1
-then
+if   test "${use_dmenu:-0}" -eq 1 ; then
     wallpaper=$(get_path "${targets[@]}" | xargs -r0I{} bash -c 'get_wallpaper "$@"' _ '{}')
     [ -f "$wallpaper" ] || exit 0
-elif test "${use_sxiv:-0}" -eq 1
-then
-    get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' -maxdepth 1 \
+elif test "${use_sxiv:-0}"  -eq 1 ; then
+    depth=$(find "${targets[@]}" -iregex '.*\.\(jpg\|png\)' -printf '%d\n' | sort -n | head -1) 
+
+    get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' -maxdepth "$depth" \
         -iregex '.*\.\(jpg\|png\)' -printf '%T@ %p\n' | 
-        sort -rn | cut -d' ' -f2- | nsxiv -iqt 2>/dev/null # set the wallpaper with nsxiv
+        sort -rn | cut -d' ' -f2- | nsxiv -iqt 2>/dev/null
     exit 0
 fi
 
