@@ -30,11 +30,7 @@ arc() {
     tar cf "$archive" "$@"
 }
 line() {
-    if [ -n "$2" ];then
-        sed "${1}!d" "$2"
-    else
-        sed "${1}!d"
-    fi
+    if [ -n "$2" ];then sed "${1}!d" "$2"; else sed "${1}!d"; fi
 }
 webdav_server() {
     local ip
