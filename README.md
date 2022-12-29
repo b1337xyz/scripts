@@ -1,5 +1,5 @@
 ## Dependencies
-> Shell 
+`./shell`
 - [aria2](https://aria2.github.io/)
 - [bat](https://github.com/sharkdp/bat)
 - [cksfv](http://zakalwe.fi/~shd/foss/cksfv)
@@ -16,7 +16,7 @@
 - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
 
 
-> Python3
+`./python`
 - [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)
 - [i3ipc](https://github.com/altdesktop/i3ipc-python)
 - [requests](https://requests.readthedocs.io/en/latest/)
