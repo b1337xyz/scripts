@@ -15,7 +15,7 @@ def get_torrents(torrents):
 
     if USE_FZF:
         return [
-            torrents[ int(i.split(':')[0]) ]
+            torrents[int(i.split(':')[0])]
             for i in fzf([
                 f'{i}:{get_torrent_name(v)} [{v["status"]}]'
                 for i, v in enumerate(torrents)
