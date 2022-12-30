@@ -74,15 +74,16 @@ function check_link {
     fi
 }
 function preview {
-    IFS=$'\n' read -d '' -r title _type genres episodes score rated image < <(\
+    IFS=$'\n' read -d '' -r title _type genres episodes score rated studios image < <(\
         jq -Mr --argjson k "\"$1\"" '.[$k] |
-           "\(.["title"] // "404")
-            \(.["type"])
-            \(.["genres"] | if length > 0 then . | join(", ") else "Unknown" end)
-            \(.["episodes"] // "Unknown")
-            \(.["score"] // "Unknown")
-            \(.["rated"])
-            \(.["image"])"' "$DB" 2>/dev/null | sed 's/^\s*//')
+           "\(.title // "404")
+            \(.type)
+            \(.genres | if length > 0 then . | join(", ") else "Unknown" end)
+            \(.episodes // "Unknown")
+            \(.score // "Unknown")
+            \(.rated)
+            \(.studios | if length > 0 then . | join(", ") else "Unknown" end)
+            \(.image)"' "$DB" 2>/dev/null | sed 's/^\s*//')
 
     [ "$BACKEND" = "kitty" ] && kitty icat --transfer-mode=file \
         --stdin=no --clear --silent >/dev/null 2>&1 </dev/tty
@@ -107,6 +108,7 @@ function preview {
     printf '%'$WIDTH's Episodes: %s\n'    ' ' "$episodes"
     printf '%'$WIDTH's Rated: %s\n'       ' ' "$rated"
     printf '%'$WIDTH's Score: %s\n'       ' ' "$score"
+    printf '%'$WIDTH's Studios: %s\n'     ' ' "$studios"
     # if [ -f "$MALDB" ];then
     #     mal_score=$(jq --argjson k "\"$1\"" '.[$k]["score"]' "$MALDB")
     #     printf '%'$WIDTH's Mal score: %s\n'   ' ' "$mal_score"

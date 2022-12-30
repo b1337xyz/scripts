@@ -19,7 +19,7 @@ while [ $# -gt 0 ];do
         -r)
             find "$TRASH_DIR" -type f -printf '%T@ %f\n' | sort -rn | cut -d' ' -f2-  |
             fzf --no-sort -m --preview-window 'right:60%' \
-                --preview 'preview {}' --print0 | xargs -r0I{} mv -vi "${TRASH_DIR}/{}" .
+                --preview 'preview {}' --print0 | xargs -or0I{} mv -vi "${TRASH_DIR}/{}" .
         ;;
         -*) printf 'usage: %s -r <files*>\n' "${0##*/}"; exit 1 ;;
         *)
