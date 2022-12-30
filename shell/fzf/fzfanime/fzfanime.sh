@@ -17,6 +17,7 @@
 #         "type": "TV",
 #         "rated": "R+",
 #         "duration": 25,
+#         "studios": ["Sunrise", ...],
 #       }
 #     }, ...
 
