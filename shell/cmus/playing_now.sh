@@ -2,8 +2,13 @@
 NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio
+LOCK=/tmp/.cmus
 
 hash cmus-remote || exit 1
+[ -e "$LOCK" ] && exit 0
+:>"$LOCK"
+trap 'rm $LOCK' EXIT HUP INT
+
 [ -d "$COVER" ] || mkdir -vp "$COVER"
 
 get_info() {
