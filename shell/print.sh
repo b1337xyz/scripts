@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2016
+# shellcheck disable=SC2016,SC2317
 command -v scrot >/dev/null 2>&1 || { printf 'install scrot\n'; exit 1; }
 command -v xclip >/dev/null 2>&1 || { printf 'install xclip\n'; exit 1; }
 
@@ -22,7 +22,7 @@ case "$1" in
     foc*) scrot -q 100 -u "$image"  -e "$cmd" ;;
     sel*) scrot -q 100 -s "$image"  -e "$cmd" ;;
     copf) scrot -q 100 -u "$tmpimg" -e "$copy" ;;
-    selc) scrot -q 100 -s "$tmpimg" -e "$copy" ;;
+    cops) scrot -q 100 -s "$tmpimg" -e "$copy" ;;
     copy) scrot -q 100 -m "$tmpimg" -e "$copy" ;;
     *)    scrot -q 100 -m "$image"  -e "$cmd" ;;
 esac
