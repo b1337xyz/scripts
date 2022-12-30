@@ -3,6 +3,7 @@ NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio
 
+hash cmus-remote || exit 1
 [ -d "$COVER" ] || mkdir -vp "$COVER"
 
 get_info() {
@@ -21,27 +22,34 @@ get_info() {
 
 last_played=
 while :;do
+    unset title duration artist album date
+
     while read -r i;do
         case "$i" in
             status*)    _status="${i#* }"   ;;
             file*)      file="${i#* }"      ;;
             title*)     title="${i#* }"     ;;
-            duration*)  duration="Duration: ${i#* }"  ;;
-            artist*)    artist="Artist: ${i#* }" ;;
-            album*)     album="Album: ${i#* }"   ;;
+            duration*)  duration="Duration: ${i#* }\n"  ;;
+            artist*)    artist="Artist: ${i#* }\n" ;;
+            album*)     album="Album: ${i#* }\n"   ;;
             date*)      date="${i#* }"      ;;
         esac
     done < <(get_info)
+
+    [ "$_status" != "playing" ]   && { sleep 5; continue; }
+    [ "$file" = "$last_played" ] && { sleep 3; continue; }
+
+    last_played="$file"
     fname=${file##*/}
     title=${title:-$fname}
-    [ "$_status" != "playing" ] && { sleep 15; continue; }
-    [ "$title" == "$last_played" ] && { sleep 5; continue; }
-    last_played="$title"
     [ -n "$date" ] && title="${title} ($date)"
+
     img=$(md5sum "$file" | awk '{print $1".jpg"}')
     img="${COVER}/${img}"
     [ -f "$img" ] || ffmpeg -v -8 -i "$file" "$img"
     [ -f "$img" ] || img="$DEFAULT_ICON"
+
     dunstify -r "$NID" -i "$img" \
-        "[cmus] ♫ Playing now..." "$title\n$artist\n$album\n$duration"
+        "[cmus] ♫ Playing now..." "${title}\n${artist}${album}${duration}"
+
 done
