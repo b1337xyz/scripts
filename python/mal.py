@@ -38,6 +38,7 @@ parser.add_option('--start-date', type='string', metavar='YYYY-MM-DD',
     default='', help='e.g 2022, 2005-05, 2005-01-01')
 parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
     default='', help='e.g 2022, 2005-05, 2005-01-01')
+parser.add_option('--sort-by-year', action='store_true')
 # parser.add_option('--nsfw', action='store_false', default=True)
 
 opts, args = parser.parse_args()
@@ -79,7 +80,7 @@ else:
                 'type':     i['type'] if i['type'] else '?',
                 'episodes': i['episodes'] if i['episodes'] else 0,
                 'rating':   rating,
-                'year':     year if year else '?',
+                'year':     int(year) if year else '?',
                 'score':    i['score'] if i['score'] else '?'
             }
 
@@ -103,6 +104,11 @@ else:
     titles = list(data.keys())
 
 max_len = max(len(i['title']) for i in data.values()) + 7
+if opts.sort_by_year:
+    titles = sorted(
+        [k for k in data if data[k]['year'] != '?'],
+        key=lambda k: int(data[k]['year'])
+    )
 for k in titles[:opts.max]:
     obj = data[k]
     title = obj['title']

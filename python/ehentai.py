@@ -43,6 +43,7 @@ skip_regex    = re.compile(r'twitter|patreon')
 
 
 url = argv[1]
+assert 'e-hentai.org' in url
 s = requests.Session()
 s.headers.update({'user-agent': UA})
 r = s.get(url)
