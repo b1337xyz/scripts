@@ -10,9 +10,6 @@
 
 set -eu
 
-START=0
-JUST_THE_FIRST_PAGE=n
-
 log=~/.cache/kemono.log
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 domain='https://kemono.party'
@@ -27,12 +24,16 @@ main() {
     user=$(echo "$1" | grep -oP '\w*/user/\d*' | sed 's/.user//')
     DL_DIR=~/Downloads/kemono/"$user"
     [ -d "$DL_DIR" ] || mkdir -vp "${DL_DIR}"
-    max_page=$(
-        curl -A "$UA" -s "$main_url" | tee "$tmpfile" |
-        grep -oP '(?<=href\=\")/\w*/user/\d.*[\?&]o=\d*(?=\")' |
-        grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
-    )
-    for page in $(seq $START 25 ${max_page:-0});do
+
+    if [ -z "$max_page" ];then
+        max_page=$(
+            curl -A "$UA" -s "$main_url" | tee "$tmpfile" |
+            grep -oP '(?<=href\=\")/\w*/user/\d.*[\?&]o=\d*(?=\")' |
+            grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
+        )
+    fi
+
+    for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
         logging "${main_url}?o=$page"
         if test -f "$tmpfile";then
             get_posts < "$tmpfile"
@@ -60,11 +61,13 @@ main() {
                 unset FILEID
             done
 
-            # grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
-            # do
-            #     mega-get -q "$url" "$dl_dir" || { logging "mega download failed: $url"; continue; }
-            #     logging "download completed: $url"
-            # done
+            if hash mega-get ;then
+                grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+                do
+                    mega-get -q "$url" "$dl_dir" || { logging "mega download failed: $url"; continue; }
+                    logging "download completed: $url"
+                done
+            fi
 
             grep -oP 'https://gofile\.[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
             do
@@ -95,12 +98,34 @@ main() {
             rm "$tmpfile"
             rm -d "$dl_dir" 2>/dev/null || true
         done
-        [ "$JUST_THE_FIRST_PAGE" = "y" ] && break
     done
 }
+help() {
+    printf 'Usage: %s [-m|--max-page <N> -p|--start-page <N>] <URL | FILE>\n' "${0##*/}"
+    exit 0
+}
 
-if [ -f "$1" ];then
-    while read -r i;do main "$i" ;done < "$1"
-elif [ -n "$1" ];then
-    main "$1"
+urls=()
+input_file=
+while (( $# ));do
+    case "$1" in
+        -m|--max-page) shift; [ "$1" -gt 1 ] && max_page="$1" ;;
+        -p|--start-page) shift; [ "$1" -ge 0 ] && start_page="$1" ;;
+        -h|--help) help ;; 
+        http*) urls+=("$1") ;;
+        *) [ -f "$1" ] && input_file="$1" ;;
+    esac
+    shift
+done
+
+if [ -f "$input_file" ]; then
+    while read -r url; do
+        main "$url"
+    done < "$input_file"
+elif [ "${#urls[@]}" -gt 0 ]; then
+    for url in "${urls[@]}"; do
+        main "$url"
+    done
+else
+    help
 fi
