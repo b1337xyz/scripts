@@ -1,0 +1,31 @@
+# shellcheck disable=SC2034,SC2207
+
+_mal() {
+    local cur prev split=false
+    COMPREPLY=()
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//=}
+
+    cmd=${COMP_WORDS[0]}
+    _get_comp_words_by_ref cur prev
+    case $prev in
+        -t|--type)
+            COMPREPLY=( $( compgen -W 'tv movie ova special ona music' -- "$cur" ) )
+            return ;;
+        -r|--rating)
+            COMPREPLY=( $( compgen -W 'g pg pg13 r17 r rx' -- "$cur" ) )
+            return ;;
+        -o|--order-by) 
+            COMPREPLY=( $( compgen -W 'mal_id title type rating start_date end_date episodes score rank popularity' -- "$cur" ) )
+            return ;;
+    esac
+
+    case $cur in
+        -*)
+            COMPREPLY=( $( compgen -W '-h --help --tolerance -u --update --id --show-malid -s --score --m --max -t --type -r --rating -o --order-by --start_date --end_date --sort-by-year' -- "$cur" ) )
+        ;;
+    esac
+    return 0
+}
+complete -F _mal mal mal.py
+
+# ex: filetype=sh
