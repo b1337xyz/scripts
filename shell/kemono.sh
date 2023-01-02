@@ -93,7 +93,7 @@ main() {
             do
                 logging "kemono data: $domain$url"
                 echo "$domain$url"
-            done | sort -u | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true
+            done | sort -u | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=-
 
             rm "$tmpfile"
             rm -d "$dl_dir" 2>/dev/null || true
