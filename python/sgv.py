@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """ SimpleGalleryViewer """
+import gi
+gi.require_version("Gtk", "3.0")
+
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
-from optparse import OptionParser
 from pathlib import Path
 import os
 import subprocess as sp
 import json
-import gi
 
-gi.require_version("Gtk", "3.0")
 
 HOME = os.getenv('HOME')
 CONFIG = os.path.join(HOME, '.config/sgv.json')
@@ -25,10 +25,6 @@ try:
         config = json.load(fp)
 except FileNotFoundError:
     config = {'dir': ''}
-
-usage = 'Usage: %prog <DIR>'
-parser = OptionParser(usage=usage)
-opts, args = parser.parse_args()
 
 WIDTH = 1024
 HEIGHT = 600
