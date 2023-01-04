@@ -14,8 +14,11 @@ gi.require_version("Gtk", "3.0")
 HOME = os.getenv('HOME')
 CONFIG = os.path.join(HOME, '.config/sgv.json')
 CACHE = os.path.join(HOME, '.cache/sgv')
+IMG_VIEWER = ['nsxiv', '-qrs', 'w']
+
 if not os.path.exists(CACHE):
     os.mkdir(CACHE)
+
 
 try:
     with open(CONFIG, 'r') as fp:
@@ -204,7 +207,7 @@ class Window(Gtk.Window):
             frame = img_box.get_children()[0]
             img = frame.get_children()[0]
             path = str(Path(img.props.file).parent).replace(CACHE, '')
-            sp.Popen(['nsxiv', '-qrs', 'w', path])
+            sp.Popen(IMG_VIEWER + [path])
         except Exception as err:
             print(err)
 
