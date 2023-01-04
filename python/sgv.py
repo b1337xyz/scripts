@@ -42,6 +42,7 @@ class Window(Gtk.Window):
         self.set_border_width(10)
         self.set_default_size(WIDTH, HEIGHT)
 
+        # TODO: add settings
         if not os.path.exists(config['dir']):
             self.set_config_dir()
 
