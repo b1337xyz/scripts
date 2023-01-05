@@ -10,7 +10,6 @@
 - [jq](https://github.com/stedolan/jq)
 - [mediainfo](https://mediaarea.net/)
 - [nsxiv](https://github.com/nsxiv/nsxiv)
-- [tmux](https://github.com/tmux/tmux/wiki)
 - [ueberzug](https://github.com/b1337xyz/ueberzug)
 - [xclip](https://github.com/astrand/xclip)
 - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
