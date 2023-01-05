@@ -10,8 +10,6 @@ HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/twitch.json')
 CONFIG = os.path.join(HOME, '.config/twitch.json')
 LOCK = '/tmp/.twitch_notify.lock'
-assert not os.path.exists(LOCK)
-
 
 # {
 #     "client_id": <str>,
@@ -22,8 +20,8 @@ with open(CONFIG, 'r') as fp:
     config = json.load(fp)
 
 CLIENT_ID = config['client_id']
-SECRET    = config['secret']
-USER_ID   = config['user_id']
+SECRET = config['secret']
+USER_ID = config['user_id']
 
 
 class Twitch:
@@ -32,7 +30,6 @@ class Twitch:
             config = json.load(fp)
         self.token = config['access_token']
         self.refresh_token = config['refresh_token']
-
 
     def refresh(self):
         url = 'https://id.twitch.tv/oauth2/token'
@@ -52,7 +49,6 @@ class Twitch:
         with open(CACHE, 'w') as fp:
             json.dump(j, fp)
 
-
     def get_streams(self):
         headers = {
             'Client-ID': CLIENT_ID,
@@ -66,7 +62,6 @@ class Twitch:
             return self.get_streams()
         else:
             return r.json()['data']
-
 
     def run(self):
         users = list()
@@ -97,6 +92,7 @@ class Twitch:
 
 
 if __name__ == '__main__':
+    assert not os.path.exists(LOCK)
     open(LOCK, 'w').close()
     try:
         Twitch().run()
