@@ -22,5 +22,5 @@
 - [requests](https://requests.readthedocs.io/en/latest/)
 - [google-api-python-client](https://github.com/googleapis/google-api-python-client)
 - [thefuzz](https://github.com/seatgeek/thefuzz)
-- [gtk3](https://www.gtk.org/) [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
-- [gobject-introspection](https://wiki.gnome.org/Projects/GObjectIntrospection) [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
+- [gtk3](https://www.gtk.org/) - [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
+- [gobject-introspection](https://wiki.gnome.org/Projects/GObjectIntrospection) - [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
