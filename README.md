@@ -13,7 +13,7 @@
 - [ueberzug](https://github.com/b1337xyz/ueberzug)
 - [xclip](https://github.com/astrand/xclip)
 - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
-- [slop](https://github.com/naelstrof/slop) - ([ffrecord.sh](https://github.com/b1337xyz/scripts/blob/main/shell/ffmpeg/ffrecord.sh#L23))
+- [slop](https://github.com/naelstrof/slop) - ([ffrecord.sh `-s`](https://github.com/b1337xyz/scripts/blob/main/shell/ffmpeg/ffrecord.sh#L23))
 
 
 > Python
