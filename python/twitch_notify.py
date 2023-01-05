@@ -6,6 +6,7 @@ import json
 import re
 import os
 
+INTERVAL = 15 * 60
 HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/twitch.json')
 CONFIG = os.path.join(HOME, '.config/twitch.json')
@@ -88,7 +89,7 @@ class Twitch:
                     ])
                     users.append(i['user_id'])
             users = [i for i in users if i in streams]
-            sleep(15 * 60)
+            sleep(INTERVAL)
 
 
 if __name__ == '__main__':
