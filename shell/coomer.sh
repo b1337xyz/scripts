@@ -9,23 +9,23 @@
 
 set -eu
 
-log=~/.cache/kemono.log
+log=~/.cache/coomer.log
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
-domain='https://kemono.party'
+domain='https://coomer.party'
 tmpfile=$(mktemp)
 end() {
     rm "$tmpfile" || true
 }
 trap end INT HUP EXIT
 
-get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
+get_posts() { grep -oP '(?<=href\=\")/\w*/user/.*/post/\d*(?=")'; }
 logging() { echo "[$(date '+%Y.%m.%d %H:%M:%S')][$user] $*" >> "$log"; }
 main() {
     declare -x user
-    main_url=$(echo "$1" | grep -oP 'https://kemono.party/\w*/user/\d*')
+    main_url=$(echo "$1" | grep -oP 'https://coomer.party/\w*/user/[^/\?]*')
     test -z "$main_url" && { logging "invalid url: $1"; return 1; }
-    user=$(echo "$1" | grep -oP '\w*/user/\d*' | sed 's/.user//')
-    DL_DIR=~/Downloads/kemono/"$user"
+    user=$(echo "$1" | grep -oP '\w*/user/[^/$]*' | sed 's/.user//')
+    DL_DIR=~/Downloads/coomer/"$user"
     [ -d "$DL_DIR" ] || mkdir -vp "${DL_DIR}"
     if [ -z "$max_page" ];then
         max_page=$(
@@ -34,7 +34,6 @@ main() {
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
-
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
         logging "${main_url}?o=$page"
@@ -70,7 +69,7 @@ main() {
                 logging "download completed: $url"
             done
 
-            grep -oP 'https://gofile\.[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+            grep -oP 'https://gofile\.[^ \t\n\"<]*' "$tmpfile" | while read -r url
             do
                 gallery-dl -d "$dl_dir" "$url" || { logging "gofile download failed: $url"; continue; }
                 logging "download completed: $url"
@@ -82,7 +81,6 @@ main() {
                     *giant.gfycat.com*) continue ;; # DEAD
                     *my.mixtape.moe*)   continue ;; # DEAD
                     *a.pomf.cat*)       continue ;; # DEAD
-                    *.fanbox.cc*)       continue ;; # use https://github.com/Nandaka/PixivUtil2
                     *dropbox.com*) yt-dlp "$url" ;;
                     *gofile*) gallery-dl -d "$dl_dir" "$url" ;;
                     *) wget -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "$url" ;;
@@ -92,7 +90,7 @@ main() {
 
             grep -oP '(?<=href\=\")/data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$tmpfile" | while read -r url
             do
-                logging "kemono data: $domain$url"
+                logging "coomer data: $domain$url"
                 echo "$domain$url"
             done | sort -u | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=-
 
