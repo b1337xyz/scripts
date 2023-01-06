@@ -12,7 +12,20 @@ upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
 histcount() {
-    HISTTIMEFORMAT= history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
+    HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
+}
+cpl() {
+    local cache=/tmp/.copy_later
+    if [ -f "$1" ];then
+        command rm "$cache"
+        realpath -- "$@" >> "$cache"
+    elif [ -f "$cache" ];then
+        while read -r i;do
+            [ -f "$i" ] && cp -vn "$i" .
+        done < "$cache"
+    else
+        printf 'nothing to do\n'
+    fi
 }
 arc() {
     local filename basename archive
