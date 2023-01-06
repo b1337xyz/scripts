@@ -295,19 +295,26 @@ chgrubbg() {
     esac
 }
 dn() {
-    # idk.. something with `du` ¯\_(ツ)_/¯
+    # top n biggest files
     find . -mindepth 1 -maxdepth 1 -exec du -sh {} + |
         sort -h | head -n "${1:-10}" | awk -F\\t '{print $2}' |
         tr \\n \\0 | du --files0-from=- -csh | sort -h
 }
 dul() {
-    # idk.. something with `du` ¯\_(ツ)_/¯
+    # du with lines...
+    # Output:
+    #   size  | files | <filename>
+    #   4.0K  |   0   | folder0/
+    #   1.1M  |  18   | folder1/
+    #   8.6M  |   2   | folder2/
+
     local size files
+    printf '\033[42;30m%-8s | %-6s | %s\033[m\n' "size" "files" "filename"
     for i in */;do
         [ -d "$i" ] || continue
         size=$(du -sh "$i"  | awk '{print $1}')
         files=$(find "$i" -mindepth 1 -maxdepth 1 | wc -l)
-        printf '%-5s | %3s | %s\n' "$size" "$files" "$i"
+        printf '%-8s | %-6s | %s\n' "$size" "$files" "$i"
     done | sort -h
 }
 fixext() {
