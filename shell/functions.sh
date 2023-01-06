@@ -8,6 +8,7 @@ wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
+keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
 upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
@@ -365,7 +366,6 @@ toggle_btf_jit() {
         0) echo 1 | sudo tee "$target" ;;
     esac
 }
-keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
 psrmem() {
     ps axch -o cmd,rss --sort=-%mem | head -10 |
         awk 'BEGIN { printf("\033[42;30m%-30s %-6s\033[m\n", "CMD", "MEM") } {printf("%-30s %.1f\n", $1, $2/1024)}'
