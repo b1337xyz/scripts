@@ -1,5 +1,11 @@
+#!/usr/bin/env bash
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
+
+VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
+ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)$'
+ArchivePattern='\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$'
+
 f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
@@ -12,10 +18,21 @@ keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\
 upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
+fvideo() { find . -iregex ".*$VideoPattern"; }
+fimage() { find . -iregex ".*$ImagePattern"; }
+farchive() { find . -iregex ".*$ArchivePattern"; }
+grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
+grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
+grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 histcount() {
     HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
 }
 cpl() {
+    # Example:
+    #   cpl <file> 
+    #   cd ~/Downloads
+    #   cpl # <file> is copied to the current directory
+
     local cache=/tmp/.copy_later
     if [ -f "$1" ];then
         command rm "$cache"
@@ -29,9 +46,10 @@ cpl() {
     fi
 }
 arc() {
+    # Archive file
     local filename basename archive
     shopt -s extglob
-    filename=${1%%+(/)}
+    filename=${1%%+(/)} # remove "/" if present at the end of "$1" (requires extglob)
     shopt -u extglob
     basename=${filename##*/}
     archive=${basename}.tar
@@ -44,7 +62,8 @@ arc() {
     tar cf "$archive" "$@"
 }
 line() {
-    if [ -n "$2" ];then sed "${1}!d" "$2"; else sed "${1}!d"; fi
+    # Example: `line 1 ~/.bashrc` or `cat ~/.bashrc | line 10`
+    if [ -f "$2" ];then sed "${1}!d" "$2"; else sed "${1}!d"; fi
 }
 webdav_server() {
     local ip
@@ -53,6 +72,7 @@ webdav_server() {
         --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
 frep() {
+    # find repeated files
     find . -maxdepth "${1:-3}" -type f -printf '%f\n' | sort | uniq -d |
     sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type f -name '{}'
 }
@@ -73,6 +93,7 @@ bkp() {
     esac
 }
 bkp2() {
+    # same as `bkp`
     local rpath
     rpath=$(realpath "$1")
     tar --numeric-owner --lzma -pcf "${1}.tar.lzma" \
@@ -81,6 +102,8 @@ bkp2() {
         "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
 }
 alljpg() {
+    # Warning: this will convert to jpeg and DELETE all images that aren't jpeg
+    
     # find "${@:-.}" -maxdepth 1 -type f -iname '*.png' \
     #     -exec sh -c 'convert "$1" "${1%.*}.jpg" && rm -v "$1"' _ '{}' \;
     #     # \( -exec convert '{}' '{}.jpg' \; -a -exec rm -v '{}' \; \)
@@ -97,6 +120,7 @@ alljpg() {
     done
 }
 ex() {
+    # decompress stuff
     for i in "$@";do
         case "$i" in
             *.tar.zst) tar --zstd -xf "$i" ;;
@@ -121,12 +145,15 @@ repeat() {
     done
 }
 loop() {
+    # loop a command for n seconds
     local s
     [[ "$1" =~ ^[0-9]+$ ]] && { s=$1; shift; }
     [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
     while :;do eval "$*"; sleep "${s:-15}"; done
 }
 lst() {
+    # list the total of files in the current directory and its subdirectories
+
     local total
     {
         while read -r i;do
@@ -137,8 +164,12 @@ lst() {
         printf '%4s: total\n' "$total";
     } | sort -n 
 }
-lst2() { lst "${@:-.}" | pr -t4w 80; }
+lst2() {
+    # same as `lst` but with columns
+    lst "${@:-.}" | pr -t4w 80;
+}
 lstar() {
+    # list and extract tar files
     local tmpfile
     for i in "$@";do
         [ -f "$i" ] || continue
@@ -150,6 +181,7 @@ lstar() {
     return 0
 }
 ren5sum() {
+    # rename file to <md5sum>.<ext>
     local out path
     for i in "$@";do
         if [ -f "$i" ];then
@@ -161,6 +193,12 @@ ren5sum() {
     done
 }
 sort_by_year() {
+    # Given the following folders in the current directory :
+    #   Folder (2013)
+    #   Folder (2009)
+    #   Folder (2000)
+    # List and sort then by (<YEAR>)
+
     printf '%s\n' ./* | awk '{
         y = gensub(/.*\(([0-9]{4})\).*/, "\\1", "g")
         if (y ~ /^[0-9]{4}$/) {
@@ -219,6 +257,8 @@ crc32check() {
     done
 }
 crc32rename() {
+    # add [<crc32>] to the filename
+
     [ $# -eq 0 ] && { printf 'Usage: crc32rename <FILES>\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
 
@@ -229,6 +269,8 @@ crc32rename() {
     done
 }
 chgrubbg() {
+    # change grub background
+    
     local image mime
     if [ -f "$1" ];then
         image="$1"
@@ -245,9 +287,20 @@ chgrubbg() {
     esac
 }
 dn() {
+    # idk.. something with `du` ¯\_(ツ)_/¯
     find . -mindepth 1 -maxdepth 1 -exec du -sh {} + |
         sort -h | head -n "${1:-10}" | awk -F\\t '{print $2}' |
         tr \\n \\0 | du --files0-from=- -csh | sort -h
+}
+dul() {
+    # idk.. something with `du` ¯\_(ツ)_/¯
+    local size files
+    for i in */;do
+        [ -d "$i" ] || continue
+        size=$(du -sh "$i"  | awk '{print $1}')
+        files=$(find "$i" -mindepth 1 -maxdepth 1 | wc -l)
+        printf '%-5s | %3s | %s\n' "$size" "$files" "$i"
+    done | sort -h
 }
 fixext() {
     local mimetype ext
@@ -269,34 +322,27 @@ fixext() {
     return 0
 }
 odr() {
+    # modified from r/opendirectories/
+    # download files from opendirectories 
     case "$1" in
         video) set -- "$2" -A mkv,mp4,avi,mov,qt,wmv,divx,flv,vob ;;
         image) set -- "$2" -A jpg,jpeg,gif,png,tiff,bmp,svg ;;
         audio) set -- "$2" -A mp3,opus,flac,wav ;;
         http*) set -- "$1" ;;
     esac
-    set -- "$@" -w 3 -r -nc --no-parent --no-check-certificate \
+    wget "$@" -w 3 -r -nc --no-parent --no-check-certificate \
            -U mozilla -l 200 -e robots=off -R "index.html*" -x
-
-    wget "$@"
 }
 save_page() {
     wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
 }
-dul() {
-    local size files
-    for i in */;do
-        [ -d "$i" ] || continue
-        size=$(du -sh "$i"  | awk '{print $1}')
-        files=$(find "$i" -mindepth 1 -maxdepth 1 | wc -l)
-        printf '%-5s | %3s | %s\n' "$size" "$files" "$i"
-    done | sort -h
-}
 edalt() {
+    # edit the current alacritty theme
     awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
         ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
 }
 magrep() {
+    # grep magnet links
     [ -z "$1" ] && return 1
     curl -s "$1" | sed 's/<.\?br>//g; s/\&amp;/\&/g' |
         grep -oP 'magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]+(?=&dn=)'
@@ -307,18 +353,6 @@ trackers_best() {
     output=~/.cache/trackers_best.txt
     curl -s "$url" | grep --color=never '[a-z]' | tee "$output"
     xclip -sel clip -i "$output" 
-}
-fvideo() {
-    find . -iregex '.*\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)'
-}
-fimage() {
-    find . -iregex '.*\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)'
-}
-grep_video() {
-    grep --color=never -i '\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\)$' "$1"
-}
-grep_archive() {
-    grep --color=never -i '\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$' "$1"
 }
 random_img() {
     find "${@:-$HOME/Pictures/random}" -iname '*.jpg' -print0 |
@@ -333,6 +367,7 @@ mvbyext() {
     done
 }
 mkj() {
+    # Usage: `mkj video.mkv`
     for i in "$@";do
         mkvmerge -J "$i" | jq -r '.tracks[] |
 "\(.type): \(.id) - \(.codec) - \(.properties.language) - \(.properties.track_name) \(
@@ -381,6 +416,7 @@ pacman_unessential() {
         awk '{print} END {printf("total: %s unessential packages installed\n", NR)}' 
 }
 ffstr() {
+    # Usage: `ffstr <video>`
     verbose=0
     for i in "$@";do
         case "$i" in
