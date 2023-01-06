@@ -301,7 +301,6 @@ dn() {
         tr \\n \\0 | du --files0-from=- -csh | sort -h
 }
 dul() {
-    # du with lines...
     # Output:
     #   size  | files | <filename>
     #   4.0K  |   0   | folder0/
