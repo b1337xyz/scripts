@@ -25,6 +25,14 @@ grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
 grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
 grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 histcount() {
+    # Example: `histcount`
+    # Output:
+    #  ...
+    #  185 git
+    #  223 pacman
+    #  411 vi
+    #  441 sudo
+    # 9969 neofetch
     HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
 }
 cpl() {
