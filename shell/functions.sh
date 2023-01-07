@@ -56,7 +56,7 @@ arc() {
     # Archive file
     local filename basename archive
     shopt -s extglob
-    filename=${1%%+(/)} # remove "/" if present at the end of "$1" (requires extglob)
+    filename=${1%%+(/)} # remove `/+` if present at the end of "$1" (requires extglob)
     shopt -u extglob
     basename=${filename##*/}
     archive=${basename}.tar
