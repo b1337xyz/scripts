@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
 
@@ -348,7 +347,9 @@ odr() {
            -U mozilla -l 200 -e robots=off -R "index.html*" -x
 }
 save_page() {
-    wget -e robots=off --random-wait -E -H -k -K -p -U mozilla "$@" 
+    wget -e robots=off --random-wait --adjust-extension \
+        --span-hosts --convert-links --backup-converted \
+        --page-requisites -U mozilla "$1" 
 }
 edalt() {
     # edit the current alacritty theme
