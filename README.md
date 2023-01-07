@@ -1,5 +1,5 @@
 ### Dependencies
-- bash v5+  
+- shell 
   - [aria2](https://aria2.github.io/)
   - [bat](https://github.com/sharkdp/bat)
   - [cksfv](http://zakalwe.fi/~shd/foss/cksfv) - ([crc32check](https://github.com/b1337xyz/scripts/blob/main/shell/functions.sh#L184) and [crc32rename](https://github.com/b1337xyz/scripts/blob/main/shell/functions.sh#L207))
@@ -15,7 +15,7 @@
   - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
   - [slop](https://github.com/naelstrof/slop) - ([`ffrecord.sh -s`](https://github.com/b1337xyz/scripts/blob/main/shell/ffmpeg/ffrecord.sh#L23))
 
-- python 3.x.x  
+- python  
   - [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)
   - [i3ipc](https://github.com/altdesktop/i3ipc-python)
   - [requests](https://requests.readthedocs.io/en/latest/)
