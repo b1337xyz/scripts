@@ -349,7 +349,7 @@ odr() {
 save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
-        --page-requisites -U mozilla "$1" 
+        --no-parent --page-requisites -U mozilla "$1" 
 }
 edalt() {
     # edit the current alacritty theme

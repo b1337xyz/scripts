@@ -1,4 +1,4 @@
-## Dependencies
+### Dependencies
 > Shell
 - [aria2](https://aria2.github.io/)
 - [bat](https://github.com/sharkdp/bat)
