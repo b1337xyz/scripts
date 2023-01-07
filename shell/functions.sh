@@ -335,8 +335,8 @@ fixext() {
     return 0
 }
 odr() {
-    # modified from r/opendirectories/
-    # download files from opendirectories 
+    # modified from r/opendirectories
+    # download files from unprotected directories 
     case "$1" in
         video) set -- "$2" -A mkv,mp4,avi,mov,qt,wmv,divx,flv,vob ;;
         image) set -- "$2" -A jpg,jpeg,gif,png,tiff,bmp,svg ;;
