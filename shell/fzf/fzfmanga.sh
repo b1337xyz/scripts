@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091,SC2155,SC2317,SC2120
 
-source ~/.scripts/shell/fzf/preview.sh
+root=$(realpath "$0") root=${root%/*}
+source "${root}/preview.sh" || exit 1
 
 declare -r -x readed_file=~/.cache/fzfmanga.readed
 declare -r -x mainfile=$(mktemp --dry-run)
@@ -23,11 +25,10 @@ main() {
     [ -e "$2" ] && target=$(realpath -- "$2")
     case "$1" in
         open)
-            set -- nsxiv -fqrs w "$target"
             if command -v devour &>/dev/null;then
-                devour "$@"
+                devour nsxiv -fqrs w "$target"
             else
-                $("$@")
+                nsxiv -fqrs w "$target"
             fi 2>/dev/null
         ;;
         readed)
@@ -40,7 +41,7 @@ main() {
         delete)
             [ -d "$target" ] || return 1
             printf 'Are you sure? (Y/n) '
-            read ask
+            read -r ask
             [ "${ask,,}" != "y" ] && return
             find "$target" -maxdepth 1 -iregex '.*\.\(jpg\|png\)' -delete
             rm -d "$target"
@@ -48,21 +49,23 @@ main() {
         hide)
             grep -xvFf "$readed_file" "$mainfile"
         ;;
-        Cd) _find "$target" | tee "$mainfile" ;;
-        *) _find | tee "$mainfile" ;;
+        shuffle) shuf "$mainfile" ;;
+        cd) search "$target" | tee "$mainfile" ;;
+        *) search | tee "$mainfile" ;;
     esac
 }
-_find() {
+search() {
     find "${1:-.}" -mindepth 1 -maxdepth 1 \
         \( -type d -o -type l \) -printf '%f\n' | sort -V
 }
-export -f preview main _find
+export -f preview main search
 trap finalise EXIT HUP INT
 start_ueberzug
 clear
 
 main | fzf --header "ctrl-o open
 ctrl-r reload
+ctrl-s shuffle
 ctrl-d remove
 ctrl-a toggle readed
 ctrl-h hide readed
@@ -71,7 +74,8 @@ ctrl-g change directory" \
     --preview-window "left:30%:border-none" \
     --border none \
     --bind 'ctrl-r:reload(main)' \
-    --bind 'ctrl-g:reload(main Cd {})' \
+    --bind 'ctrl-s:reload(main shuffle)' \
+    --bind 'ctrl-g:reload(main cd {})' \
     --bind 'ctrl-a:execute(main readed {})+refresh-preview' \
     --bind 'ctrl-h:reload(main hide)' \
     --bind 'ctrl-d:execute(main delete {})+reload(main)' \
