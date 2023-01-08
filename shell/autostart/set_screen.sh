@@ -17,7 +17,6 @@ if xrandr | grep -q 'HDMI1 connected';then
 
     $(conky >/dev/null 2>&1 &)
     $(conky -c ~/.config/conky/conky.2.conf >/dev/null 2>&1 &)
-
 else
     echo "Xft.dpi: 102" | xrdb -merge
 fi
