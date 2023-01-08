@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2016
 
 set -e
 
@@ -11,10 +12,10 @@ set -e
 if pgrep -x picom >/dev/null 2>&1;then
     pkill -9 picom
     sed -i 's/opacity: [0-9]\.[0-9]*/opacity: 1.0/' ~/.config/alacritty/alacritty.yml
-    sed -i 's/i3bar/# i3bar/; s/\(set \$b0 #.\{6\}\).*/\1/' ~/.config/i3/config
+    sed -i 's/i3bar/# i3bar/; s/\(set \$b0 #.\{6\}\).*/\1/' ~/.config/i3/light_theme
 else
     picom -b #--experimental-backends
     sed -i 's/opacity: [0-9]\.[0-9]*/opacity: 0.80/' ~/.config/alacritty/alacritty.yml
-    sed -i 's/# i3bar/i3bar/; s/\(set \$b0 #.\{6\}\).*/\18f/' ~/.config/i3/config
+    sed -i 's/# i3bar/i3bar/; s/\(set \$b0 #.\{6\}\).*/\18f/' ~/.config/i3/light_theme
 fi
 i3-msg restart

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+LOCK=/tmp/.playing-now
+[ -e "$LOCK" ] && exit 1
+:>"$LOCK"
+trap 'rm $LOCK' EXIT HUP INT
+
 COVER=~/.cache/thumbnails/albums
 IFS='|' read -r fpath artist album title duration < <(
     mpc -f '%file%#|%artist%#|%album%#|%title%#|%time%' | head -1)

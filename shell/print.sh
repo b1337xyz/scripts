@@ -13,10 +13,10 @@ DIR=~/Pictures/screenshots
 [ -d "$DIR"  ] || mkdir -vp "$DIR"
 cmd='notify "$f" "$n" "$wx$h"'
 copy='xclip -sel clip -t image/png -i $f; notify "$f" "$n" "$wx$h"'
-image="${DIR}/scr_%Y%m%d%H%M%S.png"
+image="${DIR}/scr_%Y.%m.%d_%H%M%S.png"
 tmpimg="/tmp/scr_%Y%m%d%H%M%S.png"
 
-sleep 1
+sleep 0.5
 case "$1" in
     -*|help) printf 'Usage: %s [focused|select|copy|copf|selc]\n' "${0##*/}"; exit 0 ;;
     foc*) scrot -q 100 -u "$image"  -e "$cmd" ;;

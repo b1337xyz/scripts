@@ -36,24 +36,17 @@ fzumount() {
         command df -h -x tmpfs -x devtmpfs | grep -vP '/dev/sda|nvme'
 }
 fztorrent() {
-    local torrent
-    find ~/.cache/torrents -iname '*.torrent' -printf '%f\n' |
+    find ~/.cache/torrents -iname '*.torrent' -printf '%f\n' | sort -V |
     fzf --layout=reverse --height 20 -m | sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
         xargs -0rI{} find ~/.cache/torrents -type f -name '{}'
 }
 cptorrent() { fztorrent | tr \\n \\0 | xargs -0rI{} cp -v '{}' . ;}
 cdanime() {
-    pv() {
-        p=$(readlink -m ~/Videos/Anime/"$1")
-        printf '%s ' "$p"
-        [ -e "$p" ] || printf '(\e[1;31mUnavailable\e[m)\n'
-    }
-    export -f pv
     out=$(
-        find ~/Videos/Anime -mindepth 1 -maxdepth 1 -printf '%f\n' |
-        sort | fzf -e --no-sort --preview-window 'bottom:10%' --preview 'pv {}'
+        find ~/Videos/Anime -mindepth 1 -maxdepth 1 \! -xtype l -printf '%f\n' |
+        sort -V | fzf -e --no-sort --preview-window 'bottom:10%' \
+                --preview 'readlink -m ~/Videos/Anime/{}'
     )
-    unset pv
     cd ~/Videos/Anime/"$out" || return 1
 }
 fzcbt() {
@@ -64,7 +57,7 @@ fzcbt() {
     else
         aria2c -S ~/.cache/torrents/*/*.torrent |
             awk -F'|' '/[0-9]\|\.\//{print $2}' | tee "$cache"
-    fi | fzf $@ | awk -F'/' '{print $2}' |
+    fi | fzf "$@" | awk -F'/' '{print $2}' |
          sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
          xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'
 }
@@ -76,7 +69,8 @@ alacritty_theme_switcher() {
     declare -r -x config=~/.config/alacritty/alacritty.yml
     declare -r -x themes=~/.config/alacritty/themes
     cp -v "$config" "${config}.bkp"
-    function pv {
+    # shellcheck disable=SC2317
+    pv() {
         sed -i "s/\/themes\/.*\.yml$/\/themes\/${1}/" "$config"
         bat --style=numbers --color=always --line-range :15 ~/.bashrc
         ls -x --color=always ~/
@@ -123,6 +117,7 @@ fzpac() {
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
 fzman() {
+    # shellcheck disable=SC2016
     man -P cat "$1" 2>/dev/null | grep '^[A-Z]' |
         sed -e '1d' -e '$ d' | fzf |
         sed -e 's/[]\[?\*\$()]/\\\\&/g' |
