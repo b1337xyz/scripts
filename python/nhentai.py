@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
+from time import sleep
 import json
 import os
 import re
@@ -15,8 +16,12 @@ HIST = os.path.join(HOME, '.cache/nhentai_history')
 CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 DOMAIN = 'nhentai.net'
+LOCK = '/tmp/.nhentai.lock'
+ICON = f'{HOME}/Pictures/icons/nhentai.png'
+ICON = ICON if os.path.exists(ICON) else 'folder-download'
 
 aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
+
 
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
@@ -39,6 +44,10 @@ def is_torrent(file_path):
     cmd = ['file', '-Lbi', file_path]
     out = sp.run(cmd, stdout=sp.PIPE).stdout.decode()
     return 'bittorrent' in out or 'octet-stream' in out
+
+
+def notify(msg):
+    sp.Popen(['notify-send', '-i', ICON, 'nhentai-dl', msg])
 
 
 def download(session, url, dl_dir, fname):
@@ -84,7 +93,7 @@ def main(urls):
         s.cookies.set(
             cookie['name'],
             cookie['value'],
-            domain = DOMAIN
+            domain=DOMAIN
         )
 
     for url in urls:
@@ -101,6 +110,8 @@ def main(urls):
                 os.mkdir(dl_dir)
         except AttributeError:
             dl_dir = opts.dl_dir
+
+        notify(f'{url}\n{dl_dir}')
 
         if 'page=' in url:
             url = re.sub(r'([\?&]page=)\d*', r'\1{}', url)
@@ -151,8 +162,7 @@ def main(urls):
                 continue
 
             try:
-                gid = aria2.aria2.addTorrent(
-                    xmlrpc.client.Binary(data), [], {
+                aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
                     'rpc-save-upload-metadata': 'false',
                     'force-save': 'false',
                     'dir': dl_dir
@@ -169,10 +179,9 @@ def main(urls):
         [os.remove(i) for i in torrents if os.path.exists(i)]
 
 
-
 if __name__ == '__main__':
     opts, args = parse_arguments()
-    with open(CONFIG , 'r') as fp:
+    with open(CONFIG, 'r') as fp:
         config = json.load(fp)
 
     try:
@@ -189,8 +198,12 @@ if __name__ == '__main__':
         urls = [i for i in args if DOMAIN in i]
 
     try:
+        while os.path.exists(LOCK):
+            sleep(1)
+        open(LOCK, 'w').close()
         main(urls)
     except KeyboardInterrupt:
         pass
     finally:
+        os.remove(LOCK)
         print('\nbye')
