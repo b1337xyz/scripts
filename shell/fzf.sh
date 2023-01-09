@@ -90,7 +90,11 @@ alacritty_theme_switcher() {
 }
 dlbkp() {
     local target
+    local cache=/tmp/.dlbkp
     target=${1:-.}
+    if ! [ -e "$cache" ];then
+        rclone lsf gdrive:backups | sort -V > "$cache"
+    fi
 
     dl() {
         for i in "$@";do
@@ -98,11 +102,9 @@ dlbkp() {
         done
     }
     export -f dl
-
     while read -r i;do
         [ -n "$i" ] && dl "$i" 
-    done < <(rclone lsf gdrive:backups |
-        fzf --height 20 -e -m --bind 'ctrl-d:execute(dl {+})')
+    done < <(fzf --height 20 -e -m --bind 'ctrl-d:execute(dl {+})' < "$cache")
     unset dl
 }
 fzopen() {

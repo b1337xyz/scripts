@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from i3ipc import Connection, Event
+from time import sleep
+from os import system
 
 def smart_resize(i3, e):
     if e.binding.command.startswith('resize '):
@@ -30,6 +32,13 @@ def smart_resize(i3, e):
             i3.command('move position {} {}'.format(x, y))
 
 if __name__ == '__main__':
-    i3 = Connection()
-    i3.on(Event["BINDING"], smart_resize)
-    i3.main()
+    while system('pgrep -x i3') == 0:
+        try:
+            i3 = Connection()
+            i3.on(Event["BINDING"], smart_resize)
+            i3.main()
+        except KeyboardInterrupt:
+            break
+        except FileNotFoundError:
+            continue
+        sleep(1)

@@ -1,17 +1,33 @@
 #!/usr/bin/env bash
+set -eu 
 
-LOCK=/tmp/.playing-now
-[ -e "$LOCK" ] && exit 1
-:>"$LOCK"
-trap 'rm $LOCK' EXIT HUP INT
+CACHE=~/.cache/thumbnails/mpc
+MPD_CONF=~/.config/mpd/mpd.conf
 
-COVER=~/.cache/thumbnails/albums
-IFS='|' read -r fpath artist album title duration < <(
-    mpc -f '%file%#|%artist%#|%album%#|%title%#|%time%' | head -1)
-fpath=~/Music/"$fpath"
-fname=${fpath##*/}
-title=${title:-$fname}
-img=$(md5sum "$fpath" | awk '{print $1".jpg"}')
-img=${COVER}/${img}
-[ -f "$img" ] || ffmpeg -hide_banner -v -8 -i "$fpath" "$img"
-notify-send -i "$img" "♫ Playing now..." "$title\n$album\n$artist\n$duration"
+get_info() {
+    mpc -f 'file %file%\ntime %time%\n[title %title%\n][album %album%\n][artist %artist%\n]' | head -n -2
+}
+
+while read -r i;do
+    o=${i#* }
+    case "$i" in
+        file*)   file=$o  ;;
+        title*)  title=$o ;;
+        artist*) artist="Artist: $o\n" ;;
+        album*)  album="Album: $o\n"   ;;
+        time*)   time="Duration: $o\n" ;;
+    esac
+done < <(get_info)
+
+music_dir=$(sed -n 's/music_directory.*"\(.*\)./\1/p' "$MPD_CONF")
+music_dir=${music_dir/\~/${HOME}}
+[ -d "$music_dir" ] || exit 1
+path=${music_dir}/${file}
+filename=${path##*/}
+title=${title:-$filename}
+image=${CACHE}${path}.jpg
+mkdir -p "${image%/*}"
+
+[ -f "$image" ] || ffmpeg -nostdin -v -8 -i "$path" "$image" || true
+notify-send -i "$image" "♫ Playing now..." "${title}\n${album}${artist}${time}"
+pkill -SIGRTMIN+21 i3blocks

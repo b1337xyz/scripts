@@ -3,6 +3,7 @@ from optparse import OptionParser
 from urllib.parse import quote
 from urllib.request import urlopen
 from thefuzz import process
+from shutil import copy
 import time
 import json
 import re
@@ -17,6 +18,7 @@ try:
         cache = json.load(fp)
 except FileNotFoundError:
     cache = dict()
+copy(CACHE, f'{CACHE}.bak')
 
 parser = OptionParser()
 parser.add_option('--tolerance', type='int', default=10)
