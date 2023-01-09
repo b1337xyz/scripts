@@ -5,7 +5,7 @@ CACHE=~/.cache/thumbnails/mpc
 MPD_CONF=~/.config/mpd/mpd.conf
 
 get_info() {
-    mpc -f 'file %file%\ntime %time%\n[title %title%\n][album %album%\n][artist %artist%\n]' | head -n -2
+    mpc -f 'file %file%\n[title %title%\n][album %album%\n][artist %artist%\n]time %time%' | head -n -2
 }
 
 while read -r i;do
@@ -29,5 +29,5 @@ image=${CACHE}${path}.jpg
 mkdir -p "${image%/*}"
 
 [ -f "$image" ] || ffmpeg -nostdin -v -8 -i "$path" "$image" || true
-notify-send -i "$image" "♫ Playing now..." "${title}\n${album}${artist}${time}"
+notify-send -r 10 -i "$image" "♫ Playing now..." "${title}\n${album}${artist}${time}"
 pkill -SIGRTMIN+21 i3blocks
