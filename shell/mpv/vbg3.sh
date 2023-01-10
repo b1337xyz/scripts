@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # https://github.com/CalinLeafshade/dots/blob/master/bin/bin/bg.sh
 
+conky_is_running=$(pgrep -x conky)
+
 pkill -x xwinwrap >/dev/null 2>&1
 
 main() {
-    echo "$@"
+    # echo "$@"
     xwinwrap -ov -ni -g "$1" -- mpv --wid=%WID \
         --no-config --no-audio --no-osc --no-osd-bar \
         --really-quiet \
@@ -13,7 +15,7 @@ main() {
         --no-stop-screensaver       \
         --vo=gpu --hwdec=vaapi      \
         --no-input-default-bindings \
-        --keepaspect=no             \
+        --keepaspect=yes \
         --scale=bilinear            \
         --cscale=bilinear           \
         --dscale=bilinear           \
@@ -31,4 +33,8 @@ if [ -f "$1" ];then
     while read -r i;do
         main "$i" "$1"
     done < <(xrandr -q | grep ' connected' | grep -oP '\d+x\d+\+\d+\+\d+')
+fi
+
+if [ -n "$conky_is_running" ];then
+    sleep 1;runconky.sh
 fi

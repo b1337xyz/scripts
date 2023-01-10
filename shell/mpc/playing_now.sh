@@ -19,9 +19,8 @@ while read -r i;do
     esac
 done < <(get_info)
 
-music_dir=$(sed -n 's/music_directory.*"\(.*\)./\1/p' "$MPD_CONF")
+music_dir=$(sed -n 's/music_directory[^"]*.\(.*\)"$/\1/p' "$MPD_CONF")
 music_dir=${music_dir/\~/${HOME}}
-[ -d "$music_dir" ] || exit 1
 path=${music_dir}/${file}
 filename=${path##*/}
 title=${title:-$filename}
