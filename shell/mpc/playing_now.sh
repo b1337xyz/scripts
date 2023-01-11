@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu 
+set -e
 
 CACHE=~/.cache/thumbnails/mpc
 MPD_CONF=~/.config/mpd/mpd.conf
