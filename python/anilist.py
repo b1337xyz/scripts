@@ -22,6 +22,7 @@ api_query = '''
 query ($id: Int, $page: Int, $perPage: Int, $search: String) {
     Page (page: $page, perPage: $perPage) {
         media (id: $id, search: $search, sort: SEARCH_MATCH, type: ANIME) {
+            id
             idMal
             title {
                 romaji
@@ -39,6 +40,7 @@ api_query_by_malid = '''
 query ($id: Int, $idMal: Int, $page: Int, $perPage: Int) {
     Page (page: $page, perPage: $perPage) {
         media (id: $id, idMal: $idMal, sort: SEARCH_MATCH, type: ANIME) {
+            id
             idMal
             title {
                 romaji
@@ -79,6 +81,7 @@ def search(query):
 
 query = ' '.join(args).lower()
 if query.isdigit():
+    print('searching by id')
     malid = args[0]
     results = search_by_id(malid)
     # print(json.dumps(results, indent=2))
@@ -94,6 +97,7 @@ for i in results:
     title = title.encode('ascii', 'ignore').decode()
     title = re.sub(r'\s{2,}', ' ', title).strip()
     data[malid] = {
+        'id':       i['id'],
         'title':    title,
         'year':     i['startDate']['year'],
         'episodes': episodes if episodes else '?',
@@ -110,12 +114,15 @@ else:
             limit=len(results)
         ) if i[1] > opts.tolerance
     ]
+if not titles:
+    exit(0)
 
 max_len = max(len(i['title']) for i in data.values()) + 7
 for k in titles[:opts.max]:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
+    # print(obj['id'], end=' ')
     print('{0:{1}} | {2:>4} | {3}'.format(
         title, max_len, obj['episodes'], obj['score']
     ), end=f' | {k}\n' if opts.show_malid else '\n')
