@@ -21,7 +21,7 @@ _mal() {
 
     case $cur in
         -*)
-            COMPREPLY=( $( compgen -W '-h --help --tolerance -u --update --id --show-malid -s --score --m --max -t --type -r --rating -o --order-by --start_date --end_date --sort-by-year' -- "$cur" ) )
+            COMPREPLY=( $( compgen -W '-h --help --tolerance -u --update --id --show-malid -s --score --m --max -t --type -r --rating -o --order-by --start-date --end-date --sort-by-year' -- "$cur" ) )
         ;;
     esac
     return 0
