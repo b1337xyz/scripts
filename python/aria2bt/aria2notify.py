@@ -1,38 +1,61 @@
 #!/usr/bin/env python3
 from utils import *
-from sys import argv, exit
+from sys import argv
 import xmlrpc.client
 
-logging.info(' '.join(f"'{i}'" for i in argv[1:]))
-sleep(3)
-gid = argv[1]
-s = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-try:
-    torrent = s.aria2.tellStatus(gid)
-except Exception as err:
-    logging.error(err)
-    exit(0)
+FIFO = '/tmp/aria2notify.fifo'
 
-torrent_name = get_torrent_name(torrent)
-torrent_dir = torrent['dir']
-status = torrent['status']
-size = get_psize(int(torrent["totalLength"]))
 
-if torrent_name.startswith('[METADATA]') and status == 'complete':
-    notify(f'aria2 - {status}', torrent_name)
+def torrent_handler(session, gid):
+    sleep(1)
+    torrent = session.aria2.tellStatus(gid)
+    torrent_name = get_torrent_name(torrent)
+    torrent_dir = torrent['dir']
+    path = os.path.join(torrent_dir, torrent_name)
+    status = torrent['status']
+    size = get_psize(int(torrent["totalLength"]))
+    is_metadata = torrent_name.startswith('[METADATA]')
     torrent_file = os.path.join(torrent_dir, torrent['infoHash'] + '.torrent')
-    if os.path.exists(torrent_file):
-        mv(torrent_file, CACHE)
-        s.aria2.removeDownloadResult(gid)
-elif status == 'complete':
-    notify(f"aria2 - {status}", f'{torrent_name}\nSize: {size}')
-    logging.info(torrent_dir)
-    if torrent_dir == TEMP_DIR:
-        path = os.path.join(torrent_dir, torrent_name)
-        if os.path.exists(path):
-            mv(path, DL_DIR)
-    s.aria2.removeDownloadResult(gid)
-elif status == 'error':
-    notify(f"aria2 - {status}", torrent_name, icon='dialog-error')
+
+    if status == 'complete':
+        if is_metadata:
+            notify(f'aria2 - {status}', torrent_name)
+            if os.path.exists(torrent_file):
+                mv(torrent_file, CACHE)
+        else:
+            notify(f"aria2 - {status}", f'{torrent_name}\nSize: {size}')
+            if os.path.exists(path) and torrent_dir == TEMP_DIR:
+                mv(path, DL_DIR)
+        session.aria2.removeDownloadResult(gid)
+    elif status == 'error':
+        notify(f"aria2 - {status}", torrent_name, icon='dialog-error')
+    else:
+        notify(f"aria2 - {status}", f'{torrent_name}\nSize: {size}')
+
+
+def main(gid):
+    os.mkfifo(FIFO)
+    session = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
+    torrent_handler(session, gid)
+    while os.path.exists(FIFO):
+        with open(FIFO, 'r') as fifo:
+            data = fifo.read()
+        if len(data) == 0:
+            break
+
+        for gid in data.split('\n'):
+            try:
+                torrent_handler(session, gid)
+            except Exception as err:
+                logging.error(err)
+                return
+
+
+if os.path.exists(FIFO):
+    with open(FIFO, 'w') as fifo:
+        fifo.write(argv[1] + '\n')
 else:
-    notify(f"aria2 - {status}", f'{torrent_name}\nSize: {size}')
+    try:
+        main(argv[1])
+    finally:
+        os.remove(FIFO)
