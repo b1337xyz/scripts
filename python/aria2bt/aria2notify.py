@@ -44,11 +44,13 @@ def main(gid):
             break
 
         for gid in data.split('\n'):
+            if not gid:
+                continue
+
             try:
-                torrent_handler(session, gid)
+                torrent_handler(session, gid.strip())
             except Exception as err:
-                logging.error(err)
-                return
+                logging.error(f'{err}: {gid}')
 
 
 if os.path.exists(FIFO):
