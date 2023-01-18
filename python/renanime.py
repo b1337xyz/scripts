@@ -42,7 +42,7 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String) {
 '''
 
 
-def cleanup_string(string):
+def cleanup_string(string: str) -> str:
     s = re.sub(r'\.(?:mkv|avi|rmvb|mp4)$', '', string).lower()
     s = re.sub(r'\[[^][]*\]', '', s)
     s = re.sub(r'\([^()]*\)', '', s)
