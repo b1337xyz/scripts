@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
 from urllib.parse import quote
-from urllib.request import urlopen
 from thefuzz import process
 from time import sleep
-from shutil import copy
 import requests
 import subprocess as sp
 import json
@@ -12,7 +10,10 @@ import re
 import os
 
 parser = OptionParser()
-parser.add_option('-a', '--use-anilist', action='store_true')
+parser.add_option('-a', '--use-anilist', action='store_true',
+                  help='usa anilist api')
+parser.add_option('-y', '--dont-ask', action='store_true',
+                  help='don\'t ask')
 parser.add_option('--year', type='int')
 opts, args = parser.parse_args()
 
@@ -60,26 +61,10 @@ def cleanup_string(string: str) -> str:
     return s
 
 
-def load_json(file: str) -> dict:
-    try:
-        with open(file, 'r') as fp:
-            return json.load(fp)
-    except Exception as err:
-        print(err)
-        return dict()
-
-
-def dump_json(data: dict, file: str):
-    copy(file, f'{file}.bak')
-    with open(file, 'w') as fp:
-        json.dump(data, fp)
-
-
 def request_jikan(query: str) -> dict:
-    sleep(0.6)
     url = JIKAN_URL.format(quote(query))
-    with urlopen(url) as r:
-        return json.load(r)['data']
+    r = requests.get(url)
+    return r.json()['data']
 
 
 def request_anilist(query: str) -> dict:
@@ -157,6 +142,7 @@ def main():
             data = request_anilist(query)
         else:
             data = request_jikan(query)
+        sleep(0.5)
 
         if not data:
             print(f'nothing found: "{query}"')
