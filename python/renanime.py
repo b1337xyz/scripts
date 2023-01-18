@@ -14,11 +14,11 @@ import os
 
 parser = OptionParser()
 parser.add_option('-a', '--use-anilist', action='store_true')
-parser.add_option('--year', type='int', default=0)
+parser.add_option('--year', type='int')
 parser.add_option('--update', action='store_true')
 opts, args = parser.parse_args()
 
-YEAR = opts.year if opts.year > 0 else None
+YEAR = opts.year
 USE_ANILIST = opts.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
@@ -157,7 +157,7 @@ def move_files(files: list, folder: str):
 
 def main():
     uniq = dict()
-    for f in os.listdir():
+    for f in os.listdir() if not args else args:
         if not os.path.isfile(f) or not RE_EXT.match(f):
             continue
 
