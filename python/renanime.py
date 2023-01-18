@@ -193,8 +193,7 @@ def main():
             _, title, year = data[0]
 
         folder = f'{title} ({year})'
-        print(folder)
-        # move_files(files, folder)
+        move_files(files, folder)
 
 
 if __name__ == '__main__':
