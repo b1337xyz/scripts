@@ -4,7 +4,6 @@ from urllib.parse import quote
 from urllib.request import urlopen
 from thefuzz import process
 from time import sleep
-from sys import argv
 from shutil import copy
 import requests
 import subprocess as sp
@@ -15,7 +14,6 @@ import os
 parser = OptionParser()
 parser.add_option('-a', '--use-anilist', action='store_true')
 parser.add_option('--year', type='int')
-parser.add_option('--update', action='store_true')
 opts, args = parser.parse_args()
 
 YEAR = opts.year
@@ -24,7 +22,10 @@ JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
 RE_EXT = re.compile(r'.*\.(?:mkv|avi|rmvb|mp4)$')
 HOME = os.getenv('HOME')
-CACHE = os.path.join(HOME, '.cache/jikan.json')
+RED = '\033[1;31m'
+GRN = '\033[1;32m'
+END = '\033[m'
+
 
 api_query = '''
 query ($id: Int, $page: Int, $perPage: Int, $search: String) {
@@ -48,13 +49,8 @@ def cleanup_string(string: str) -> str:
     s = re.sub(r'\([^()]*\)', '', s)
     s = re.sub(r'episode.\d+', '', s)
     s = re.sub(r'epis.dio.\d+', '', s)
-    s = re.sub(r'[_ ]-[_ ]\d+', '', s)
+    s = re.sub(r'\d+(?:v\d+)?', '', s)
     s = re.sub(r's\d+e\d+', '', s)
-    s = re.sub(r' \d+ ', ' ', s)
-    s = re.sub(r' \d+v\d ', ' ', s)
-    s = re.sub(r' - \d+', ' ', s)
-    s = re.sub(r' - \d+v\d+', ' ', s)
-    s = re.sub(r'[_\-\.]', ' ', s)
     s = re.sub(r"(?ui)\W", ' ', s)
     s = s.encode('ascii', 'ignore').decode()
     s = re.sub(r'\s{2,}', ' ', s).strip()
@@ -80,25 +76,10 @@ def dump_json(data: dict, file: str):
 
 
 def request_jikan(query: str) -> dict:
-    try:
-        with open(CACHE, 'r') as fp:
-            cache = json.load(fp)
-    except FileNotFoundError:
-        cache = dict()
-        sleep(0.6)
-
-    url = JIKAN_URL.format(quote(query))
-    if url in cache and not opts.update:
-        cache = load_json(CACHE)
-        return cache[url]
-
-    with urlopen(url) as r:
-        data = json.load(r)['data']
     sleep(0.6)
-
-    cache[url] = data
-    dump_json(cache, CACHE)
-    return data
+    url = JIKAN_URL.format(quote(query))
+    with urlopen(url) as r:
+        return json.load(r)['data']
 
 
 def request_anilist(query: str) -> dict:
@@ -147,7 +128,7 @@ def fuzzy_sort(query: str, data: list) -> list:
 
 
 def move_files(files: list, folder: str):
-    print(f'move {files[0]}... ({len(files)}) > {folder}')
+    print(f'move {files[0]}... ({len(files)}) ->\n{folder}')
     if input('Are you sure? [y/N] ').lower().strip() != 'y':
         return
 
@@ -171,7 +152,7 @@ def main():
 
     for query in uniq:
         files = uniq[query]
-        print(f'{files[0]} > {query}')
+        print(f'{RED}< {files[0]}{END}\n{GRN}> {query}{END}')
         if USE_ANILIST:
             data = request_anilist(query)
         else:
