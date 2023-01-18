@@ -553,19 +553,19 @@ todo() {
     TODOFILE=${TODOFILE:-${HOME}/.todo}
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
-        ed) [ -s "$TODOFILE" ] && "${EDITOR:-vim}" "$TODOFILE" ;;
-        ls)
+        e*) [ -s "$TODOFILE" ] && "${EDITOR:-vim}" "$TODOFILE" ;;
+        l*)
             if test -s "$TODOFILE";then
                 printf '\n\e[1;30;43m TODO \033[m\n'
                 cat "$TODOFILE"; echo
             fi
         ;;
-        rm)
+        r*)
             nl "$TODOFILE"
             read -r -p ": " n
             [[ "$n" =~ ^[0-9]+$ ]] && sed -i "${n}d" "$TODOFILE"
         ;;
-        add)
+        a*)
             shift
             [ -n "$1" ] && printf '%s: %s\n' \
                 "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
