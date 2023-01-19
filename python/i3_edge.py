@@ -9,9 +9,9 @@ focused = tree.find_focused()
 workspace = focused.workspace()
 scr_x = workspace.rect.x
 scr_y = workspace.rect.y
-scr_width  = scr_x + workspace.rect.width
+scr_width = scr_x + workspace.rect.width
 scr_height = scr_y + workspace.rect.height
-win_width  = focused.rect.width
+win_width = focused.rect.width
 win_height = focused.rect.height
 x = focused.rect.x
 y = focused.rect.y
@@ -23,14 +23,14 @@ if 'off' in focused.floating:
 
 if resize and ('up' in args or 'down' in args):
     x = scr_x
-    win_width  = (workspace.rect.width - 4) # FIXME
+    win_width = (workspace.rect.width - 4)  # FIXME
     win_height = workspace.rect.height // 2
 if resize and ('left' in args or 'right' in args):
     y = bar
-    win_width  = (workspace.rect.width // 2) - 5 # FIXME
+    win_width = (workspace.rect.width // 2) - 5  # FIXME
     win_height = workspace.rect.height
 if resize and 'center' in args:
-    win_width  = (workspace.rect.width  * 60) // 100
+    win_width = (workspace.rect.width * 60) // 100
     win_height = (workspace.rect.height * 65) // 100
 
 if 'up' in args:
@@ -42,7 +42,7 @@ if 'left' in args:
 if 'right' in args:
     x = scr_width - win_width
 if 'center' in args:
-    x = scr_x + (workspace.rect.width  // 2) - (win_width  // 2)
+    x = scr_x + (workspace.rect.width // 2) - (win_width // 2)
     y = scr_y + (workspace.rect.height // 2) - (win_height // 2)
 
 if resize:

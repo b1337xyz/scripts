@@ -14,6 +14,7 @@
   - [xclip](https://github.com/astrand/xclip)
   - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
   - [slop](https://github.com/naelstrof/slop) - ([`ffrecord.sh -s`](https://github.com/b1337xyz/scripts/blob/main/shell/ffmpeg/ffrecord.sh#L23))
+  - [opusenc](https://wiki.xiph.org/Opus-tools) ([`flac2opus.sh`](https://github.com/b1337xyz/scripts/blob/main/shell/ffmpeg/flac2opus.sh))
 
 - python  
   - [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)

@@ -4,7 +4,6 @@ from urllib.parse import quote
 from urllib.request import urlopen
 from thefuzz import process
 from shutil import copy
-import time
 import json
 import re
 import os
@@ -28,18 +27,18 @@ parser.add_option('--id', type='int')
 parser.add_option('--show-malid', action='store_true')
 parser.add_option('-s', '--score', type='float')
 parser.add_option('-m', '--max', help='max printed results',
-    type='int', default=10)
+                  type='int', default=10)
 parser.add_option('-t', '--type', type='string',
-    help='tv, movie, ova, special, ona, music')
+                  help='tv, movie, ova, special, ona, music')
 parser.add_option('-r', '--rating', type='string',
-    help='g, pg, pg13, r17, r, rx')
+                  help='g, pg, pg13, r17, r, rx')
 parser.add_option('-o', '--order-by', type='string', default='',
-    help='mal_id, title, type, rating, start_date, end_date,\
-    episodes, score, scored_by, rank, popularity')
+                  help='mal_id, title, type, rating, start_date, end_date,\
+                  episodes, score, scored_by, rank, popularity')
 parser.add_option('--start-date', type='string', metavar='YYYY-MM-DD',
-    default='', help='e.g 2022, 2005-05, 2005-01-01')
+                  default='', help='e.g 2022, 2005-05, 2005-01-01')
 parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
-    default='', help='e.g 2022, 2005-05, 2005-01-01')
+                  default='', help='e.g 2022, 2005-05, 2005-01-01')
 parser.add_option('--sort-by-year', action='store_true')
 # parser.add_option('--nsfw', action='store_false', default=True)
 
@@ -98,7 +97,7 @@ if args:
     titles = [
         i[-1] for i in process.extract(
             query,
-            {k: v['title'] for k,v in data.items()},
+            {k: v['title'] for k, v in data.items()},
             limit=len(data)
         ) if i[1] > opts.tolerance
     ]

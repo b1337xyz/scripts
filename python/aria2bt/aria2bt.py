@@ -26,7 +26,7 @@ def get_torrents(torrents):
         torrent_name = get_torrent_name(v)
         max_len = 80
         if len(torrent_name) > max_len:
-            torrent_name = torrent_name[:max_len-3] + '...'
+            torrent_name = torrent_name[:max_len - 3] + '...'
         size = get_psize(int(v['totalLength']))
         print(f'{i:3}: [{v["status"]}] {torrent_name} {size:10}')
 
@@ -53,7 +53,7 @@ def get_magnet(file):
 def get_all():
     waiting = s.aria2.tellWaiting(0, 100)
     stopped = s.aria2.tellStopped(0, 100)
-    active  = s.aria2.tellActive()
+    active = s.aria2.tellActive()
     return sorted([] + waiting + stopped + active, key=lambda x: x['status'], reverse=True)
 
 
@@ -69,7 +69,7 @@ def add_torrent(torrent):
             options.update({'rpc-save-upload-metadata': 'false'})
             with open(torrent, 'rb') as fp:
                 try:
-                    gid = s.aria2.addTorrent(
+                    s.aria2.addTorrent(
                         xmlrpc.client.Binary(fp.read()),
                         [], options
                     )
@@ -80,7 +80,7 @@ def add_torrent(torrent):
             magnet = get_magnet(torrent)
             return add_torrent(magnet)
     else:
-        gid = s.aria2.addUri([torrent], options)
+        s.aria2.addUri([torrent], options)
 
 
 def list_torrents():
@@ -93,7 +93,7 @@ def list_torrents():
         torrent_name = get_torrent_name(i)
         max_len = 80
         if len(torrent_name) > max_len:
-            torrent_name = torrent_name[:max_len-3] + '...'
+            torrent_name = torrent_name[:max_len - 3] + '...'
         status = i['status']
         gid = i['gid']
         if status == 'active':
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     elif opts.top:
         move_to_top()
     elif opts.seed:
-        print( s.aria2.changeGlobalOption({'seed-time': '0.0'}) )
+        print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:
         print(s.aria2.changeGlobalOption({
             'max-concurrent-downloads': opts.max_downloads

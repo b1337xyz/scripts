@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
 from thefuzz import process
-from time import sleep
 import requests
 import re
 import os
-import json
 
 API_URL = 'https://graphql.anilist.co'
 HOME = os.getenv('HOME')
@@ -15,7 +13,7 @@ parser.add_option('--tolerance', type='int', default=10)
 parser.add_option('--show-malid', action='store_true')
 parser.add_option('-l', '--limit', type='int', default=10)
 parser.add_option('-m', '--max', type='int', default=10,
-    help='max printed results')
+                  help='max printed results')
 opts, args = parser.parse_args()
 
 api_query = '''
@@ -79,12 +77,12 @@ def search(query):
     })
     return r.json()['data']['Page']['media']
 
+
 query = ' '.join(args).lower()
 if query.isdigit():
     print('searching by id')
     malid = args[0]
     results = search_by_id(malid)
-    # print(json.dumps(results, indent=2))
 else:
     results = search(query)
 
@@ -110,7 +108,7 @@ else:
     titles = [
         i[-1] for i in process.extract(
             query,
-            {k: v['title'] for k,v in data.items()},
+            {k: v['title'] for k, v in data.items()},
             limit=len(results)
         ) if i[1] > opts.tolerance
     ]
