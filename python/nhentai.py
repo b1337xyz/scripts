@@ -143,6 +143,7 @@ def main(urls):
                     posts.append(a)
 
         if not posts:
+            print(soup.prettify())
             print('nothing found')
             continue
 

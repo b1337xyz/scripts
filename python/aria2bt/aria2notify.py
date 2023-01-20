@@ -2,12 +2,13 @@
 from utils import *
 from sys import argv
 import xmlrpc.client
+from time import sleep
 
 FIFO = '/tmp/aria2notify.fifo'
 
 
 def torrent_handler(session, gid):
-    sleep(1)
+    sleep(3)
     torrent = session.aria2.tellStatus(gid)
     torrent_name = get_torrent_name(torrent)
     torrent_dir = torrent['dir']
@@ -36,7 +37,12 @@ def torrent_handler(session, gid):
 def main(gid):
     os.mkfifo(FIFO)
     session = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-    torrent_handler(session, gid)
+
+    try:
+        torrent_handler(session, gid)
+    except Exception as err:
+        logging.error(err)
+
     while os.path.exists(FIFO):
         with open(FIFO, 'r') as fifo:
             data = fifo.read()
