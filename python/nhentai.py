@@ -20,8 +20,6 @@ LOCK = '/tmp/.nhentai.lock'
 ICON = f'{HOME}/Pictures/icons/nhentai.png'
 ICON = ICON if os.path.exists(ICON) else 'folder-download'
 
-aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-
 
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
@@ -61,18 +59,8 @@ def download(session, url, dl_dir, fname):
             print(f'Failed to download torrent "{url}"\nError: {err}')
 
     if not is_torrent(file):
-        print(f'not a torrent, {file} removed')
         os.remove(file)
         raise TypeError(f'"{file}" not a torrent')
-
-    # try:
-    #     out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
-    #     torrent_name = re.search(r'[ \t]*1\|\./([^/]*)', out).group(1)
-    # except:
-    #     return file
-    # new_file = os.path.join(dl_dir, torrent_name + '.torrent')
-    # if not os.path.exists(new_file):
-    #     os.rename(file, new_file)
 
     return file
 
@@ -80,6 +68,13 @@ def download(session, url, dl_dir, fname):
 def get_soup(session, url):
     content = session.get(url).content
     return BS(content, 'html.parser')
+
+
+def get_posts(soup):
+    return [
+        div.a.get('href') for div in soup.findAll('div', {'class': 'gallery'})
+        if 'english' in div.text.lower()
+    ]
 
 
 def main(urls):
@@ -95,6 +90,9 @@ def main(urls):
             cookie['value'],
             domain=DOMAIN
         )
+
+    if not os.path.exists(DL_DIR):
+        os.mkdir(DL_DIR)
 
     for url in urls:
         open(HIST, 'a').write(url + '\n')
@@ -121,29 +119,16 @@ def main(urls):
             url += '?page={}'
 
         soup = get_soup(s, url.format(1))
-        gallery = soup.findAll('div', {'class': 'gallery'})
-        posts = list()
-        for div in gallery:
-            a = div.a.get('href')
-            if 'english' not in div.text.lower():
-                continue
-            posts.append(a)
-
+        posts = get_posts(soup)
         last_page = soup.find('a', {'class': 'last'})
         if last_page:
             last_page = int(last_page.get('href').split('=')[-1])
             for page in range(2, last_page + 1):
                 print(f'Scraping page {page}...\r', end='')
                 soup = get_soup(s, url.format(page))
-                gallery = soup.findAll('div', {'class': 'gallery'})
-                for div in gallery:
-                    a = div.a.get('href')
-                    if 'english' not in div.text.lower():
-                        continue
-                    posts.append(a)
+                posts += get_posts(soup)
 
         if not posts:
-            print(soup.prettify())
             print('nothing found')
             continue
 
@@ -172,16 +157,18 @@ def main(urls):
                 print(f'Error downloading torrent\n{err}')
                 continue
 
-        # sp.run([
-        #     'aria2c', '--dir', dl_dir,
-        #     '--bt-stop-timeout=500',
-        #     '--seed-time=0'
-        # ] + torrents)
-        [os.remove(i) for i in torrents if os.path.exists(i)]
+        # [os.remove(i) for i in torrents if os.path.exists(i)]
 
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
+    if os.path.exists(LOCK):
+        print(f'waiting for lock file to be deleted..., {LOCK}')
+    while os.path.exists(LOCK):
+        sleep(5)
+
+    aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
+
     with open(CONFIG, 'r') as fp:
         config = json.load(fp)
 
@@ -199,8 +186,6 @@ if __name__ == '__main__':
         urls = [i for i in args if DOMAIN in i]
 
     try:
-        while os.path.exists(LOCK):
-            sleep(1)
         open(LOCK, 'w').close()
         main(urls)
     except KeyboardInterrupt:

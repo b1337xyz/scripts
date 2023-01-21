@@ -3,14 +3,13 @@ from html import unescape
 from random import random
 from sys import argv
 from time import sleep
-import json
 import logging
 import os
 import re
 import requests
 import subprocess as sp
 
-UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'
+UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'  # noqa: E501
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
 LOG = os.path.join(HOME, '.cache/ehentai.log')
@@ -28,34 +27,35 @@ logging.basicConfig(
 def clean_filename(s: str) -> str:
     keep = [' ', '.', '!', '_', '[', ']', '(', ')']
     s = ''.join(c for c in s if c.isalnum() or c in keep)
-    return re.sub('\s{2,}', ' ', s).strip()
+    return re.sub(r'\s{2,}', ' ', s).strip()
 
 
 gallery_regex = re.compile(r'href=\"https://e-hentai\.org/g/(\d*/[^/]*)/')
-page_regex    = re.compile(r'[\?\&]page=(\d+)')
-# img_regex   = re.compile(r'https://\w*\.\w*\.hath\.network(?:\:\d+)?/\w/[^\"]*\.(?:jpe?g|png|gif)')
-img_regex     = re.compile(r'<img id=\"img\" src=\"([^\"]*)')
-title_regex   = re.compile(r'<h1 id="gn">([^<]*)</h1>')
+page_regex = re.compile(r'[\?\&]page=(\d+)')
+# img_regex = re.compile(r'https://\w*\.\w*\.hath\.network(?:\:\d+)?/\w/[^\"]*\.(?:jpe?g|png|gif)')  # noqa: E501
+img_regex = re.compile(r'<img id=\"img\" src=\"([^\"]*)')
+title_regex = re.compile(r'<h1 id="gn">([^<]*)</h1>')
 title_regex_fallback = re.compile(r'<title>([^<]*)</title>')
-next_regex    = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
-artist_regex  = re.compile(r'<a id="ta_artist:([^\"]*)')
-skip_regex    = re.compile(r'twitter|patreon')
+next_regex = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
+artist_regex = re.compile(r'<a id="ta_artist:([^\"]*)')
+skip_regex = re.compile(r'twitter|patreon|fanbox|pixiv|collection|gallery|hd pack', re.IGNORECASE)  # noqa: E501
 
 
 url = argv[1]
 assert 'e-hentai.org' in url
+logging.info(url)
 s = requests.Session()
 s.headers.update({'user-agent': UA})
 r = s.get(url)
 curr_page = page_regex.search(url)
-curr_page = 1 if not curr_page else curr_page.group(1)
+curr_page = 1 if not curr_page else int(curr_page.group(1))
 try:
-    max_page = sorted([int(i) for i in page_regex.findall(r.text)])[-1]
-except IndexError:
+    max_page = max([int(i) for i in page_regex.findall(r.text)])
+except ValueError:
     max_page = 1
+
 gallery = list()
 for page in range(curr_page, max_page + 1):
-    logging.info(url)
     for link in gallery_regex.findall(r.text):
         gid, token = link.split('/')
         gallery.append([gid, token])
@@ -66,15 +66,14 @@ for page in range(curr_page, max_page + 1):
             url += f'&page={page}' if '?' in url else f'&page={page}'
         r = s.get(url)
 
-
 for gid, token in gallery:
     url = f'https://e-hentai.org/g/{gid}/{token}/'
-    logging.info(url)
     r = s.get(url)
+
     try:
         url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
-    except:
-        logging.error(url, 'nothing found')
+    except Exception:
+        logging.error(f'nothing found: {url}')
         continue
 
     try:
@@ -84,7 +83,7 @@ for gid, token in gallery:
 
     if not title:
         try:
-            title = title_regex_fallback.search(f).group(1)
+            title = title_regex_fallback.search(r.text).group(1)
             title = ''.join(title.split('-')[:-1])
         except AttributeError:
             title = gid
@@ -95,31 +94,33 @@ for gid, token in gallery:
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
 
-    # if skip_regex.search(title.lower()):
-    #     logging.info(f'Ignoring: {title}')
-    #     continue
+    if skip_regex.search(title):
+        logging.info(f'Skipping: {title}')
+        continue
 
     curr_page = 0
     next_page = curr_page + 1
-    att = 0
+    output = '/tmp/.ehentai'
+    open(output, 'w').close()
     while next_page > curr_page:
-        assert att < 5
         r = s.get(url)
         img = img_regex.search(r.text).group(1)
-        if '509.gif' in img:
+        if '/509.gif' in img:
             logging.warning(f'509 ERROR, {url} - {img}')
             break
 
-        p = sp.run([
-            'wget', '-L', '-t', '2', '-nc', '-P', dl_dir, '-U', UA,
-            '-nv', '--show-progress', img
-        ])
-        if p.returncode != 0:
-            att += 1
-            logging.error(f'Download failed: {url}, {img}, {att}')
-            continue
-        att = 0
+        logging.info(url)
+        with open(output, 'a') as fp:
+            fp.write(img + '\n')
+
         curr_page = int(url.split('-')[-1])
         url = next_regex.search(r.text).group(1)
         next_page = int(url.split('-')[-1])
         sleep(random() * .5)
+
+    p = sp.run([
+        'aria2c', '-x', '6', '-s', '6', '--dir', dl_dir, '-U', UA,
+        '--input-file', output
+    ])
+    if p.returncode != 0:
+        logging.error(f'Download finished with errors: {url}, {argv[1]}')

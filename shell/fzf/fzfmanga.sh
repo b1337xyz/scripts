@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091,SC2155,SC2317,SC2120
+set -e
 
 root=$(realpath "$0") root=${root%/*}
 source "${root}/preview.sh" || exit 1
@@ -10,10 +11,13 @@ declare -r -x mainfile=$(mktemp --dry-run)
 [ -f "$readed_file" ] || :>"$readed_file"
 
 preview() {
-    img=$(find -L "$1" -type f -iregex '.*\.\(jpg\|png\|webp\)' | sort -V | head -1)
+    img=$(find "$1" -type f -iregex '.*\.\(jpg\|png\|webp\)' | sort -V | head -1)
     draw_preview "$img"
-    for _ in $(seq $((LINES - 2)));do echo ;done
+    for _ in $(seq $((LINES - 6)));do echo ;done
+    printf 'files: '
+    find "$1" -type f -iregex '.*\.\(jpg\|png\|webp\)' | wc -l
     grep -qxF "$1" "$readed_file" && printf '\033[1;32mReaded\033[m\n'
+    printf '%s\n' "${1##*/}"
 }
 finalise() {
     printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
@@ -21,14 +25,12 @@ finalise() {
     jobs -p | xargs -r kill
 }
 main() {
-    local target
-    [ -e "$2" ] && target=$(realpath -- "$2")
     case "$1" in
         open)
-            if command -v devour &>/dev/null;then
-                devour nsxiv -fqrs w "$target"
+            if hash devour; then
+                devour nsxiv -bfqrs w "$2"
             else
-                nsxiv -fqrs w "$target"
+                nsxiv -bfqrs w "$2"
             fi 2>/dev/null
         ;;
         readed)
@@ -39,46 +41,49 @@ main() {
             fi
         ;;
         delete)
-            [ -d "$target" ] || return 1
-            printf 'Are you sure? (Y/n) '
+            [ -d "$2" ] || return 1
+            printf '{"action": "remove", "identifier": "preview"}\n' > "$UEBERZUG_FIFO"
+            clear
+            printf 'Deleting "%s", are you sure? (y/N) ' "$2"
             read -r ask
             [ "${ask,,}" != "y" ] && return
-            find "$target" -maxdepth 1 -iregex '.*\.\(jpg\|png\)' -delete
-            rm -d "$target"
+            find "$2" -maxdepth 1 -iregex '.*\.\(jpg\|png\)' -delete
+            rm -d "$2"
         ;;
         hide)
             grep -xvFf "$readed_file" "$mainfile"
         ;;
         shuffle) shuf "$mainfile" ;;
-        cd) search "$target" | tee "$mainfile" ;;
+        cd) search "$2" | tee "$mainfile" ;;
         *) search | tee "$mainfile" ;;
     esac
 }
 search() {
     find "${1:-.}" -mindepth 1 -maxdepth 1 \
-        \( -type d -o -type l \) -printf '%f\n' | sort -V
+        \( -type d -o -type l \) | sort -V
 }
 export -f preview main search
 trap finalise EXIT HUP INT
 start_ueberzug
-clear
 
-main | fzf --header "ctrl-o open
+header="ctrl-o open
 ctrl-r reload
 ctrl-s shuffle
 ctrl-d remove
 ctrl-a toggle readed
 ctrl-h hide readed
-ctrl-g change directory" \
-    --preview "preview {}" --print0 \
-    --preview-window "left:30%:border-none" \
+"
+
+main | fzf --header "$header" \
+    --preview "preview {}" \
+    --preview-window "left:30%:border-none:wrap" \
     --border none \
     --bind 'ctrl-r:reload(main)' \
     --bind 'ctrl-s:reload(main shuffle)' \
+    --bind 'ctrl-h:reload(main hide)' \
     --bind 'ctrl-g:reload(main cd {})' \
     --bind 'ctrl-a:execute(main readed {})+refresh-preview' \
-    --bind 'ctrl-h:reload(main hide)' \
     --bind 'ctrl-d:execute(main delete {})+reload(main)' \
-    --bind 'ctrl-o:execute(main open {})' | xargs -0rI{} nsxiv -rfqs w '{}'
+    --bind 'ctrl-o:execute(main open {})'
 
 exit 0
