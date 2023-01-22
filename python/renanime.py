@@ -25,6 +25,7 @@ RE_EXT = re.compile(r'.*\.(?:mkv|avi|rmvb|mp4)$')
 HOME = os.getenv('HOME')
 RED = '\033[1;31m'
 GRN = '\033[1;32m'
+BLU = '\033[1;34m'
 END = '\033[m'
 
 
@@ -52,6 +53,7 @@ def cleanup_string(string: str) -> str:
     s = re.sub(r'epis.dio.\d+', '', s)
     s = re.sub(r'\d+(?:v\d+)?', '', s)
     s = re.sub(r's\d+e\d+', '', s)
+    s = re.sub(r'[_\.]', ' ', s)
     s = re.sub(r"(?ui)\W", ' ', s)
     s = s.encode('ascii', 'ignore').decode()
     s = re.sub(r'\s{2,}', ' ', s).strip()
@@ -113,9 +115,10 @@ def fuzzy_sort(query: str, data: list) -> list:
 
 
 def move_files(files: list, folder: str):
-    print(f'move {files[0]}... ({len(files)}) ->\n{folder}')
-    if input('Are you sure? [y/N] ').lower().strip() != 'y':
-        return
+    print(f'move {files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
+    if not opts.dont_ask:
+        if input('Are you sure? [y/N] ').lower().strip() != 'y':
+            return
 
     os.mkdir(folder)
     sp.run(['mv', '-vn'] + files + [folder])

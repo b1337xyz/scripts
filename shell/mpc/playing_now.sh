@@ -30,3 +30,8 @@ mkdir -p "${image%/*}"
 [ -f "$image" ] || ffmpeg -nostdin -v -8 -i "$path" "$image" || true
 notify-send -r 10 -i "$image" "♫ Playing now..." "${title}\n${album}${artist}${time}"
 pkill -SIGRTMIN+21 i3blocks
+
+# conky_pid=$(pgrep -f 'conky.*conky.mpd.conf')
+# if [ -n "$conky_pid" ];then
+#     kill -SIGUSR1 "$conky_pid"
+# fi
