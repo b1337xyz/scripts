@@ -21,6 +21,7 @@ declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
         -h|--help) printf 'Usage: %s [--sxiv --dmenu --<xwallpaper option>] IMAGE\n' "${0##*/}"; exit 0 ;;
+        -n) use_log=0 ;;
         --dmenu) use_dmenu=1    ;;
         --sxiv)  use_sxiv=1     ;;
         -*) opts+=("$1")        ;; # xwallpaper options
@@ -53,11 +54,12 @@ fi
 wallpaper=$(realpath "$wallpaper")
 
 printf 'xwallpaper %s "%s"' "${opts[*]}" "$wallpaper" > "$cache"
+[ -z "$use_log" ] && echo "$wallpaper" >> ~/.cache/xwall.log
 chmod +x ~/.cache/xwallpaper && ~/.cache/xwallpaper
 # pgrep -x i3 && i3-msg reload >/dev/null 2>&1 
 
-ext=${wallpaper##*.}
-cp "$wallpaper" ~/.cache/current_bg."${ext}"
+# ext=${wallpaper##*.}
+# cp "$wallpaper" ~/.cache/current_bg."${ext}"
 
 # pgrep -x conky && pkill -SIGUSR1 conky
 
