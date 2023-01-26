@@ -9,6 +9,7 @@ import re
 # $ aria2c --enable-rpc
 
 
+
 def get_torrents(torrents):
     if not torrents:
         return []
@@ -51,8 +52,8 @@ def get_magnet(file):
 
 
 def get_all():
-    waiting = s.aria2.tellWaiting(0, 100)
-    stopped = s.aria2.tellStopped(0, 100)
+    waiting = s.aria2.tellWaiting(0, MAX_TORRENTS)
+    stopped = s.aria2.tellStopped(0, MAX_TORRENTS)
     active = s.aria2.tellActive()
     return sorted([] + waiting + stopped + active, key=lambda x: x['status'], reverse=True)
 
@@ -117,7 +118,7 @@ def pause():
 
 
 def unpause():
-    torrents = s.aria2.tellWaiting(0, 100)
+    torrents = s.aria2.tellWaiting(0, MAX_TORRENTS)
     for torrent in get_torrents(torrents):
         s.aria2.unpause(torrent['gid'])
 
@@ -154,7 +155,7 @@ def remove_all(dont_ask=False, status=None):
 
 
 def remove_metadata(status=None):
-    torrents = s.aria2.tellStopped(0, 100)
+    torrents = s.aria2.tellStopped(0, MAX_TORRENTS)
     for torrent in torrents:
         if status and status != torrent['status']:
             continue
@@ -169,7 +170,7 @@ def remove_metadata(status=None):
 
 
 def move_to_top():
-    torrents = s.aria2.tellWaiting(0, 100)
+    torrents = s.aria2.tellWaiting(0, MAX_TORRENTS)
     try:
         gid = get_torrents(torrents)[0]['gid']
     except IndexError:

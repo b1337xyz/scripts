@@ -67,10 +67,12 @@ def cleanup_filename(string: str) -> str:
         RE_EXT.pattern,
         r'\[[^][]*\]',
         r'\([^()]*\)',
+        r'\.(?:bd|flac(?:\d\.\d)?|hevc|x265)\.',
         r'[_\-\.]',
-        r'(?:xvid|\w fansub| tv)',
-        r'(?:epis.d[ie]o|ep)?\s?\d+.?(?:v\d+|final)?',
         r's\d+e\d+',
+        r'(?:tnnac.animax|test.kun|(?:multi.?)?mattmurdock)',
+        r'(?:xvid|\w fansub| tv| dvd| hd|blu.?ray| \d+p|flac|opus)',  # noqa: E501
+        r'(?:epis.d[ie]o|ep?|sp)?\s?\d+.?(?:v\d+|final)?',
         r"(?ui)\W",
     ]
 
@@ -146,6 +148,9 @@ def parse_data(data: dict, file_count: int) -> list:
 
         parsed_data.append((clean_title, title, year, episodes))
 
+    parsed_data = sorted(parsed_data,
+                         key=lambda x: x[-1] == file_count, reverse=True)
+
     return parsed_data
 
 
@@ -166,7 +171,8 @@ def ask(question: str) -> bool:
 def move_to(files: list, folder: str):
     folder = os.path.join(opts.path, folder)
     if os.path.exists(folder):
-        if not ask(f'{folder} already exists, move files to it?'):
+        if not os.path.isdir(folder) or \
+           not ask(f'{folder} already exists, move files to it?'):
             c = 1
             _copy = folder
             while os.path.exists(folder):
@@ -177,7 +183,7 @@ def move_to(files: list, folder: str):
     if not ask('Are you sure?'):
         return
 
-    if not opts.rename:
+    if not opts.rename and not os.path.exists(folder):
         os.mkdir(folder)
 
     cmd = ['ln', '-rvs'] if opts.link else ['mv', '-vn']
@@ -240,7 +246,7 @@ def main():
         if opts.fzf and len(data) > 1:
             folder = fzf([
                 f'{title} ({year})' for _, title, year, _ in data
-            ], prompt=f'Query: {query}>') 
+            ], prompt=f'Query: {query}>')
             if not folder:
                 continue
             folder = folder[0]

@@ -9,7 +9,7 @@ case "$1" in
 esac
 printf 'FILEID: \e[1;31m%s\e[m\n' "$FILEID"
 
-if command -v gdrive; then
+if hash gdrive; then
     # https://github.com/prasmussen/gdrive
     gdrive download --path ~/Downloads --skip -r "$FILEID"
 else
