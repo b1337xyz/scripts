@@ -1,4 +1,15 @@
-# Dependencies
+## README
+```
+      /\         OS: Arch Linux x86_64
+     /  \        WM: i3
+    /\   \       Shell: bash 5.x.x, dash 0.5.11.5-1
+   /      \      Python: 3.x.x
+  /   ,,   \     
+ /   |  |  -\    
+/_-''    ''-_\   
+```
+
+#### Dependencies
 - shell 
   - [aria2](https://aria2.github.io/)
   - [bat](https://github.com/sharkdp/bat)

@@ -3,29 +3,45 @@ from optparse import OptionParser
 from urllib.parse import quote
 from thefuzz import process
 from time import sleep
+from shutil import which
 import requests
 import subprocess as sp
-import json
 import re
 import os
 
 parser = OptionParser()
 parser.add_option('-a', '--use-anilist', action='store_true',
-                  help='usa anilist api')
+                  help='use anilist api')
 parser.add_option('-y', '--dont-ask', action='store_true',
                   help='don\'t ask')
+parser.add_option('-l', '--link', action='store_true',
+                  help='make a symbolic link')
+parser.add_option('-p', '--path', type='string', default='.',
+                  help='path to folder (default: current directory)')
+parser.add_option('-r', '--rename', action='store_true',
+                  help='rename/link file itself, insted of to a folder')
+parser.add_option('-f', '--files-only', action='store_true')
+parser.add_option('--fzf', action='store_true')
 parser.add_option('--year', type='int')
 opts, args = parser.parse_args()
+
+assert os.path.isdir(opts.path)
+if opts.rename:
+    assert len(args) == 1
+    assert os.path.isdir(args[0])
+if opts.fzf:
+    assert which('fzf')
 
 YEAR = opts.year
 USE_ANILIST = opts.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
-RE_EXT = re.compile(r'.*\.(?:mkv|avi|rmvb|mp4)$')
+RE_EXT = re.compile(r'\.(?:mkv|avi|rmvb|mp4|webm|m4v)$')
 HOME = os.getenv('HOME')
 RED = '\033[1;31m'
 GRN = '\033[1;32m'
 BLU = '\033[1;34m'
+PUR = '\033[1;35m'
 END = '\033[m'
 
 
@@ -39,28 +55,52 @@ query ($id: Int, $page: Int, $perPage: Int, $search: String) {
             startDate {
                 year
             }
+            episodes
         }
     }
 }
 '''
 
 
-def cleanup_string(string: str) -> str:
-    s = re.sub(r'\.(?:mkv|avi|rmvb|mp4)$', '', string).lower()
-    s = re.sub(r'\[[^][]*\]', '', s)
-    s = re.sub(r'\([^()]*\)', '', s)
-    s = re.sub(r'episode.\d+', '', s)
-    s = re.sub(r'epis.dio.\d+', '', s)
-    s = re.sub(r'\d+(?:v\d+)?', '', s)
-    s = re.sub(r's\d+e\d+', '', s)
-    s = re.sub(r'[_\.]', ' ', s)
-    s = re.sub(r"(?ui)\W", ' ', s)
-    s = s.encode('ascii', 'ignore').decode()
-    s = re.sub(r'\s{2,}', ' ', s).strip()
-    if len(s) < 3:
-        print('String length less than 3:', string)
-        return
-    return s
+def cleanup_filename(string: str) -> str:
+    patterns = [
+        RE_EXT.pattern,
+        r'\[[^][]*\]',
+        r'\([^()]*\)',
+        r'[_\-\.]',
+        r'(?:xvid|\w fansub| tv)',
+        r'(?:epis.d[ie]o|ep)?\s?\d+.?(?:v\d+|final)?',
+        r's\d+e\d+',
+        r"(?ui)\W",
+    ]
+
+    # string = re.sub(r's(\d+?)e\d+', r'season \1', string).lower()
+    string = re.sub(r'/+$', '', string).split('/')[-1].lower()
+    for p in patterns:
+        new_string = re.sub(p, ' ', string).strip()
+        new_string = re.sub(r'\s{2,}', ' ', new_string)
+
+        if new_string and new_string != string:
+            print(f'"{RED}{string}{END}" -> {p} -> "{GRN}{new_string}{END}"')
+            string = new_string
+
+    string = string.encode('ascii', 'ignore').decode().strip()
+    if len(string) < 3:
+        print('String length less than 3')
+        return input('query: ').strip()
+    return string
+
+
+def cleanup_title(string: str) -> str:
+    patterns = [
+        r'\[[^][]*\]',
+        r'\([^()]*\)',
+        r"(?ui)\W"
+    ]
+    for p in patterns:
+        string = re.sub(p, ' ', string)
+    string = re.sub(r'\s{2,}', ' ', string).strip()
+    return string.encode('ascii', 'ignore').decode().lower()
 
 
 def request_jikan(query: str) -> dict:
@@ -81,7 +121,7 @@ def request_anilist(query: str) -> dict:
     return r.json()['data']['Page']['media']
 
 
-def parse_data(data: dict) -> list:
+def parse_data(data: dict, file_count: int) -> list:
     parsed_data = list()
     for i in data:
         if USE_ANILIST:
@@ -92,6 +132,8 @@ def parse_data(data: dict) -> list:
         title = re.sub(r"(?ui)\W", ' ', title)
         title = title.encode('ascii', 'ignore').decode()
         title = re.sub(r'\s{2,}', ' ', title).strip()
+        clean_title = cleanup_title(title)
+        episodes = i['episodes']
 
         if USE_ANILIST:
             year = i['startDate']['year']
@@ -102,7 +144,8 @@ def parse_data(data: dict) -> list:
         if YEAR and year and YEAR != int(year):
             continue
 
-        parsed_data.append((cleanup_string(title), title, year))
+        parsed_data.append((clean_title, title, year, episodes))
+
     return parsed_data
 
 
@@ -114,23 +157,55 @@ def fuzzy_sort(query: str, data: list) -> list:
     ]
 
 
-def move_files(files: list, folder: str):
-    print(f'move {files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
-    if not opts.dont_ask:
-        if input('Are you sure? [y/N] ').lower().strip() != 'y':
-            return
+def ask(question: str) -> bool:
+    if opts.dont_ask:
+        return True
+    return input(question + ' [y/N] ').lower().strip() == 'y'
 
-    os.mkdir(folder)
-    sp.run(['mv', '-vn'] + files + [folder])
+
+def move_to(files: list, folder: str):
+    folder = os.path.join(opts.path, folder)
+    if os.path.exists(folder):
+        if not ask(f'{folder} already exists, move files to it?'):
+            c = 1
+            _copy = folder
+            while os.path.exists(folder):
+                folder = f'{_copy} ({c})'
+                c += 1
+
+    print(f'{files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
+    if not ask('Are you sure?'):
+        return
+
+    if not opts.rename:
+        os.mkdir(folder)
+
+    cmd = ['ln', '-rvs'] if opts.link else ['mv', '-vn']
+    sp.run(cmd + files + [folder])
+
+
+def fzf(args: list, prompt: str) -> str:
+    try:
+        proc = sp.Popen(
+           ['fzf', '--prompt', prompt],
+           stdin=sp.PIPE,
+           stdout=sp.PIPE,
+           universal_newlines=True
+        )
+        out = proc.communicate('\n'.join(args))
+        if proc.returncode != 0:
+            return None
+        return [i for i in out[0].split('\n') if i]
+    except KeyboardInterrupt:
+        pass
 
 
 def main():
     uniq = dict()
     for f in os.listdir() if not args else args:
-        if not os.path.isfile(f) or not RE_EXT.match(f):
+        if opts.files_only and not os.path.isfile(f):
             continue
-
-        string = cleanup_string(f)
+        string = cleanup_filename(f)
         if not string:
             continue
         elif string in uniq:
@@ -138,9 +213,15 @@ def main():
         else:
             uniq[string] = [f]
 
+    print(f'--- {len(uniq)} unique strings')
     for query in uniq:
         files = uniq[query]
         print(f'{RED}< {files[0]}{END}\n{GRN}> {query}{END}')
+        if not ask('Is that right?'):
+            query = input('Query: ').strip()
+        if not query:
+            continue
+
         if USE_ANILIST:
             data = request_anilist(query)
         else:
@@ -151,19 +232,27 @@ def main():
             print(f'nothing found: "{query}"')
             continue
 
-        data = parse_data(data)
+        data = parse_data(data, len(files))
         if not data:
             print(f'nothing to do: "{query}"')
             continue
 
-        fuzz = fuzzy_sort(query, data)
-        if fuzz:
-            _, title, year = fuzz[0]
+        if opts.fzf and len(data) > 1:
+            folder = fzf([
+                f'{title} ({year})' for _, title, year, _ in data
+            ], prompt=f'Query: {query}>') 
+            if not folder:
+                continue
+            folder = folder[0]
         else:
-            _, title, year = data[0]
+            fuzz = fuzzy_sort(query, data)
+            if fuzz:
+                _, title, year, _ = fuzz[0]
+            else:
+                _, title, year, _ = data[0]
+            folder = f'{title} ({year})'
 
-        folder = f'{title} ({year})'
-        move_files(files, folder)
+        move_to(files, folder)
 
 
 if __name__ == '__main__':
