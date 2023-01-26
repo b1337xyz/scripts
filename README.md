@@ -1,4 +1,4 @@
-## README
+## ~/.scripts
 ```
       /\         OS: Arch Linux x86_64
      /  \        WM: i3
