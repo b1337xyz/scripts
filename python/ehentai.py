@@ -109,7 +109,6 @@ for gid, token in gallery:
             logging.warning(f'509 ERROR, {url} - {img}')
             break
 
-        logging.info(url)
         with open(output, 'a') as fp:
             fp.write(img + '\n')
 

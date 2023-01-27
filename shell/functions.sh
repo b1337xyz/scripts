@@ -623,3 +623,11 @@ ordinal() {
 enable_conservation_mode() {
     echo "${1:-1}" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
 }
+maldir() {
+    out=/tmp/.mal.$RANDOM
+    mal "$@" | tee "$out" | grep -v ^http | fzf -m | grep -oP '.*\d{4}\)(?=\s+\| \w)' | while read -r i; do
+        [ -d "$i" ] || mkdir -v "./$i"
+    done
+    cat "$out"
+    command rm "$out"
+}

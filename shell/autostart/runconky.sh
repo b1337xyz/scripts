@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/sh
 killall conky 2>/dev/null
-conky -q -d
-conky -q -d -c ~/.config/conky/conky.disk.conf
+
+conky -q
+conky -q -c ~/.config/conky/conky.disk.conf

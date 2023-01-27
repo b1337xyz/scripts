@@ -12,7 +12,6 @@ while [ $1 ];do
     shift
 done
 sockect=${sockect:-/tmp/mpvsocket}
-echo "$sockect"
 
 check_status() {
     echo '{"command":["get_property", "pid"]}' | socat - "$1"
