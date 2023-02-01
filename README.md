@@ -33,5 +33,3 @@
   - [i3ipc](https://github.com/altdesktop/i3ipc-python)
   - [thefuzz](https://github.com/seatgeek/thefuzz)
   - [google-api-python-client](https://github.com/googleapis/google-api-python-client) - [ytcli.py](https://github.com/b1337xyz/scripts/blob/main/python/ytcli.py)
-  - [gtk3](https://www.gtk.org/) - [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
-  - [gobject-introspection](https://wiki.gnome.org/Projects/GObjectIntrospection) - [sgv.py](https://github.com/b1337xyz/scripts/blob/main/python/sgv.py)
