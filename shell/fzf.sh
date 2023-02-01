@@ -16,32 +16,32 @@ ffp() {
         --preview 'bat --style=numbers --color=always --line-range :100 {}'
 }
 e() {
-    local sel=/tmp/.sel
     local file
-    find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
+    file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
         -type f -size -100k -regextype posix-extended \
         \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json)' \) |
         awk -v home="$HOME" 'sub(home, "~")' |
         fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)' | tee "$sel" | xargs -roI{} vim '{}'
+        awk -v home="$HOME" 'sub("~", home)')
 
-    file=$(<"$sel")
-    command rm "$sel"
-    [ -s "$file" ] && cd "${file%/*}" || return 1
+    if [ -f "$file" ]; then
+        cd "${file%/*}" || return 1
+        vim "$file"
+    fi
 }
 c() { 
-    local sel=/tmp/.sel
     local file
-    find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
+    file=$(find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
         \! \( -name '__*__' -o -iregex \
         '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) |
         awk -v home="$HOME" 'sub(home, "~")' | 
         fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)' | tee "$sel" | xargs -roI{} vim '{}'
+        awk -v home="$HOME" 'sub("~", home)')
 
-    file=$(<"$sel")
-    command rm "$sel"
-    [ -s "$file" ] && cd "${file%/*}" || return 1
+    if [ -f "$file" ];then 
+        cd "${file%/*}" || return 1
+        vim "$file"
+    fi
 }
 fzumount() {
     command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
