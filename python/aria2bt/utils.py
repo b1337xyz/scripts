@@ -3,6 +3,7 @@ import subprocess as sp
 import shutil
 import logging
 import os
+import re
 
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads')
@@ -33,19 +34,19 @@ def parse_arguments():
     parser = OptionParser(usage=usage)
     parser.add_option('--fzf', action='store_true')
     parser.add_option('--port', type='string', default='6800')
-    parser.add_option('-l', '--list',    action='store_true',
+    parser.add_option('-l', '--list', action='store_true',
                       help='list all torrents')
-    parser.add_option('-r', '--remove',  action='store_true',
+    parser.add_option('-r', '--remove', action='store_true',
                       help='remove chosen torrents')
-    parser.add_option('-p', '--pause',   action='store_true',
+    parser.add_option('-p', '--pause', action='store_true',
                       help='pause chosen torrents')
     parser.add_option('-u', '--unpause', action='store_true',
                       help='unpause chosen torrents')
-    parser.add_option('--pause-all',     action='store_true',
+    parser.add_option('--pause-all', action='store_true',
                       help='pause all torrents')
-    parser.add_option('--unpause-all',   action='store_true',
+    parser.add_option('--unpause-all', action='store_true',
                       help='unpause all torrents')
-    parser.add_option('--remove-all',    action='store_true',
+    parser.add_option('--remove-all', action='store_true',
                       help='remove all torrents')
     parser.add_option('--remove-metadata', action='store_true',
                       help='remove torrents metadata')
@@ -58,7 +59,7 @@ def parse_arguments():
     parser.add_option('--show-gid', action='store_true',
                       help='show gid')
     parser.add_option('--seed', action='store_true',
-                      help='seed-time=0.0')
+                      help='sets seed-time=0.0')
     parser.add_option('-m', '--max-downloads', type='int', metavar='[0-9]+',
                       help='max concurrent downloads')
     parser.add_option('--download-limit', type='string', metavar='<SPEED>',
@@ -67,6 +68,7 @@ def parse_arguments():
                       help='overall upload speed limit')
     parser.add_option('-y', '--yes', action='store_true',
                       help='don\'t ask')
+    parser.add_option('-s', '--save', action='store_true', help='save torrent')
 
     return parser.parse_args()
 
@@ -96,6 +98,11 @@ def is_torrent(file):
     return 'bittorrent' in out or 'octet-stream' in out
 
 
+def get_magnet(file):
+    out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+    return re.search(r'magnet:\?[^\s]+', out).group(1)
+
+
 def get_psize(size):
     units = ["KB", "MB", "GB", "TB", "PB"]
     psize = f"{size} B"
@@ -115,12 +122,8 @@ def get_torrent_name(torrent):
 
 
 def fzf(args):
-    proc = sp.Popen(
-       ["fzf"] + FZF_ARGS,
-       stdin=sp.PIPE,
-       stdout=sp.PIPE,
-       universal_newlines=True
-    )
+    proc = sp.Popen(["fzf"] + FZF_ARGS, stdin=sp.PIPE, stdout=sp.PIPE,
+                    universal_newlines=True)
     out = proc.communicate('\n'.join(args))
     if proc.returncode != 0:
         exit(proc.returncode)

@@ -3,7 +3,8 @@ fonts() {
         tr -d \\n | sed 's/^\s*//' | xclip -sel c
 }
 fzbtm() {
-    find ~/.config/bottom/*.toml | fzf --layout=reverse --height 10 --print0 | xargs -0or btm -C
+    find ~/.config/bottom/*.toml | fzf --layout=reverse \
+        --height 10 --print0 | xargs -0or btm -C
 }
 show() {
     file -Li ~/.local/bin/* | grep --color=never -oP '.*(?=:[\t ]*text/)' |
@@ -15,18 +16,32 @@ ffp() {
         --preview 'bat --style=numbers --color=always --line-range :100 {}'
 }
 e() {
-    find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} -type f -size -100k \
-        \! \( -path '*__*__*' -o -iregex '.*\.\(png\|jpg\)' \)  |
+    local sel=/tmp/.sel
+    local file
+    find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
+        -type f -size -100k -regextype posix-extended \
+        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json)' \) |
         awk -v home="$HOME" 'sub(home, "~")' |
         fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
+        awk -v home="$HOME" 'sub("~", home)' | tee "$sel" | xargs -roI{} vim '{}'
+
+    file=$(<"$sel")
+    command rm "$sel"
+    [ -s "$file" ] && cd "${file%/*}" || return 1
 }
 c() { 
-    find ~/.config -maxdepth 3 -type f -size -100k \
-        \! \( -name '__*__' -o -iregex '.*\.\(bdic\|tdb\|lpl\|spl\|state[0-9]?\|srm\|png\|jpg\|auto\)' \) |
+    local sel=/tmp/.sel
+    local file
+    find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
+        \! \( -name '__*__' -o -iregex \
+        '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) |
         awk -v home="$HOME" 'sub(home, "~")' | 
         fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)' | xargs -roI{} vim '{}'
+        awk -v home="$HOME" 'sub("~", home)' | tee "$sel" | xargs -roI{} vim '{}'
+
+    file=$(<"$sel")
+    command rm "$sel"
+    [ -s "$file" ] && cd "${file%/*}" || return 1
 }
 fzumount() {
     command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
@@ -66,11 +81,13 @@ fzbt() {
         --preview 'aria2c -S {}' --preview-window 'border-sharp'
 }
 alacritty_theme_switcher() {
-    declare -r -x config=~/.config/alacritty/alacritty.yml
-    declare -r -x themes=~/.config/alacritty/themes
+    local config themes
+    config=~/.config/alacritty/alacritty.yml
+    themes=~/.config/alacritty/themes
     cp -v "$config" "${config}.bkp"
     # shellcheck disable=SC2317
     pv() {
+        config=~/.config/alacritty/alacritty.yml
         sed -i "s/\/themes\/.*\.yml$/\/themes\/${1}/" "$config"
         bat --style=numbers --color=always --line-range :15 ~/.bashrc
         ls -x --color=always ~/

@@ -43,7 +43,7 @@ skip_regex = re.compile(r'twitter|patreon|fanbox|pixiv|collection|gallery|hd pac
 
 url = argv[1]
 assert 'e-hentai.org' in url
-logging.info(url)
+logging.info(f'{url = }')
 s = requests.Session()
 s.headers.update({'user-agent': UA})
 r = s.get(url)
@@ -53,6 +53,8 @@ try:
     max_page = max([int(i) for i in page_regex.findall(r.text)])
 except ValueError:
     max_page = 1
+
+sp.run(['notify-send', 'E-hentai downloader started', url])
 
 gallery = list()
 for page in range(curr_page, max_page + 1):
@@ -73,7 +75,7 @@ for gid, token in gallery:
     try:
         url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text).group()
     except Exception:
-        logging.error(f'nothing found: {url}')
+        logging.error(f'nothing found: {url = }')
         continue
 
     try:
@@ -105,12 +107,18 @@ for gid, token in gallery:
     while next_page > curr_page:
         r = s.get(url)
         img = img_regex.search(r.text).group(1)
+        print(img)
         if '/509.gif' in img:
             logging.warning(f'509 ERROR, {url} - {img}')
             break
 
         with open(output, 'a') as fp:
             fp.write(img + '\n')
+        # p = sp.run([
+        #     'aria2c', '--dir', dl_dir, '-U', UA, img
+        # ], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        # if p.returncode != 0:
+        #     logging.error(f'Download finished with errors: {img = }, {argv[1] = }')  # noqa: E501
 
         curr_page = int(url.split('-')[-1])
         url = next_regex.search(r.text).group(1)
@@ -122,4 +130,4 @@ for gid, token in gallery:
         '--input-file', output
     ])
     if p.returncode != 0:
-        logging.error(f'Download finished with errors: {url}, {argv[1]}')
+        logging.error(f'Download finished with errors: {url}, {argv[1] = }')
