@@ -323,9 +323,10 @@ fixext() {
         case "${mimetype%;*}" in
             video/x-msvideo)  ext=avi ;;
             video/x-matroska) ext=mkv ;;
+            video/mp4)        ext=mp4 ;;
+            video/x-m4v)      ext=m4v ;;
             image/jpeg)       ext=jpg ;;
             image/png)        ext=png ;;
-            video/mp4)        ext=mp4 ;;
             *) continue ;;
         esac
         fname=${i%.*}
@@ -412,9 +413,9 @@ toggle_btf_jit() {
     target=/proc/sys/net/core/bpf_jit_enable
     value=$(<"$target")
     case "$value" in
-        1) echo 0 | sudo tee "$target" ;;
-        0) echo 1 | sudo tee "$target" ;;
-    esac
+        1) echo 0 ;;
+        0) echo 1 ;;
+    esac | sudo tee "$target"
 }
 psrmem() {
     ps axch -o cmd,rss --sort=-%mem | head -10 |
@@ -574,6 +575,7 @@ todo() {
     esac
 }
 ftext() {
+    # find text files
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
 }
 paclog() {
@@ -595,7 +597,7 @@ random_anime_quote() {
     curl -s "$url" | jq -Mc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
 }
 random_notepadpp_quote() {
-    # https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Notepad_plus.cpp#L7103
+    # parsed from https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Notepad_plus.cpp#L7103
     local target=~/.cache/notepadpp_quotes.txt
     shuf -n1 "$target" | awk -F':' '{
         a=$1; $1="";
@@ -625,9 +627,9 @@ enable_conservation_mode() {
 }
 maldir() {
     out=/tmp/.mal.$RANDOM
-    mal "$@" | tee "$out" | grep -v ^http | fzf -m | grep -oP '.*\d{4}\)(?=\s+\| \w)' | while read -r i; do
+    mal "$@" | tee "$out" | grep -v ^http | fzf -m | grep -oP '.*\d{4}\)(?=\s+\| \w)' | while read -r i
+    do
         [ -d "$i" ] || mkdir -v "./$i"
     done
-    cat "$out"
-    command rm "$out"
+    cat "$out"; command rm "$out"
 }
