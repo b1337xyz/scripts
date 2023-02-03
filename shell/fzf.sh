@@ -136,6 +136,8 @@ fzpac() {
         --bind 'ctrl-d:execute(sudo downgrade {+})'
 }
 fzman() {
+    [ -z "$1" ] && { printf 'Usage: fzman term\n'; return 1; }
+
     # shellcheck disable=SC2016
     man -P cat "$1" 2>/dev/null | grep '^[A-Z]' |
         sed -e '1d' -e '$ d' | fzf |
