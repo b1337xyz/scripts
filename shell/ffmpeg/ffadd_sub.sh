@@ -1,5 +1,5 @@
 #!/bin/sh
-set -ex
+set -e
 
 for i in "$@";do
     mimetype=$(file -Lbi -- "$i")
