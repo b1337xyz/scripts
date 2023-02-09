@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from utils import *
 from sys import argv
-import xmlrpc.client
 from time import sleep
+import xmlrpc.client
 
 FIFO = '/tmp/aria2notify.fifo'
 
@@ -45,23 +45,20 @@ def main(gid):
 
     while os.path.exists(FIFO):
         with open(FIFO, 'r') as fifo:
-            data = fifo.read()
+            data = [i for i in fifo.read().split('\n') if i]
         if len(data) == 0:
             break
 
-        for gid in data.split('\n'):
-            if not gid:
-                continue
-
+        for gid in data:
             try:
-                torrent_handler(session, gid.strip())
+                torrent_handler(session, gid)
             except Exception as err:
                 logging.error(f'{err}: {gid}')
 
 
 if os.path.exists(FIFO):
     with open(FIFO, 'w') as fifo:
-        fifo.write(argv[1] + '\n')
+        fifo.write(f'{argv[1]}\n')  # write gid
 else:
     try:
         main(argv[1])

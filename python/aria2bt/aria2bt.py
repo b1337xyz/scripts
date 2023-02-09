@@ -203,7 +203,7 @@ if __name__ == '__main__':
         print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:
         print(s.aria2.changeGlobalOption({
-            'max-concurrent-downloads': opts.max_downloads
+            'max-concurrent-downloads': str(opts.max_downloads)
         }))
     elif opts.download_limit:
         print(s.aria2.changeGlobalOption({

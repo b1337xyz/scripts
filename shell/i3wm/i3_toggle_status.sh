@@ -1,5 +1,5 @@
 #!/bin/sh
-conf=~/.config/i3/config
+conf=~/.config/i3/theme
 if grep -q ' status_command' "$conf" ;then
     sed -i 's/ status_command/ #status_command/g' "$conf"
 elif grep -q '#status_command' "$conf" ;then
