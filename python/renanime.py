@@ -19,7 +19,7 @@ parser.add_option('-l', '--link', action='store_true',
 parser.add_option('-p', '--path', type='string', default='.',
                   help='path to folder (default: current directory)')
 parser.add_option('-r', '--rename', action='store_true',
-                  help='rename/link file itself, insted of to a folder')
+                  help='rename/link file itself, instead of moving to a folder')
 parser.add_option('-f', '--files-only', action='store_true')
 parser.add_option('--fzf', action='store_true')
 parser.add_option('--year', type='int')
@@ -27,8 +27,8 @@ opts, args = parser.parse_args()
 
 assert os.path.isdir(opts.path)
 if opts.rename:
-    assert len(args) == 1
-    assert os.path.isdir(args[0])
+    assert len(args) > 0
+    assert all([os.path.isdir(i) for i in args])
 if opts.fzf:
     assert which('fzf')
 
@@ -72,7 +72,7 @@ def cleanup_filename(string: str) -> str:
         r's\d+e\d+',
         r'(?:tnnac.animax|test.kun|(?:multi.?)?mattmurdock)',
         r'(?:xvid|\w fansub| tv| dvd| hd|blu.?ray| \d+p|flac|opus)',  # noqa: E501
-        r'(?:epis.d[ie]o|ep?|sp)?\s?\d+.?(?:v\d+|final)?',
+        r'(?:epis.d[ie]o|\sep?|sp)?\s?\d+.?(?:v\d+|final)?',
         r"(?ui)\W",
     ]
 
