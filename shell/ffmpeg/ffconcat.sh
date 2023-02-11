@@ -7,6 +7,7 @@ for i in "$@";do
     file -Lbi -- "$i" 2>/dev/null |
         grep -q '^image' && echo "file '$i'"
 done > "$tmpfile"
+# shellcheck disable=SC2094
 tac "$tmpfile" >> "$tmpfile"
 
 ffmpeg -nostdin -v 24 -stats -y \

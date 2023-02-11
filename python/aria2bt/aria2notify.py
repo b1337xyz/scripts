@@ -16,7 +16,11 @@ def torrent_handler(session, gid):
     status = torrent['status']
     size = get_psize(int(torrent["totalLength"]))
     is_metadata = torrent_name.startswith('[METADATA]')
-    torrent_file = os.path.join(torrent_dir, torrent['infoHash'] + '.torrent')
+    try:
+        infohash = torrent['infoHash']
+        torrent_file = os.path.join(torrent_dir, f'{infohash}.torrent')
+    except KeyError:  # not a torrent
+        torrent_file = ''
 
     if status == 'complete':
         if is_metadata:

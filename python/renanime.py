@@ -70,7 +70,7 @@ def cleanup_filename(string: str) -> str:
         r'\.(?:bd|flac(?:\d\.\d)?|hevc|x265)\.',
         r'[_\-\.]',
         r's\d+e\d+',
-        r'(?:tnnac.animax|test.kun|(?:multi.?)?mattmurdock)',
+        r'(?:tnnac.animax|test.kun|(?:multi.?)?mattmurdock|abertura|encerramento|unico)',  # noqa: E501
         r'(?:xvid|\w fansub| tv| dvd| hd|blu.?ray| \d+p|flac|opus)',  # noqa: E501
         r'(?:epis.d[ie]o|\sep?|sp)?\s?\d+.?(?:v\d+|final)?',
         r"(?ui)\W",
