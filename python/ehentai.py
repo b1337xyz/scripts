@@ -38,7 +38,7 @@ title_regex = re.compile(r'<h1 id="gn">([^<]*)</h1>')
 title_regex_fallback = re.compile(r'<title>([^<]*)</title>')
 next_regex = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
 artist_regex = re.compile(r'<a id="ta_artist:([^\"]*)')
-skip_regex = re.compile(r'twitter|patreon|fanbox|pixiv|collection|gallery|hd pack', re.IGNORECASE)  # noqa: E501
+skip_regex = re.compile(r'twitter|collection|gallery|hd pack', re.IGNORECASE)  # noqa: E501
 
 
 url = argv[1]
