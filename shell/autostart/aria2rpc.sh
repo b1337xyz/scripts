@@ -9,9 +9,10 @@ set -- -D -V --enable-rpc \
     --on-download-pause="${script}" \
     --on-download-stop="${script}" \
     --on-download-start="${script}" \
+    --save-session="$session" \
     --save-session-interval=30
 
-if [ -f "$session" ];then
+if [ -s "$session" ];then
     aria2c "$@" --input-file="$session"
 else
     aria2c "$@" --save-session="$session"

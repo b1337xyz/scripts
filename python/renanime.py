@@ -19,7 +19,7 @@ parser.add_option('-l', '--link', action='store_true',
 parser.add_option('-p', '--path', type='string', default='.',
                   help='path to folder (default: current directory)')
 parser.add_option('-r', '--rename', action='store_true',
-                  help='rename/link file itself, instead of moving to a folder')
+                  help='rename/link file itself instead of moving to a folder')
 parser.add_option('-f', '--files-only', action='store_true')
 parser.add_option('--fzf', action='store_true')
 parser.add_option('--year', type='int')
@@ -36,7 +36,7 @@ YEAR = opts.year
 USE_ANILIST = opts.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
-RE_EXT = re.compile(r'\.(?:mkv|avi|rmvb|mp4|webm|m4v)$')
+RE_EXT = re.compile(r'\.(?:mkv|avi|rmvb|mp4|webm|m4v|ogm)$')
 HOME = os.getenv('HOME')
 RED = '\033[1;31m'
 GRN = '\033[1;32m'
@@ -77,7 +77,8 @@ def cleanup_filename(string: str) -> str:
     ]
 
     # string = re.sub(r's(\d+?)e\d+', r'season \1', string).lower()
-    string = re.sub(r'/+$', '', string).split('/')[-1].lower()
+    string = re.sub(r'/+$', '', string).split('/')[-1].lower().replace(
+        'especial', 'special')
     for p in patterns:
         new_string = re.sub(p, ' ', string).strip()
         new_string = re.sub(r'\s{2,}', ' ', new_string)
