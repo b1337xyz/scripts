@@ -491,19 +491,14 @@ lifetime() {
         printf("%s: %.0f days, %.0f hours\n", dev, d, h)
     }' 
 }
+_test() {
+    python3 -c 'print("".join(__import__("sys").stdin).strip())'
+}
 quote() {
-    python3 -c '
-from sys import stdin, stdout
-from urllib.parse import quote
-for i in stdin:
-    stdout.write(quote(i.strip()) + "\n")'
+    python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'
 }
 unquote() {
-    python3 -c '
-from sys import stdout, stdin
-from urllib.parse import unquote
-for i in stdin:
-    stdout.write(unquote(i.strip()) + "\n")'
+    python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
 }
 last_modified() {
     stat -c '%Z' "${@:-.}" | xargs -rI{} date --date='@{}' '+%s %b %d %H:%M %Y' |

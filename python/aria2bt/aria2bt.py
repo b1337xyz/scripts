@@ -60,7 +60,6 @@ def add_torrent(torrent):
     }
     if os.path.isfile(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
-            options.update({'rpc-save-upload-metadata': 'false'})
             with open(torrent, 'rb') as fp:
                 try:
                     s.aria2.addTorrent(

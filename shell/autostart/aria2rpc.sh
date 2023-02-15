@@ -15,5 +15,5 @@ set -- -D -V --enable-rpc \
 if [ -s "$session" ];then
     aria2c "$@" --input-file="$session"
 else
-    aria2c "$@" --save-session="$session"
+    aria2c "$@" 
 fi
