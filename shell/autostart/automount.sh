@@ -27,7 +27,7 @@ do
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
         sudo mount "$devname" "$mp" -o noatime
-	ln -vsf "$mp" ~/mnt
+        ln -vsf "$mp" ~/mnt
         notify-send -i drive-harddisk "$label mounted" "$mp" 2>/dev/null || true
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
         sleep 1
