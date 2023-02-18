@@ -433,15 +433,9 @@ pacman_unessential() {
 }
 ffstr() {
     # Usage: `ffstr <video>`
-    verbose=0
-    for i in "$@";do
-        case "$i" in
-            -v|--verbose) verbose=1 ;;
-        esac
-    done
     for i in "$@";do
         [ -f "$i" ] || continue
-        [ "$verbose" -eq 1 ] && printf 'File: \e[1;35m%s\e[m\n' "$i"
+        [ "$#" -gt 1 ] && printf 'File: \e[1;35m%s\e[m\n' "$i"
         ffmpeg -i "$i" 2>&1 | awk '
         BEGIN { c=0 }
         {
@@ -621,7 +615,7 @@ enable_conservation_mode() {
     echo "${1:-1}" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
 }
 maldir() {
-    out=/tmp/.mal.$RANDOM
+    out=/tmp/.mal.$$
     mal "$@" | tee "$out" | grep -v ^http | fzf -m | grep -oP '.*\d{4}\)(?=\s+\| \w)' | while read -r i
     do
         [ -d "$i" ] || mkdir -v "./$i"
