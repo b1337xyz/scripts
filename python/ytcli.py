@@ -2,6 +2,7 @@
 from optparse import OptionParser
 from html import unescape
 from random import choice, shuffle
+from time import sleep
 import googleapiclient.discovery
 import json
 import os
@@ -14,8 +15,12 @@ import sys
 # mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
+if os.system('pgrep -f "mpv --profile=radio"') != 0:
+    sp.Popen(['mpv', '--profile=radio'],
+             shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+
 TMPDIR = os.getenv('TMPDIR', '/tmp')
-PLAYLIST = os.path.join(TMPDIR, 'mpv.m3u')
+PLAYLIST = os.path.join(TMPDIR, 'mpvradio.m3u')
 SOCKET_PATH = os.path.join(TMPDIR, 'mpvradio')
 HOME = os.getenv('HOME')
 HIST = os.path.join(HOME, '.cache/yt_history')
