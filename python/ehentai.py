@@ -8,11 +8,19 @@ import os
 import re
 import requests
 import subprocess as sp
+import xmlrpc.client
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'  # noqa: E501
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
 LOG = os.path.join(HOME, '.cache/ehentai.log')
+PORT = '6800'   # RPC port
+ARIA2_CONF = {  # RPC config
+    'dir': DL_DIR,
+    'force-save': 'false',
+    'check-integrity': 'false',
+    'max-concurrent-downloads': 5
+}
 
 logging.basicConfig(
     filename=LOG,
@@ -39,7 +47,7 @@ title_regex_fallback = re.compile(r'<title>([^<]*)</title>')
 next_regex = re.compile(r'<a id="next"[^>]*href=\"([^\"]*-\d+)\"')
 artist_regex = re.compile(r'<a id="ta_artist:([^\"]*)')
 skip_regex = re.compile(r'twitter|collection|gallery|hd pack', re.IGNORECASE)  # noqa: E501
-
+skip_regex = None
 
 url = argv[1]
 assert 'e-hentai.org' in url
@@ -55,7 +63,6 @@ except ValueError:
     max_page = 1
 
 sp.run(['notify-send', 'E-hentai downloader started', url])
-
 gallery = list()
 for page in range(curr_page, max_page + 1):
     for link in gallery_regex.findall(r.text):
@@ -68,6 +75,8 @@ for page in range(curr_page, max_page + 1):
             url += f'&page={page}' if '?' in url else f'&page={page}'
         r = s.get(url)
 
+
+session = xmlrpc.client.ServerProxy(f'http://localhost:{PORT}/rpc')
 for gid, token in gallery:
     url = f'https://e-hentai.org/g/{gid}/{token}/'
     r = s.get(url)
@@ -96,38 +105,22 @@ for gid, token in gallery:
     except AttributeError:
         dl_dir = os.path.join(DL_DIR, title)
 
-    if skip_regex.search(title):
+    if skip_regex and skip_regex.search(title):
         logging.info(f'Skipping: {title}')
         continue
 
+    ARIA2_CONF.update({'dir': dl_dir})
     curr_page = 0
     next_page = curr_page + 1
-    output = '/tmp/.ehentai'
-    open(output, 'w').close()
     while next_page > curr_page:
         r = s.get(url)
         img = img_regex.search(r.text).group(1)
-        print(img)
         if '/509.gif' in img:
             logging.warning(f'509 ERROR, {url} - {img}')
             break
 
-        with open(output, 'a') as fp:
-            fp.write(img + '\n')
-        # p = sp.run([
-        #     'aria2c', '--dir', dl_dir, '-U', UA, img
-        # ], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-        # if p.returncode != 0:
-        #     logging.error(f'Download finished with errors: {img = }, {argv[1] = }')  # noqa: E501
-
+        session.aria2.addUri([img], ARIA2_CONF)
         curr_page = int(url.split('-')[-1])
         url = next_regex.search(r.text).group(1)
         next_page = int(url.split('-')[-1])
-        sleep(random() * .5)
-
-    p = sp.run([
-        'aria2c', '-x', '6', '-s', '6', '--dir', dl_dir, '-U', UA,
-        '--input-file', output
-    ])
-    if p.returncode != 0:
-        logging.error(f'Download finished with errors: {url}, {argv[1] = }')
+        sleep(random() * .3)

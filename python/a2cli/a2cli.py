@@ -4,35 +4,34 @@ import json
 import sys
 import xmlrpc.client
 
-# Before running this start aria2c with:
-# $ aria2c --enable-rpc
 
-
-def get_torrents(torrents):
-    if not torrents:
+def select(downloads):
+    if not downloads:
         return []
+    if len(downloads) == 1:
+        return downloads
 
     if USE_FZF:
         return [
-            torrents[int(i.split(':')[0])]
+            downloads[int(i.split(':')[0])]
             for i in fzf([
-                f'{i}:{get_torrent_name(v)} [{v["status"]}]'
-                for i, v in enumerate(torrents)
+                f'{i}:{get_name(v)} [{v["status"]}]'
+                for i, v in enumerate(downloads)
             ])
         ]
 
-    for i, v in enumerate(torrents):
-        torrent_name = get_torrent_name(v)
+    for i, v in enumerate(downloads):
+        name = get_name(v)
         max_len = 80
-        if len(torrent_name) > max_len:
-            torrent_name = torrent_name[:max_len - 3] + '...'
+        if len(name) > max_len:
+            name = name[:max_len - 3] + '...'
         size = get_psize(int(v['totalLength']))
-        print(f'{i:3}: [{v["status"]}] {torrent_name} {size:10}')
+        print(f'{i:3}: [{v["status"]}] {name} {size:10}')
 
     while True:
         try:
-            torrents = [
-                torrents[int(i.strip())]
+            selected = [
+                downloads[int(i.strip())]
                 for i in input(': ').split()
             ]
             break
@@ -41,14 +40,15 @@ def get_torrents(torrents):
         except KeyboardInterrupt:
             print('\nbye')
             sys.exit(0)
-    return torrents
+    return selected
 
 
 def get_all():
-    waiting = s.aria2.tellWaiting(0, MAX_TORRENTS)
-    stopped = s.aria2.tellStopped(0, MAX_TORRENTS)
+    waiting = s.aria2.tellWaiting(0, MAX)
+    stopped = s.aria2.tellStopped(0, MAX)
     active = s.aria2.tellActive()
-    return sorted([] + waiting + stopped + active, key=lambda x: x['status'], reverse=True)
+    return sorted([] + waiting + stopped + active,
+                  key=lambda x: x['status'], reverse=True)
 
 
 def add_torrent(torrent):
@@ -76,17 +76,17 @@ def add_torrent(torrent):
         s.aria2.addUri([torrent], options)
 
 
-def list_torrents():
+def list_all():
     for i in get_all():
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
         p = 0 if size == 0 else completed_length * 100 // size
         psize = get_psize(size)
         plen = get_psize(completed_length)
-        torrent_name = get_torrent_name(i)
+        name = get_name(i)
         max_len = 80
-        if len(torrent_name) > max_len:
-            torrent_name = torrent_name[:max_len - 3] + '...'
+        if len(name) > max_len:
+            name = name[:max_len - 3] + '...'
         status = i['status']
         gid = i['gid']
         if status == 'active':
@@ -94,35 +94,35 @@ def list_torrents():
             # seeders = i['numSeeders']
             print('{}[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed,
-                status, torrent_name
+                status, name
             ))
         else:
             print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize,
-                status, torrent_name
+                status, name
             ))
 
 
 def pause():
-    torrents = s.aria2.tellActive()
-    for torrent in get_torrents(torrents if torrents else []):
-        s.aria2.pause(torrent['gid'])
+    downloads = s.aria2.tellActive()
+    for dl in select(downloads):
+        s.aria2.pause(dl['gid'])
 
 
 def unpause():
-    torrents = s.aria2.tellWaiting(0, MAX_TORRENTS)
-    for torrent in get_torrents(torrents):
-        s.aria2.unpause(torrent['gid'])
+    downloads = s.aria2.tellWaiting(0, MAX)
+    for dl in select(downloads):
+        s.aria2.unpause(dl['gid'])
 
 
-def remove(torrents=[]):
-    if not torrents:
-        torrents = get_torrents(get_all())
+def remove(downloads=[]):
+    if not downloads:
+        downloads = select(get_all())
 
-    for torrent in torrents:
-        torrent_name = get_torrent_name(torrent)
-        gid = torrent['gid']
-        if torrent['status'] in ['active', 'waiting']:
+    for dl in downloads:
+        name = get_name(dl)
+        gid = dl['gid']
+        if dl['status'] in ['active', 'waiting']:
             try:
                 s.aria2.remove(gid)
             except Exception as err:
@@ -135,7 +135,7 @@ def remove(torrents=[]):
                 print(err)
                 s.aria2.forceRemove(gid)
 
-        print(torrent_name, 'removed')
+        print(name, 'removed')
 
 
 def remove_all(dont_ask=False, status=None):
@@ -147,24 +147,23 @@ def remove_all(dont_ask=False, status=None):
 
 
 def remove_metadata(status=None):
-    torrents = s.aria2.tellStopped(0, MAX_TORRENTS)
-    for torrent in torrents:
-        if status and status != torrent['status']:
+    for dl in s.aria2.tellStopped(0, MAX):
+        if status and status != dl['status']:
             continue
-        torrent_name = get_torrent_name(torrent)
-        gid = torrent['gid']
-        if torrent_name.startswith('[METADATA]'):
+        name = get_name(dl)
+        gid = dl['gid']
+        if name.startswith('[METADATA]'):
             try:
                 s.aria2.removeDownloadResult(gid)
-                print(torrent_name, 'removed')
+                print(name, 'removed')
             except Exception as err:
                 print(err)
 
 
 def move_to_top():
-    torrents = s.aria2.tellWaiting(0, MAX_TORRENTS)
+    downloads = s.aria2.tellWaiting(0, MAX)
     try:
-        gid = get_torrents(torrents)[0]['gid']
+        gid = select(downloads)[0]['gid']
     except IndexError:
         return
     s.aria2.changePosition(gid, 0, 'POS_SET')
@@ -179,7 +178,7 @@ if __name__ == '__main__':
     SHOW_GID = opts.show_gid
 
     if opts.list:
-        list_torrents()
+        list_all()
     elif opts.remove:
         remove()
     elif opts.remove_all:
@@ -224,5 +223,7 @@ if __name__ == '__main__':
                     with open(arg, 'r') as fp:
                         magnet = fp.readline().strip()
                     add_torrent(magnet)
+            elif is_uri(arg):
+                s.aria2.addUri([arg], {'dir': DL_DIR})
     else:
-        list_torrents()
+        list_all()
