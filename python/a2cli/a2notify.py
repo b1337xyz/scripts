@@ -3,6 +3,7 @@ from urllib.request import Request, urlopen
 from sys import argv, exit
 from time import sleep
 from shutil import move
+import logging
 import subprocess as sp
 import json
 import os
@@ -14,6 +15,15 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
+
+logging.basicConfig(
+    filename=LOG,
+    encoding='utf-8',
+    filemode='a',
+    level=logging.INFO,
+    format='%(asctime)s:%(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
 
 def request(method, params):
@@ -32,7 +42,7 @@ def request(method, params):
         with urlopen(r, jsonreq) as data:
             return json.loads(data.read().decode('utf-8'))["result"]
     except Exception as err:
-        print(err)
+        logging.error(str(err))
 
 
 def get_name(info):
@@ -76,15 +86,15 @@ def notify(title, msg, icon='emblem-downloads'):
 
 
 def on_complete():
+    request('removeDownloadResult', gid)
     if is_metadata:
-        notify(f'{status}', name)
         if os.path.exists(torrent_file):
             mv(torrent_file, CACHE)
+        notify(f'{status}', name)
     else:
-        notify(f"{status}", f'{name}\nSize: {size}')
         if os.path.exists(path) and _dir == TEMP_DIR:
             mv(path, DL_DIR)
-    request('removeDownloadResult', gid)
+        notify(f"{status}", f'{name}\nSize: {size}')
 
 
 if __name__ == '__main__':
@@ -102,7 +112,7 @@ if __name__ == '__main__':
     torrent_file = get_torrent_file(info)
 
     match status:
-        case 'compelte':
+        case 'complete':
             on_complete()
         case 'error':
             notify(f"{status}", name, icon='dialog-error')
