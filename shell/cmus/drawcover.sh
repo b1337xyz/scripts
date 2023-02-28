@@ -22,7 +22,7 @@ end() {
     printf '{"action": "remove", "identifier": "test"}\n' > "$FIFO"
     rm "$FIFO" "$PIDFILE" 2>/dev/null
 }
-trap end EXIT INT HUP
+trap end EXIT
 
 read -r lins cols < <(</dev/tty stty size)
 width=25

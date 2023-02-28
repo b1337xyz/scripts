@@ -16,7 +16,7 @@ tmpfile=$(mktemp)
 end() {
     rm "$tmpfile" 2>/dev/null || true
 }
-trap end INT HUP EXIT
+trap end EXIT
 
 get_posts() { grep -oP '(?<=href\=\")/\w*/user/.*/post/\d*(?=")'; }
 logging() { echo "[$(date '+%Y.%m.%d %H:%M:%S')][$user] $*" >> "$log"; }

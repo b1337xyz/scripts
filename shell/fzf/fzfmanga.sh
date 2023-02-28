@@ -63,7 +63,7 @@ search() {
         \( -type d -o -type l \) | sort -V
 }
 export -f preview main search
-trap finalise EXIT HUP INT
+trap finalise EXIT
 start_ueberzug
 
 header="ctrl-o open

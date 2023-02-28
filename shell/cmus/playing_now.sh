@@ -8,7 +8,7 @@ LOCK=/tmp/.cmus
 
 [ -e "$LOCK" ] && exit 1
 :>"$LOCK"
-trap 'rm $LOCK' EXIT HUP INT
+trap 'rm $LOCK' EXIT
 
 [ -d "$COVER" ] || mkdir -vp "$COVER"
 

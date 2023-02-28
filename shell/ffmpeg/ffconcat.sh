@@ -2,7 +2,7 @@
 set -e
 
 tmpfile=$(mktemp tmp.XXXXXXXX)
-trap 'rm "$tmpfile"' EXIT INT HUP
+trap 'rm "$tmpfile"' EXIT
 for i in "$@";do
     file -Lbi -- "$i" 2>/dev/null |
         grep -q '^image' && echo "file '$i'"

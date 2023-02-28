@@ -9,7 +9,7 @@ MP=/mnt/"$USER"
 lock=/tmp/.automount.lock
 [ -f "$lock" ] && exit 0
 :>"$lock"
-trap 'rm "$lock" 2>/dev/null' EXIT INT HUP
+trap 'rm "$lock" 2>/dev/null' EXIT
 
 get_devname() {
     udevadm info -p /sys/"$1" | awk -v FS== '/DEVNAME/{print $2}'

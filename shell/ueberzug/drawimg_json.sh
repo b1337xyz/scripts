@@ -10,7 +10,7 @@ end() {
     printf '{"action": "remove", "identifier": "test"}\n' > "$FIFO"
     rm "$FIFO" 2>/dev/null
 }
-trap end EXIT INT HUP
+trap end EXIT
 tail --follow "$FIFO" | ueberzug layer --parser json &
 
 clear
