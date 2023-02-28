@@ -33,6 +33,7 @@ def parse_arguments():
     usage = 'Usage: %prog [options] [FILE | URI]'
     parser = OptionParser(usage=usage)
     parser.add_option('--fzf', action='store_true')
+    parser.add_option('-w', '--watch', action='store_true')
     parser.add_option('--port', type='string', default='6800')
     parser.add_option('-l', '--list', action='store_true',
                       help='list all downloads')
@@ -93,7 +94,7 @@ def notify(title, msg, icon='emblem-downloads'):
 
 
 def is_uri(string: str) -> bool:
-    return ininstance(re.match(r'\w+:(:?\/?\/?)[^\s]+', string), re.Match)
+    return isinstance(re.match(r'\w+:(:?\/?\/?)[^\s]+', string), re.Match)
 
 
 def is_torrent(file):

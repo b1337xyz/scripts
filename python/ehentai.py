@@ -120,6 +120,7 @@ def main(url):
                 logging.warning(f'509 ERROR, {url} - {img}')
                 break
 
+            logging.info(img)
             session.aria2.addUri([img], ARIA2_CONF)
             curr_page = int(url.split('-')[-1])
             url = next_regex.search(r.text).group(1)

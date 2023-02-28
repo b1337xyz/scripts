@@ -56,7 +56,7 @@ arc() {
     # Archive file
     local filename basename archive
     shopt -s extglob
-    filename=${1%%+(/)} # remove `/+` if present at the end of "$1" (requires extglob)
+    filename=${1%%+(/)} # remove `///...` if present at the end of "$1" (requires extglob)
     shopt -u extglob
     basename=${filename##*/}
     archive=${basename}.tar
@@ -200,7 +200,7 @@ ren5sum() {
     done
 }
 sort_by_year() {
-    # Given the following folders in the current directory :
+    # Given the following folders in the current directory:
     #   Folder (2013)
     #   Folder (2009)
     #   Folder (2000)
@@ -429,7 +429,7 @@ freq() {
 }
 pacman_unessential() {
     grep -vFf <(pacman -Sl core | awk '/\[installed\]/{print $2}') <(pacman -Qq) |
-        awk '{print} END {printf("total: %s unessential packages installed\n", NR)}' 
+        awk '{print} END {printf("%s unessential packages installed\n", NR)}' 
 }
 ffstr() {
     # Usage: `ffstr <video>`
@@ -450,8 +450,7 @@ ffstr() {
 }
 show_reserved() {
     [ -b "$1" ] || return 1
-    sudo tune2fs -l "$1" | awk -F':' '
-    {
+    sudo tune2fs -l "$1" | awk -F':' '{
         if ( $0 ~ /^Block count/)
             block_count = $2 + 0
 
@@ -462,7 +461,6 @@ show_reserved() {
                 exit
             }
         }
-
     } END {
         if (reserved)
             printf("%.1f%%\n", reserved * 100 / block_count)
@@ -484,9 +482,6 @@ lifetime() {
     } END {
         printf("%s: %.0f days, %.0f hours\n", dev, d, h)
     }' 
-}
-_test() {
-    python3 -c 'print("".join(__import__("sys").stdin).strip())'
 }
 quote() {
     python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'

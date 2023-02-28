@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from utils import *
+from time import sleep
 import json
 import sys
 import xmlrpc.client
@@ -225,5 +226,15 @@ if __name__ == '__main__':
                     add_torrent(magnet)
             elif is_uri(arg):
                 s.aria2.addUri([arg], {'dir': DL_DIR})
+            else:
+                print(f'Unrecognized URI: {arg}')
+    elif opts.watch:
+        try:
+            while True:
+                os.system('clear')
+                list_all()
+                sleep(8)
+        except KeyboardInterrupt:
+            pass
     else:
         list_all()
