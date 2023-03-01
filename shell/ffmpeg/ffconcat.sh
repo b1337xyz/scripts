@@ -7,8 +7,9 @@ for i in "$@";do
     file -Lbi -- "$i" 2>/dev/null |
         grep -q '^image' && echo "file '$i'"
 done > "$tmpfile"
+printf 'tac? [y/N] '; read -r ask
 # shellcheck disable=SC2094
-tac "$tmpfile" >> "$tmpfile"
+[ "$ask" = y ] && tac "$tmpfile" >> "$tmpfile"
 
 ffmpeg -nostdin -v 24 -stats -y \
     -r 10 -f concat -safe 0     \

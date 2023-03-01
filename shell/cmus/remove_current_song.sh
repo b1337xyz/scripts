@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 song=$(cmus-remote -Q | grep -oP '(?<=^file ).*' | head -1)
 if [ -f "$song" ];then
     ask=$(printf 'No\nYes' | dmenu -l 2 -i -p "remove '${song}'?")
