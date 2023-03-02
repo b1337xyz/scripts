@@ -575,6 +575,7 @@ paclog() {
         x = substr($1, length($1)-1)
     }' | tac
 }
+random_quote() { curl -s http://metaphorpsum.com/sentences/1; echo; }
 random_anime_quote() {
     # Default rate limit is 100 requests per hour.
     local url="https://animechan.vercel.app/api/random"

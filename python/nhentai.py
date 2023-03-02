@@ -8,7 +8,7 @@ import re
 import requests
 import subprocess as sp
 import xmlrpc.client
-
+import sys
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
@@ -24,44 +24,29 @@ ICON = ICON if os.path.exists(ICON) else 'folder-download'
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
-    parser.add_option(
-        '-d', '--dir', dest='dl_dir', default=DL_DIR, metavar='DIR',
-        help='download directory'
-    )
-    parser.add_option(
-        '-i', '--input-file', dest='input_file', metavar='FILE',
-        action='store', help='Download URLs found in FILE'
-    )
+    parser.add_option('-d', '--dir', dest='dl_dir', default=DL_DIR,
+                      metavar='DIR', help='download directory')
+    parser.add_option('-i', '--input-file', dest='input_file', metavar='FILE',
+                      action='store', help='Download URLs found in FILE')
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
     return opts, args
 
 
-def is_torrent(file_path):
-    cmd = ['file', '-Lbi', file_path]
-    out = sp.run(cmd, stdout=sp.PIPE).stdout.decode()
-    return 'bittorrent' in out or 'octet-stream' in out
-
-
 def notify(msg):
-    sp.Popen(['notify-send', '-i', ICON, 'nhentai-dl', msg])
+    try:
+        sp.Popen(['notify-send', '-i', ICON, 'nhentai-dl', msg])
+    except Exception:
+        pass
 
 
 def download(session, url, dl_dir, fname):
     file = os.path.join(dl_dir, fname)
     if not os.path.exists(file):
-        try:
-            r = session.get(url, stream=True)
-            with open(file, 'wb') as fp:
-                fp.write(r.raw.read())
-        except Exception as err:
-            print(f'Failed to download torrent "{url}"\nError: {err}')
-
-    if not is_torrent(file):
-        os.remove(file)
-        raise TypeError(f'"{file}" not a torrent')
-
+        r = session.get(url, stream=True)
+        with open(file, 'wb') as fp:
+            fp.write(r.raw.read())
     return file
 
 
@@ -85,11 +70,7 @@ def main(urls):
         [i.split('=') for i in COOKIE.split(';')]
     ]
     for cookie in cookies:
-        s.cookies.set(
-            cookie['name'],
-            cookie['value'],
-            domain=DOMAIN
-        )
+        s.cookies.set(cookie['name'], cookie['value'], domain=DOMAIN)
 
     if not os.path.exists(DL_DIR):
         os.mkdir(DL_DIR)
@@ -147,27 +128,18 @@ def main(urls):
                 print(f'Error reading torrent\n{err}')
                 continue
 
-            try:
-                aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
-                    'rpc-save-upload-metadata': 'false',
-                    'force-save': 'false',
-                    'dir': dl_dir
-                })
-            except Exception as err:
-                print(f'Error downloading torrent\n{err}')
-                continue
-
-        # [os.remove(i) for i in torrents if os.path.exists(i)]
+            aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
+                'rpc-save-upload-metadata': 'false',
+                'force-save': 'false',
+                'dir': dl_dir
+            })
 
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
-    if os.path.exists(LOCK):
-        print(f'waiting for lock file to be deleted..., {LOCK}')
     while os.path.exists(LOCK):
+        print(f'waiting for lock file to be deleted..., {LOCK}', end='\r')
         sleep(5)
-
-    aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
 
     with open(CONFIG, 'r') as fp:
         config = json.load(fp)
@@ -177,14 +149,15 @@ if __name__ == '__main__':
         COOKIE = config['cookie']
     except KeyError:
         print("Cookie or User-Agent not defined")
-        exit(1)
+        sys.exit(1)
 
     if opts.input_file:
         with open(opts.input_file, 'r') as fp:
             urls = [i.strip() for i in fp.readlines() if DOMAIN in i]
     else:
-        urls = [i for i in args if DOMAIN in i]
+        urls = [i.strip() for i in args if DOMAIN in i]
 
+    aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
     try:
         open(LOCK, 'w').close()
         main(urls)
