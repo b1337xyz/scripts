@@ -233,7 +233,7 @@ if __name__ == '__main__':
             while True:
                 os.system('clear')
                 list_all()
-                sleep(8)
+                sleep(5)
         except KeyboardInterrupt:
             pass
     else:
