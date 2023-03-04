@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from urllib.parse import unquote
 import subprocess as sp
 import shutil
 import logging
@@ -70,6 +71,7 @@ def parse_arguments():
     parser.add_option('-y', '--yes', action='store_true',
                       help='don\'t ask')
     parser.add_option('-s', '--save', action='store_true', help='save torrent')
+    parser.add_option('--list-gids', action='store_true')
 
     return parser.parse_args()
 
@@ -122,7 +124,16 @@ def get_name(info):
     try:
         return info['bittorrent']['info']['name']
     except KeyError:
-        return info['files'][0]['path']
+        pass
+
+    path = info['files'][0]['path']
+    if path:
+        return path.split('/')[-1]
+
+    try:
+        return unquote(info['files'][0]['uris'][0]['uri'].split('/')[-1])
+    except Exception as err:
+        return info['gid']
 
 
 def fzf(args):

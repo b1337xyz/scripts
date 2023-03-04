@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import xmlrpc.client
-import subprocess as sp
-import os
-import json  # noqa: F401
-import sys
-from threading import Thread
 from optparse import OptionParser
+from threading import Thread
+from urllib.parse import unquote
+import json  # noqa: F401
+import os
+import subprocess as sp
+import sys
 import traceback
+import xmlrpc.client
 
 PORT = 6800
 FIFO = 'test.fifo'
@@ -17,9 +18,13 @@ HOME = os.getenv('HOME')
 CACHE = os.path.join(HOME, '.cache/torrents')
 DL_DIR = os.path.join(HOME, 'Downloads')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
+
+LABEL = '╢ a-p a-u a-t a-r c-r c-a ╟'
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
-    '--border=none', '--preview-window', 'up:40%',
+    '--border=bottom', '--preview-window', 'up:40%',
+    '--border-label', LABEL,
+    '--padding', '0,0,2%',
     '--preview', f"printf '%s\\n' {{}} > {PREVIEW}; cat {PREVIEW}",
     f"--bind=alt-p:reload(printf '%s\\n' pause {{+}} > {FIFO}; cat {FIFO})",
     f"--bind=alt-u:reload(printf '%s\\n' unpause {{+}} > {FIFO}; cat {FIFO})",
@@ -60,7 +65,16 @@ def get_name(data):
     try:
         return data['bittorrent']['info']['name']
     except KeyError:
-        return data['files'][0]['path']
+        pass
+
+    path = data['files'][0]['path']
+    if path:
+        return path.split('/')[-1]
+
+    try:
+        return unquote(data['files'][0]['uris'][0]['uri'].split('/')[-1])
+    except Exception as err:
+        return data['gid']
 
 
 def fzf(args):

@@ -212,6 +212,8 @@ if __name__ == '__main__':
         print(s.aria2.changeGlobalOption({
             'max-overall-upload-limit': opts.download_limit
         }))
+    elif opts.list_gids:
+        print('\n'.join([i['gid'] for i in get_all()]))
     elif args:
         for arg in args:
             if arg.startswith('magnet:?'):

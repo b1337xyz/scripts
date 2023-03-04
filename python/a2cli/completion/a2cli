@@ -8,6 +8,10 @@ _a2cli() {
             COMPREPLY=( $( compgen -W 'active complete error paused removed waiting' -- "$cur" ) )
             return
         ;;
+        --gid)
+            COMPREPLY=( $( a2cli.py --list-gids ) )
+            return
+        ;;
     esac
     case $cur in
         -*)
