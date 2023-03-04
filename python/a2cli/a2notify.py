@@ -27,7 +27,6 @@ logging.basicConfig(
 
 
 def request(method, params):
-    sleep(1)
     jsonreq = json.dumps({
         'jsonrpc': '2.0',
         'id': 'test',
@@ -98,6 +97,7 @@ def on_complete():
 
 
 if __name__ == '__main__':
+    sleep(1.5)
     # request('tellStopped', [0, 10])
     gid = argv[1]
     info = request('tellStatus', gid)

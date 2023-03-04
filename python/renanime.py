@@ -210,7 +210,7 @@ def fzf(args: list, prompt: str) -> str:
 def main():
     uniq = dict()
     for f in os.listdir() if not args else args:
-        if opts.files_only and not os.path.isfile(f):
+        if f.startswith('.') or (opts.files_only and not os.path.isfile(f)):
             continue
         string = cleanup_filename(f)
         if not string:
