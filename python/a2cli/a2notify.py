@@ -103,6 +103,9 @@ if __name__ == '__main__':
     info = request('tellStatus', gid)
     if not info:
         exit(0)     
+    if info["totalLength"] == 0:
+        exit(0)
+
     name = get_name(info)
     _dir = info['dir']
     path = os.path.join(_dir, name)
