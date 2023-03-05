@@ -22,9 +22,10 @@ RE_GALLERY = re.compile(r'href="/(gallery/\d+/?)"')
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
-    parser.add_option('--dir', default=DL_DIR, help='download directory')
+    parser.add_option('--dir', type='string', default=DL_DIR)
     parser.add_option('--start-page', type='int', default=1)
     parser.add_option('--max-page', type='int', default=0)
+    parser.add_option('--overwrite', action='store_true')
     opts, args = parser.parse_args()
     if len(args) == 0:
         parser.error('<url> not provided')
@@ -37,6 +38,10 @@ def download(url):
     except AttributeError:
         filename = ''.join(url.split('/')[-1].split('?')[0])
     filepath = os.path.join(opts.dir, filename)
+
+    if os.path.exists(filepath) and not opts.overwrite:
+        print(f'{filepath} already exists.')
+        return filepath
     print(filepath)
 
     if which('aria2c'):
@@ -98,14 +103,14 @@ def parse_data(html):
 
 def download_gallery(url):
     if url in cache and os.path.exists(cache[url]):
-        print(f'{cache[url]} already exists')
+        print(f'{cache[url]} already exists.')
         return
 
     html = session.get(url).text
     data = parse_data(html)
     dl_url = get_download_url(url, data)
     if not dl_url:
-        print(f"failed to download {data['gallery_title']}")
+        print(f"failed to download {url}")
         return
 
     filepath = download(dl_url)
@@ -113,6 +118,7 @@ def download_gallery(url):
 
     if os.path.exists(CACHE):
         copy(CACHE, f'{CACHE}.bak')
+
     with open(CACHE, 'w') as f:
         json.dump(cache, f)
 
