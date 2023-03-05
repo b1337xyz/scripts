@@ -11,13 +11,12 @@ import os
 PHPSESSID = ''  # change this
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/5.15.7 Chrome/87.0.4280.144 Safari/537.36'  # noqa: E501
-DOMAIN = 'imhentai.xxx'
 ROOT = os.path.dirname(os.path.realpath(__file__))
 HOME = os.getenv('HOME', ROOT)
 DL_DIR = os.path.join(HOME, 'Downloads')
-RE_GALLERY = re.compile(r'href="/(gallery/\d+/?)"')
 CACHE_DIR = os.getenv('XDG_CACHE_HOME', ROOT)
 CACHE = os.path.join(CACHE_DIR, 'imhentai.json')
+RE_GALLERY = re.compile(r'href="/(gallery/\d+/?)"')
 
 
 def parse_arguments():
@@ -33,7 +32,10 @@ def parse_arguments():
 
 
 def download(url):
-    filename = re.search(r'file=([^\?&]*)', url).group(1)
+    try:
+        filename = re.search(r'file=([^\?&]*)', url).group(1)
+    except AttributeError:
+        filename = ''.join(url.split('/')[-1].split('?')[0])
     filepath = os.path.join(opts.dir, filename)
     print(filepath)
 
@@ -42,21 +44,21 @@ def download(url):
         data = json.dumps({
             'jsonrpc': '2.0', 'id': '0',
             'method': 'aria2.addUri',
-            'params': [[url], {'dir': opts.dir}]
+            'params': [[url], {'dir': opts.dir, 'out': filename}]
         })
         try:
             r = requests.post(host, data=data)
             if not r.ok:
                 raise ValueError
         except Exception:
-            sp.run(['aria2c', '--dir', opts.dir, url])
+            sp.run(['aria2c', '--dir', opts.dir, '--out', filename, url])
 
     elif which('wget'):
-        sp.run(['wget', '-nc', '-P', opts.dir, url])
+        sp.run(['wget', '-nc', '-O', filepath, url])
 
     else:
         r = requests.get(url, stream=True)
-        with open(filename, 'wb') as f:
+        with open(filepath, 'wb') as f:
             f.write(r.content)
 
     return filepath
@@ -154,8 +156,11 @@ def main():
     opts, args = parse_arguments()
     session = requests.Session()
     session.headers.update({'user-agent': UA})
-    session.cookies.set('PHPSESSID', PHPSESSID, domain=DOMAIN)
+    session.cookies.set('PHPSESSID', PHPSESSID, domain='imhentai.xxx')
     cache = load_cache()
+    if not os.path.isdir(opts.dir):
+        os.mkdir(opts.dir)
+
     for url in args:
         if '/gallery/' in url:
             download_gallery(url)
