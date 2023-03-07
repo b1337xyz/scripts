@@ -139,11 +139,8 @@ btsel() {
         xargs -rI{} aria2c --bt-remove-unselected-file --select-file '{}' "$1" 
 }
 addUri() {
-    if [ -d "$2" ];then
-        data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
-    else
-        data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"]]}' "$1")
-    fi
+    data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' \
+        "$1" "${2:-${HOME}/Downloads}")
 
     curl -s "http://localhost:6800/jsonrpc" \
         -H "Content-Type: application/json" -H "Accept: application/json" \
