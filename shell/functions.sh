@@ -5,7 +5,7 @@ VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|
 ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)$'
 ArchivePattern='\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$'
 
-f() { find . -xdev -iname "*${*}*"; }
+f() { find . -xdev -iname "$*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 fox() { command firefox "$@" &>/dev/null & disown ; }
 za() { command zathura "$@" &>/dev/null & disown ; }
@@ -321,6 +321,7 @@ fixext() {
     for i in "$@";do
         mimetype=$(file -Lbi -- "$i")
         case "${mimetype%;*}" in
+            application/zip)  ext=zip ;;
             video/x-msvideo)  ext=avi ;;
             video/x-matroska) ext=mkv ;;
             video/mp4)        ext=mp4 ;;
@@ -561,6 +562,7 @@ todo() {
 ftext() {
     # find text files
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
+    return 0
 }
 paclog() {
     awk -v x="${1:-upgraded}" '$3 == x' /var/log/pacman.log |

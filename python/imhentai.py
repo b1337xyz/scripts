@@ -2,6 +2,7 @@
 from time import sleep
 from optparse import OptionParser
 from shutil import which, copy
+from pathlib import Path
 import subprocess as sp
 import json
 import requests
@@ -22,41 +23,44 @@ RE_GALLERY = re.compile(r'href="/(gallery/\d+/?)"')
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
-    parser.add_option('--dir', type='string', default=DL_DIR)
+    parser.add_option('-d', '--dir', type='string', default=DL_DIR)
+    parser.add_option('-i', '--input-file', type='string', metavar='FILE')
     parser.add_option('--start-page', type='int', default=1)
     parser.add_option('--max-page', type='int', default=0)
     parser.add_option('--overwrite', action='store_true')
     opts, args = parser.parse_args()
-    if len(args) == 0:
+    if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
+    if opts.input_file:
+        with open(opts.input_file, 'r') as f:
+            args += [i.strip() for i in f.readlines() if i]
     return opts, args
 
 
 def download(url):
     try:
-        filename = re.search(r'file=([^\?&]*)', url).group(1)
+        filename = re.search(r'file=([^&]*)', url).group(1).replace('/', '_')
     except AttributeError:
         filename = ''.join(url.split('/')[-1].split('?')[0])
-    filepath = os.path.join(opts.dir, filename)
 
+    filepath = os.path.join(dl_dir, filename)
     if os.path.exists(filepath) and not opts.overwrite:
         print(f'{filepath} already exists.')
-        return filepath
-    print(filepath)
+        return filename
 
     if which('aria2c'):
         host = 'http://localhost:6800/jsonrpc'
         data = json.dumps({
             'jsonrpc': '2.0', 'id': '0',
             'method': 'aria2.addUri',
-            'params': [[url], {'dir': opts.dir, 'out': filename}]
+            'params': [[url], {'dir': dl_dir, 'out': filename}]
         })
         try:
             r = requests.post(host, data=data)
             if not r.ok:
                 raise ValueError
         except Exception:
-            sp.run(['aria2c', '--dir', opts.dir, '--out', filename, url])
+            sp.run(['aria2c', '--dir', dl_dir, '--out', filename, url])
 
     elif which('wget'):
         sp.run(['wget', '-nc', '-O', filepath, url])
@@ -66,7 +70,7 @@ def download(url):
         with open(filepath, 'wb') as f:
             f.write(r.content)
 
-    return filepath
+    return filename
 
 
 def get_download_url(url, data):
@@ -102,9 +106,11 @@ def parse_data(html):
 
 
 def download_gallery(url):
-    if url in cache and os.path.exists(cache[url]):
-        print(f'{cache[url]} already exists.')
-        return
+    if url in cache:
+        filepath = os.path.join(dl_dir, cache[url])
+        if os.path.exists(filepath) and not opts.overwrite:
+            print(f'{filepath} already exists.')
+            return
 
     html = session.get(url).text
     data = parse_data(html)
@@ -113,8 +119,8 @@ def download_gallery(url):
         print(f"failed to download {url}")
         return
 
-    filepath = download(dl_url)
-    cache[url] = filepath
+    filename = download(dl_url)
+    cache[url] = filename
 
     if os.path.exists(CACHE):
         copy(CACHE, f'{CACHE}.bak')
@@ -157,17 +163,30 @@ def load_cache():
         return dict()
 
 
+def mkdir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
+
+
 def main():
-    global session, cache, opts
+    global session, cache, opts, dl_dir
     opts, args = parse_arguments()
     session = requests.Session()
     session.headers.update({'user-agent': UA})
     session.cookies.set('PHPSESSID', PHPSESSID, domain='imhentai.xxx')
     cache = load_cache()
-    if not os.path.isdir(opts.dir):
-        os.mkdir(opts.dir)
+    opts.dir = os.path.join(opts.dir, 'imhentai')
 
     for url in args:
+        dl_dir = opts.dir
+        for v in ['tag', 'artist', 'parody', 'character']:
+            try:
+                v = re.search(r'/{}/([^/]*)'.format(v), url).group(1)
+                dl_dir = os.path.join(opts.dir, v)
+                break
+            except AttributeError:
+                pass
+        mkdir(dl_dir)
+
         if '/gallery/' in url:
             download_gallery(url)
         else:

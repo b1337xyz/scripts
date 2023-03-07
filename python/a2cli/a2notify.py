@@ -48,7 +48,16 @@ def get_name(info):
     try:
         return info['bittorrent']['info']['name']
     except KeyError:
-        return info['files'][0]['path']
+        pass
+
+    path = info['files'][0]['path']
+    if path:
+        return path.split('/')[-1]
+
+    try:
+        return unquote(info['files'][0]['uris'][0]['uri'].split('/')[-1])
+    except Exception as err:
+        return info['gid']
 
 
 def get_torrent_file(info):
@@ -97,7 +106,7 @@ def on_complete():
 
 
 if __name__ == '__main__':
-    sleep(1.5)
+    sleep(1)
     # request('tellStopped', [0, 10])
     gid = argv[1]
     info = request('tellStatus', gid)

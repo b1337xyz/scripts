@@ -7,23 +7,24 @@
 #   https://github.com/yt-dlp/yt-dlp
 #   https://github.com/mikf/gallery-dl
 
-set -eu
-
-log=~/.cache/kemono.log
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 domain='https://kemono.party'
 tmpfile=$(mktemp)
-end() {
-    rm "$tmpfile" 2>/dev/null || true
-}
+end() { rm "$tmpfile" 2>/dev/null || true; }
 trap end EXIT
 
+addUri() {
+    data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
+    curl -s "http://localhost:6800/jsonrpc" \
+        -H "Content-Type: application/json" -H "Accept: application/json" \
+        -d "$data"
+    echo
+}
 get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
-logging() { echo "[$(date '+%Y.%m.%d %H:%M:%S')][$user] $*" >> "$log"; }
 main() {
     declare -x user
     main_url=$(echo "$1" | grep -oP 'https://kemono.party/\w*/user/\d*')
-    test -z "$main_url" && { logging "invalid url: $1"; return 1; }
+    test -z "$main_url" && return 1
     user=$(echo "$1" | grep -oP '\w*/user/\d*' | sed 's/.user//')
     DL_DIR=~/Downloads/kemono/"$user"
     [ -d "$DL_DIR" ] || mkdir -vp "${DL_DIR}"
@@ -37,7 +38,6 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        logging "${main_url}?o=$page"
         if test -f "$tmpfile";then
             get_posts < "$tmpfile"
             rm "$tmpfile"
@@ -45,10 +45,12 @@ main() {
             curl -A "$UA" -s "${main_url}?o=$page" | get_posts
         fi | while read -r url;do
             post_url="$domain$url"
-            logging "post: $post_url"
             curl -A "$UA" -s "$post_url" -o "$tmpfile"
             dl_dir="${DL_DIR}/${url##*/}"
             [ -d "$dl_dir" ] || mkdir -vp "$dl_dir"
+
+            # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$tmpfile" | awk '{sub(/(password|pw)[ :]\?/ "")}' >> "${dl_dir}/passwords"
+            grep -ioP '(pw|password) ?:[^ <]*' "$tmpfile" | sort -u >> "${dl_dir}/password"
 
             grep -oP 'https://drive\.google\.com/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
             do
@@ -57,23 +59,19 @@ main() {
                     */folders/*) FILEID=$(echo "$url" | grep -oP '(?<=/folders/)[^\?$/]*') ;;
                     */file/d/*)  FILEID=$(echo "$url" | grep -oP '(?<=/file/d/)[^/\?$]*')  ;;
                 esac
-                test -z "$FILEID" && { logging "FILEID not found: $url"; continue; }
-                logging "gdrive: $url"
-                logging "FILEID: $FILEID"
-                gdrive download --path "$dl_dir" --skip -r "$FILEID" || logging "gdrive download failed: $url"
+                test -z "$FILEID" && continue
+                gdrive download --path "$dl_dir" --skip -r "$FILEID"
                 unset FILEID
             done
 
             grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
             do
-                mega-get -q "$url" "$dl_dir" || { logging "mega download failed: $url"; continue; }
-                logging "download completed: $url"
+                mega-get -q "$url" "$dl_dir"
             done
 
             grep -oP 'https://gofile\.[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
             do
-                gallery-dl -d "$dl_dir" "$url" || { logging "gofile download failed: $url"; continue; }
-                logging "download completed: $url"
+                gallery-dl -d "$dl_dir" "$url"
             done
 
             grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
@@ -83,18 +81,20 @@ main() {
                     *my.mixtape.moe*)   continue ;; # DEAD
                     *a.pomf.cat*)       continue ;; # DEAD
                     *.fanbox.cc*)       continue ;; # use https://github.com/Nandaka/PixivUtil2
-                    *dropbox.com*) yt-dlp "$url" ;;
+                    # *dropbox*) yt-dlp "$url" ;;
+                    # *dropbox*) wget --content-disposition -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "${url%\?*}?dl=1" ;;
+                    *dropbox*) addUri "${url%\?*}?dl=1" "$dl_dir" ;;
                     *gofile*) gallery-dl -d "$dl_dir" "$url" ;;
-                    *) wget -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "$url" ;;
-                esac || { logging "download failed: $url"; continue; }
-                logging "download completed: $url"
+                    *) addUri "$url" "$dl_dir" ;;
+                esac
+                # wget -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "$url"
             done
 
-            grep -oP '(?<=href\=\")/data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$tmpfile" | while read -r url
+            grep -oP '(?<=href\=\")/data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$tmpfile" | sort -u | while read -r url
             do
-                logging "kemono data: $domain$url"
-                echo "$domain$url"
-            done | sort -u | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true
+                addUri "${domain}${url}" "$dl_dir"
+            done
+            # done | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true
 
             rm "$tmpfile"
             rm -d "$dl_dir" 2>/dev/null || true
