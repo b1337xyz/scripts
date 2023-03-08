@@ -84,29 +84,11 @@ frep() {
     sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type f -name '{}'
 }
 bkp() {
-    local output
-    if [ -n "$1" ] && ! [ -s "$1" ];then
-        output="$1"
-        [ "${1##*.}" = "zip" ] && output="${1%.*}_$(date +%Y%m%d).zip"
-        shift
-    else
-        output="bkp_$(date +%Y%m%d).tar.gz"
-    fi
-
-    [ -s "$output" ] && { printf '"%s" already exist.\n' "$output"; return 1; }
-    case "${output##*.}" in
-        zip) zip -r9y "$output" "$@" ;;
-        *) tar --numeric-owner -pcaf "$output" "$@" ;;
-    esac
-}
-bkp2() {
-    # same as `bkp`
-    local rpath
-    rpath=$(realpath "$1")
-    tar --numeric-owner --lzma -pcf "${1}.tar.lzma" \
-        --exclude='*__*__*' --exclude='*.git*' --exclude='*venv*' \
-        --exclude='*.zip' --exclude='*.7z' --exclude='*.rar' \
-        "$rpath" || { rm -v "${1}.tar.lzma" ; return 1; }
+    local bname output
+    [ -e "$1" ] || return 1
+    bname=$(basename "$1")
+    output="${bname}.$(date +%Y.%m.%d).tar.lzma"
+    tar --numeric-owner --lzma -pcf "$output" "$1" || { rm -v "$output" ; return 1; }
 }
 alljpg() {
     # Warning: this will convert to jpeg and DELETE all images that aren't jpeg

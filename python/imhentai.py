@@ -25,8 +25,8 @@ def parse_arguments():
     parser = OptionParser(usage=usage)
     parser.add_option('-d', '--dir', type='string', default=DL_DIR)
     parser.add_option('-i', '--input-file', type='string', metavar='FILE')
-    parser.add_option('--start-page', type='int', default=1)
-    parser.add_option('--max-page', type='int', default=0)
+    parser.add_option('--start-page', type='int')
+    parser.add_option('--max-page', type='int')
     parser.add_option('--overwrite', action='store_true')
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
@@ -101,7 +101,7 @@ def parse_data(html):
     for k in ['gallery_id', 'load_id', 'load_dir', 'gallery_title']:
         data[k] = re.search(r'id="{}"[^>]* value=\"([^\"]*)\"'.format(k),
                             html).group(1)
-    print(json.dumps(data, indent=2))
+    # print(json.dumps(data, indent=2))
     return data
 
 
@@ -136,19 +136,30 @@ def download_galleries(url):
     except ValueError:
         max_page = 2
 
-    if opts.max_page > 0 and opts.max_page < max_page:
+    if opts.max_page and opts.max_page < max_page:
         max_page = opts.max_page
-    start_page = opts.start_page if opts.start_page > 2 else 2
+
+    start_page = 1
+    page = re.search(r'page=(\d+)', url)
+    if page:
+        start_page = int(page.group(1))
+    start_page = opts.start_page if opts.start_page else start_page
+
+    dups = []
     for page in range(start_page, max_page + 1):
-        print(f'Page {page - 1} of {max_page}')
+        print(f'Page {page} of {max_page}')
         galleries = RE_GALLERY.findall(html)
         total = len(galleries)
         for i, _id in enumerate(galleries, start=1):
             url = f'https://imhentai.xxx/{_id}'
             print(f'[{i}/{total}] {url}')
-            download_gallery(url)
-        url = f'https://imhentai.xxx/?page={page}'
-        html = session.get(url).text
+            if url not in dups:
+                download_gallery(url)
+                dups.append(url)
+
+        if page < max_page:
+            url = f'https://imhentai.xxx/?page={page + 1}'
+            html = session.get(url).text
 
 
 def load_cache():
