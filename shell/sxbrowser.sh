@@ -41,5 +41,8 @@ while :;do
         n=1
         # shellcheck disable=SC2068
         set -- "$x" $@
-    fi 
+    else
+        nsxiv -qo "$out" 2>/dev/null
+        out=
+    fi
 done
