@@ -28,6 +28,7 @@ def parse_arguments():
                       metavar='DIR', help='download directory')
     parser.add_option('-i', '--input-file', dest='input_file', metavar='FILE',
                       action='store', help='Download URLs found in FILE')
+    parser.add_option('--overwrite', action='store_true')
     opts, args = parser.parse_args()
     if len(args) == 0 and not opts.input_file:
         parser.error('<url> not provided')
@@ -60,6 +61,15 @@ def get_posts(soup):
         div.a.get('href') for div in soup.findAll('div', {'class': 'gallery'})
         if 'english' in div.text.lower()
     ]
+
+
+def get_torrent_name(file):
+    try:
+        out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
+        torrent_name = re.search(r' 1\|\.\/([^/]*)', out).group(1)
+        return torrent_name
+    except Exception:
+        return ''
 
 
 def main(urls):
@@ -113,13 +123,15 @@ def main(urls):
             print('nothing found')
             continue
 
-        torrents = list()
         for i, post in enumerate(posts, start=1):
             url = f'https://{DOMAIN}{post}download'
             print(f'[{i}/{len(posts)}] {url}')
             fname = post.split('/')[-2] + '.torrent'
             torrent = download(s, url, dl_dir, fname)
-            torrents.append(torrent)
+            _dir = os.path.join(dl_dir, get_torrent_name(torrent))
+            if os.path.exists(_dir) and not opts.overwrite:
+                os.remove(torrent)
+                continue
 
             try:
                 with open(torrent, 'rb') as fp:

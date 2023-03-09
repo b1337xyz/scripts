@@ -9,7 +9,6 @@ import sys
 import traceback
 import xmlrpc.client
 
-PORT = 6800
 FIFO = 'test.fifo'
 PREVIEW = 'preview.fifo'
 MAX_SIZE = 2000 * 1000  # 2 MB
@@ -22,7 +21,7 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 LABEL = '╢ a-p a-u a-t a-r c-r c-a ╟'
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
-    '--border=bottom', '--preview-window', 'up:40%',
+    '--border=bottom', '--preview-window', 'up:50%',
     '--border-label', LABEL,
     '--padding', '0,0,2%',
     '--preview', f"printf '%s\\n' {{}} > {PREVIEW}; cat {PREVIEW}",
@@ -58,6 +57,7 @@ def psize(size):
 
 def parse_arguments():
     parser = OptionParser()
+    parser.add_option('--port', type='int', default=6800)
     return parser.parse_args()
 
 
@@ -124,6 +124,11 @@ def preview_fifo():
                 seeders = None if 'numSeeders' not in info else \
                     int(info["numSeeders"])
 
+                try:
+                    error_code = info["errorCode"]
+                except Exception:
+                    error_code = None
+
                 ratio = 0 if completed == 0 else uploaded / completed
                 p = 0 if total == 0 else completed * 100 // total
                 bar_size = 40
@@ -138,6 +143,8 @@ def preview_fifo():
                     f'Size:      {psize(total)}',
                     f'Speed:     {psize(dlspeed)}/{psize(upspeed)}',
                     f'Status:    {status}',
+                    f'GID:       {info["gid"]}',
+                    f'Error:     {error_code}' if error_code else ''
                 ])
 
             except Exception:
@@ -241,7 +248,7 @@ def kill_fifo(file):
 
 def main(args=[]):
     global session
-    session = xmlrpc.client.ServerProxy(f'http://localhost:{PORT}/rpc')
+    session = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
     try:
         session.system.listMethods()
     except ConnectionRefusedError as err:

@@ -9,6 +9,7 @@ import xmlrpc.client
 def select(downloads):
     if not downloads:
         return []
+
     if len(downloads) == 1:
         return downloads
 
@@ -78,7 +79,9 @@ def add_torrent(torrent):
 
 
 def list_all():
-    for i in get_all():
+    downloads = get_all()
+    counter = dict()
+    for i in downloads:
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
         p = 0 if size == 0 else completed_length * 100 // size
@@ -102,6 +105,14 @@ def list_all():
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize,
                 status, name
             ))
+        
+        if status not in counter:
+            counter[status] = 1
+        else:
+            counter[status] += 1
+
+    print(' '.join([f'{k}: {counter[k]}' for k in counter] + \
+          [f'total: {sum([counter[k] for k in counter])}']))
 
 
 def pause():
@@ -139,11 +150,25 @@ def remove(downloads=[]):
         print(name, 'removed')
 
 
-def remove_all(dont_ask=False, status=None):
-    if dont_ask or yes():
-        for i in get_all():
-            if status and status != i['status']:
-                continue
+def remove_all(status=None):
+    if not yes(opts.yes):
+        return
+
+    for i in get_all():
+        if status and status != i['status']:
+            continue
+        remove([i])
+            
+
+def purge():
+    if not yes(False):
+        return
+
+    for i in get_all():
+        if i['status'] in 'error':
+            if i['errorCode'] in ['13']:
+                remove([i])
+        elif i['status'] in 'complete':
             remove([i])
 
 
@@ -183,7 +208,7 @@ if __name__ == '__main__':
     elif opts.remove:
         remove()
     elif opts.remove_all:
-        remove_all(opts.yes, opts.status)
+        remove_all(opts.status)
     elif opts.pause:
         pause()
     elif opts.unpause:
@@ -199,7 +224,7 @@ if __name__ == '__main__':
     elif opts.top:
         move_to_top()
     elif opts.purge:
-        print(s.aria2.purgeDownloadResult())
+        purge()
     elif opts.seed:
         print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:
@@ -235,7 +260,8 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
-                os.system('clear')
+                # os.system('clear')
+                print('-' * os.get_terminal_size().columns)
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

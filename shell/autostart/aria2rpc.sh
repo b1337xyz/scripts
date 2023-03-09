@@ -19,9 +19,11 @@ fi
 
 session=${session}.1
 set -- -D -V --enable-rpc --rpc-listen-port 6801 \
+    --continue \
     --save-session="$session" \
     --save-session-interval=30 \
-    --max-concurrent-downloads=2 --continue \
+    --max-connection-per-server=1 \
+    --max-concurrent-downloads=1 \
     --auto-file-renaming=false \
     --force-save=false
 

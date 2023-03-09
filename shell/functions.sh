@@ -42,7 +42,7 @@ cpl() {
 
     local cache=/tmp/.copy_later
     if [ -f "$1" ];then
-        command rm "$cache"
+        command rm "$cache" 2>/dev/null
         realpath -- "$@" >> "$cache"
     elif [ -f "$cache" ];then
         while read -r i;do
@@ -111,6 +111,7 @@ alljpg() {
 ex() {
     # decompress stuff
     for i in "$@";do
+        [ -f "$i" ] || return 1
         case "$i" in
             *.tar.zst) tar --zstd -xf "$i" ;;
             *.tar.bz2) tar xvjf "$i"   ;;

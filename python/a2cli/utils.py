@@ -12,7 +12,7 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
-MAX = 200
+MAX = 999
 MAX_SIZE = 2000 * 1000  # 2 MB
 FZF_ARGS = [
     '-m',
@@ -68,8 +68,7 @@ def parse_arguments():
                       help='overall download speed limit')
     parser.add_option('--upload-limit', type='string', metavar='<SPEED>',
                       help='overall upload speed limit')
-    parser.add_option('-y', '--yes', action='store_true',
-                      help='don\'t ask')
+    parser.add_option('-y', '--yes', action='store_false', help='don\'t ask')
     parser.add_option('-s', '--save', action='store_true', help='save torrent')
     parser.add_option('--list-gids', action='store_true')
     parser.add_option('--purge', action='store_true')
@@ -77,7 +76,9 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def yes():
+def yes(ask=True):
+    if not ask:
+        return True
     return input('Are you sure? [y/N] ').strip().lower() in ['y', 'yes']
 
 
