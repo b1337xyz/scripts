@@ -198,6 +198,8 @@ if __name__ == '__main__':
         remove_metadata(opts.status)
     elif opts.top:
         move_to_top()
+    elif opts.purge:
+        print(s.aria2.purgeDownloadResult())
     elif opts.seed:
         print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:

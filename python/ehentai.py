@@ -14,13 +14,8 @@ UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
 LOG = os.path.join(HOME, '.cache/ehentai.log')
-PORT = '56800'   # RPC port
-ARIA2_CONF = {   # RPC config
-    'dir': DL_DIR,
-    'force-save': 'false',
-    'check-integrity': 'false',
-    'max-concurrent-downloads': 5
-}
+PORT = '6801'   # RPC port
+
 
 logging.basicConfig(
     filename=LOG,
@@ -110,7 +105,6 @@ def main(url):
             logging.info(f'Skipping: {title}')
             continue
 
-        ARIA2_CONF.update({'dir': dl_dir})
         curr_page = 0
         next_page = curr_page + 1
         while next_page > curr_page:
@@ -121,7 +115,7 @@ def main(url):
                 break
 
             logging.info(img)
-            session.aria2.addUri([img], ARIA2_CONF)
+            session.aria2.addUri([img], {'dir': dl_dir})
             curr_page = int(url.split('-')[-1])
             url = next_regex.search(r.text).group(1)
             next_page = int(url.split('-')[-1])
@@ -130,9 +124,4 @@ def main(url):
 
 
 if __name__ == '__main__':
-    proc = sp.Popen(['aria2c', '-D', '--enable-rpc',
-                      f'--rpc-listen-port={PORT}'])
-    try:
-        main(argv[1])
-    finally:
-        proc.terminate()
+    main(argv[1])

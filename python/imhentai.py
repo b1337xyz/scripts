@@ -139,10 +139,8 @@ def download_galleries(url):
     if opts.max_page and opts.max_page < max_page:
         max_page = opts.max_page
 
-    start_page = 1
     page = re.search(r'page=(\d+)', url)
-    if page:
-        start_page = int(page.group(1))
+    start_page = 1 if not page else int(page.group(1))
     start_page = opts.start_page if opts.start_page else start_page
 
     dups = []

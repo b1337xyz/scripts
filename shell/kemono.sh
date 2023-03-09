@@ -15,10 +15,10 @@ trap end EXIT
 
 addUri() {
     data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
-    curl -s "http://localhost:6800/jsonrpc" \
+    curl -s "http://localhost:6801/jsonrpc" \
         -H "Content-Type: application/json" -H "Accept: application/json" \
-        -d "$data"
-    echo
+        -d "$data" >/dev/null 2>&1
+    printf '%s -> %s\n' "${1##*/}" "$2"
 }
 get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
 main() {
@@ -35,6 +35,7 @@ main() {
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
+    echo "$main_url" >> ~/.cache/kemono.log
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
@@ -45,14 +46,16 @@ main() {
             curl -A "$UA" -s "${main_url}?o=$page" | get_posts
         fi | while read -r url;do
             post_url="$domain$url"
-            curl -A "$UA" -s "$post_url" -o "$tmpfile"
-            dl_dir="${DL_DIR}/${url##*/}"
-            [ -d "$dl_dir" ] || mkdir -vp "$dl_dir"
+            dl_dir=${DL_DIR}/${url##*/}
+            html=${dl_dir}/html
+            [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
+            [ -f "$html" ] || curl -A "$UA" -s "$post_url" -o "$html"
 
-            # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$tmpfile" | awk '{sub(/(password|pw)[ :]\?/ "")}' >> "${dl_dir}/passwords"
-            grep -ioP '(pw|password) ?:[^ <]*' "$tmpfile" | sort -u >> "${dl_dir}/password"
+            # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
+            pw=$(grep -ioP '(pw|password) ?: ?[^ <]*' "$html" | sort -u)
+            [ -n "$pw" ] && echo "$pw" >> "${dl_dir}/password"
 
-            grep -oP 'https://drive\.google\.com/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+            grep -oP 'https://drive\.google\.com/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
             do
                 case "$url" in
                     *[\&\?]id=*) FILEID=$(echo "$url" | grep -oP '(?<=[\?&]id=)[^&$]*')    ;;
@@ -64,17 +67,18 @@ main() {
                 unset FILEID
             done
 
-            grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+            grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
             do
                 mega-get -q "$url" "$dl_dir"
             done
 
-            grep -oP 'https://gofile\.[^ \t\n\"<]*' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+            grep -oP 'https://gofile\.[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
             do
                 gallery-dl -d "$dl_dir" "$url"
             done
 
-            grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$tmpfile" | sed 's/\.$//g' | sort -u | while read -r url
+            grep -ioP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$html" |
+            sed 's/\.$//g' | sort -u | while read -r url
             do
                 case "$url" in
                     *giant.gfycat.com*) continue ;; # DEAD
@@ -90,14 +94,16 @@ main() {
                 # wget -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "$url"
             done
 
-            grep -oP '(?<=href\=\")/data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$tmpfile" | sort -u | while read -r url
+            grep -oiP '(?<=\=\").*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$html" |
+            grep -v thumbnail | sort -u | while read -r url
             do
-                addUri "${domain}${url}" "$dl_dir"
+                case "$url" in
+                    http*) addUri "$url" "$dl_dir" ;;
+                    *data*) addUri "${domain}${url}" "$dl_dir" ;;
+                    *) printf '%s???\n' "$url" ;;
+                esac
             done
             # done | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true
-
-            rm "$tmpfile"
-            rm -d "$dl_dir" 2>/dev/null || true
         done
     done
 }

@@ -72,6 +72,7 @@ def parse_arguments():
                       help='don\'t ask')
     parser.add_option('-s', '--save', action='store_true', help='save torrent')
     parser.add_option('--list-gids', action='store_true')
+    parser.add_option('--purge', action='store_true')
 
     return parser.parse_args()
 

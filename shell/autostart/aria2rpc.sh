@@ -17,19 +17,16 @@ else
     aria2c "$@" 
 fi
 
-# session="${HOME}"/.cache/aria2/session.2
-# script="${HOME}"/.local/bin/aria2notify.sh
-# set -- -D -V --enable-rpc \
-#     --rpc-listen-port 6801 \
-#     --on-download-error="${script}" \
-#     --on-download-pause="${script}" \
-#     --on-download-stop="${script}" \
-#     --on-download-start="${script}" \
-#     --on-download-complete="${script}" \
-#     --on-bt-download-complete="${script}" \
+session=${session}.1
+set -- -D -V --enable-rpc --rpc-listen-port 6801 \
+    --save-session="$session" \
+    --save-session-interval=30 \
+    --max-concurrent-downloads=2 --continue \
+    --auto-file-renaming=false \
+    --force-save=false
 
-# if [ -s "$session" ];then
-#     aria2c "$@" --input-file="$session"
-# else
-#     aria2c "$@" 
-# fi
+if [ -s "$session" ];then
+    aria2c "$@" --input-file="$session"
+else
+    aria2c "$@" 
+fi
