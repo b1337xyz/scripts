@@ -52,7 +52,7 @@ main() {
             [ -f "$html" ] || curl -A "$UA" -s "$post_url" -o "$html"
 
             # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
-            pw=$(grep -ioP '(pw|password) ?: ?[^ <]*' "$html" | sort -u)
+            pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
             [ -n "$pw" ] && echo "$pw" >> "${dl_dir}/password"
 
             grep -oP 'https://drive\.google\.com/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url

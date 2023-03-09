@@ -260,8 +260,7 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
-                # os.system('clear')
-                print('-' * os.get_terminal_size().columns)
+                print('\033[2J')
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

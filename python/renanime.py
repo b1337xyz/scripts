@@ -245,18 +245,15 @@ def main():
             continue
 
         if opts.fzf and len(data) > 1:
-            folder = fzf([
+            out = fzf([
                 f'{title} ({year})' for _, title, year, _ in data
             ], prompt=f'Query: {query}>')
-            if not folder:
+            if not out:
                 continue
-            folder = folder[0]
+            folder = out[0]
         else:
             fuzz = fuzzy_sort(query, data)
-            if fuzz:
-                _, title, year, _ = fuzz[0]
-            else:
-                _, title, year, _ = data[0]
+            _, title, year = fuzz[0] if fuzz else data[0]
             folder = f'{title} ({year})'
 
         move_to(files, folder)
