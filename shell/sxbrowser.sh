@@ -13,7 +13,8 @@ while :;do
     mkdir -p "${cache%/*}"
     if ! [ -f "$cache" ];then
         for i in ./*;do
-            find "$i" -iregex "$ptr" | sort -V | head -1
+            d=$(find "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
+            find "${d:-$i}" -iregex "$ptr" | sort -V | head -1
         done > "$cache"
     fi
 
@@ -21,7 +22,7 @@ while :;do
     if [ "$l" -eq 0 ];then
         break
     elif [ "$l" -gt 1 ];then
-        out=$(nsxiv -n "$n" -qito < "$cache" 2>/dev/null)
+        out=$(nsxiv -n "$n" -fqito < "$cache" 2>/dev/null)
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi
@@ -42,7 +43,7 @@ while :;do
         # shellcheck disable=SC2068
         set -- "$x" $@
     else
-        nsxiv -qo "$out" 2>/dev/null
+        # nsxiv -fqo "$out" 2>/dev/null
         out=
     fi
 done
