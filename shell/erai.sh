@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317
 declare -r -x DLDIR=~/Downloads
 declare -r -x domain="https://txt.erai-raws.org"
 declare -r -x icon=folder-download
@@ -33,7 +34,7 @@ download() {
 }
 main() {
     local url dir
-    dir=$(echo ${1##*dir=} | quote)
+    dir=$(printf '%s' "${1##*dir=}" | quote)
     if [[ "${1##*.}" =~ (ass|srt) ]];then
         download "$@"
         dir=${dir%/*}
@@ -85,7 +86,7 @@ case "$1" in
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf --height 25 -m --header '^f favorite' \
+esac | fzf --reverse --height 25 -m --header '^f favorite' \
     --bind 'ctrl-t:last'  \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main {+})+clear-query' \

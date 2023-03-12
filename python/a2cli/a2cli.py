@@ -260,7 +260,7 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
-                print('\033[2J')
+                print('\033[2J\033[1;1H')
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

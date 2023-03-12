@@ -253,7 +253,7 @@ def main():
             folder = out[0]
         else:
             fuzz = fuzzy_sort(query, data)
-            _, title, year = fuzz[0] if fuzz else data[0]
+            _, title, year, _ = fuzz[0] if fuzz else data[0]
             folder = f'{title} ({year})'
 
         move_to(files, folder)
