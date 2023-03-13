@@ -86,7 +86,7 @@ case "$1" in
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf --reverse --height 25 -m --header '^f favorite' \
+esac | fzf --no-info --tac --reverse --height 25 -m \
     --bind 'ctrl-t:last'  \
     --bind 'ctrl-b:first' \
     --bind 'enter:reload(main {+})+clear-query' \

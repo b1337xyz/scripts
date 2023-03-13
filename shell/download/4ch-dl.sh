@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-icon=~/.local/share/icons/4chan.png
+icon=~/Pictures/icons/4chan.png
 
 main() {
     url="${1%#*}"
+    [[ "$url" =~ 4chan ]] || return 1
+
     board=$(echo "$url" | grep -oP '(?<=\.org/).*(?=/thread)')
     thread=$(echo "$url" | grep -oP '(?<=/thread/)\d*')
     subject=$(curl -s "https://a.4cdn.org/${board}/catalog.json" |

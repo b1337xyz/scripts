@@ -1,0 +1,6 @@
+#!/bin/sh
+
+tmpfile=$(mktemp)
+vim "$tmpfile"
+xclip -sel clip "$tmpfile"
+rm -f "$tmpfile"

@@ -1,0 +1,45 @@
+Anison                      |https://pool.anison.fm/AniSonFM(320)
+Bassment                    |https://uk6.internet-radio.com/proxy/unityadmin?mp=/stream;
+Brum Radio                  |https://uk3.internet-radio.com/proxy/brumradio?mp=/live
+CLASSIC METAL               |http://135.125.56.148:2280/stream/1/
+Cafe Klaus                  |https://us4.internet-radio.com/proxy/virtualklaus?mp=/live
+Chillhop                    |https://streams.ilovemusic.de/iloveradio17.mp3
+City-Pop                    |https://igor.torontocast.com:1710
+DRUM & BASS                 |http://www.partyviberadio.com:8004/stream/1/
+Gothica                     |http://23.29.71.154:8226/stream/1/
+Gratitude                   |https://uk5.internet-radio.com/proxy/gratitude?mp=/live
+House of Grau Metal         |https://us3.internet-radio.com/proxy/graulive?mp=/live
+Howl Metal                  |http://69.46.88.26/;
+Hunter.FM-LoFi              |https://live.hunter.fm/lofi_high
+J-Hip-Hop                   |https://kathy.torontocast.com:3350
+J-Pop                       |https://kathy.torontocast.com:3560
+J-Rock                      |https://kathy.torontocast.com:3340
+J1GOLD                      |https://jenny.torontocast.com:2000/stream/J1GOLD
+J1HD                        |https://maggie.torontocast.com:2000/stream/J1HD
+J1HISTS                     |https://jenny.torontocast.com:2000/stream/J1HITS
+J1XTRA                      |https://jenny.torontocast.com:2000/stream/J1XTRA
+Jazz CD 101.9 NY            |https://us3.internet-radio.com/proxy/cd1019?mp=/stream;
+Jazz Wave Hot 100           |https://us1.internet-radio.com/proxy/sjwhot100?mp=/stream;
+Jazz cafe                   |https://us2.internet-radio.com/proxy/megatoncafe?mp=/stream;
+JazzCafe                    |http://radio.wanderingsheep.net:8090/jazzcafe320
+JazzCafe2                   |http://radio.wanderingsheep.net:8000/jazzcafe
+Joy Radio                   |https://uk5.internet-radio.com/proxy/joyradio?mp=/stream;
+KHIH                        |https://us1.internet-radio.com/proxy/khih?mp=/stream;
+Kawaii                      |https://kathy.torontocast.com:3060
+Lain (cafe)                 |https://lainon.life/radio/cafe.mp3.m3u
+Lain (cyberia)              |https://lainon.life/radio/cyberia.mp3.m3u
+Lain (swing)                |https://lainon.life/radio/swing.mp3.m3u
+Lofi-24_7                   |https://usa9.fastcast4u.com/proxy/jamz?mp=/1
+Majestic Jukebox            |https://uk3.internet-radio.com/proxy/majesticjukebox?mp=/live
+Matt Johnson Radio          |https://us2.internet-radio.com/proxy/mattjohnsonradio?mp=/stream;
+Metal Rock Radio            |https://kathy.torontocast.com:2800/stream/1/
+Plaza                       |https://radio.plaza.one/ogg
+RelaxingJazz                |http://77.68.84.201/stream/1/
+RmFM                        |https://rautemusik-de-hz-fal-stream14.radiohost.de/study?ref=tunein
+Smooth Jazz Planet          |https://us3.internet-radio.com/proxy/smoothjazzplanet?mp=/stream;
+Smooth Jazz UK              |http://64.95.243.43:8002/stream/1/
+SomaFM                      |https://ice4.somafm.com/vaporwaves-128-mp3
+TOPBLUES                    |https://us3.internet-radio.com/proxy/topblues?mp=/stream;
+UndergroundFM               |https://uk1.internet-radio.com/proxy/undergroundfm?mp=/stream;
+WCJS                        |https://us5.internet-radio.com/proxy/wcjsradio?mp=/stream;
+XRDS                        |https://us1.internet-radio.com/proxy/xrds?mp=/stream;
