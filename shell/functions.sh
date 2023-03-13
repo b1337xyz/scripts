@@ -23,6 +23,10 @@ farchive() { find . -iregex ".*$ArchivePattern"; }
 grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
 grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
 grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
+curlt() {
+    # curl html as simple text (from WANDEX scripts-wndx)
+    curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g';
+}
 histcount() {
     # Example: `histcount`
     # Output:

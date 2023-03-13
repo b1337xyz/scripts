@@ -124,4 +124,7 @@ def main(url):
 
 
 if __name__ == '__main__':
-    main(argv[1])
+    try:
+        main(argv[1])
+    except Exception as err:
+        logging.error('finished with errors, {err}')
