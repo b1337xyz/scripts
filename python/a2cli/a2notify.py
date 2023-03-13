@@ -112,7 +112,7 @@ if __name__ == '__main__':
     info = request('tellStatus', gid)
     if not info:
         exit(0)     
-    if info["totalLength"] == 0:
+    if int(info["totalLength"]) <= 10:
         exit(0)
 
     name = get_name(info)
