@@ -4,24 +4,16 @@ declare -r -x DLDIR=~/Downloads
 declare -r -x domain="https://txt.erai-raws.org"
 declare -r -x icon=folder-download
 declare -r -x favorites=~/.cache/erai.txt
-declare -r -x cache_dir=~/.cache/erai
+declare -r -x cache_dir=/tmp/erai
 
 end() { find "$cache_dir" -name 'tmp.html' -delete; }
 trap end EXIT
 
 quote() {
-    python3 -c '
-from sys import stdin, stdout
-from urllib.parse import quote
-for i in stdin:
-    stdout.write(quote(i.strip()) + "\n")'
+    python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'
 }
 unquote() {
-    python3 -c '
-from sys import stdout, stdin
-from urllib.parse import unquote
-for i in stdin:
-    stdout.write(unquote(i.strip()) + "\n")'
+    python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
 }
 download() {
     for i in "$@";do
@@ -54,7 +46,7 @@ main() {
     {
         grep -ioP '(?<=href\=")Sub/.*\.(ass|srt)' "$html";
         grep -oP '(?<=href\="\?dir\=)Sub[^"]*' "$html";
-    } | unquote | sort -u
+    } | unquote | grep . | sort -u
 }
 
 favorite() {

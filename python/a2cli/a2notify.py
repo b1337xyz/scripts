@@ -87,7 +87,7 @@ def mv(src, dst):
 
 def notify(title, msg, icon='emblem-downloads'):
     try:
-        sp.Popen(['notify-send', '-i', icon, f'Aria2 - {title}', msg],
+        sp.Popen(['notify-send', '-i', icon, f'[aria2] {title}', msg],
                  stderr=sp.DEVNULL)
     except Exception:
         pass
