@@ -3,6 +3,7 @@ from i3ipc import Connection, Event
 from time import sleep
 from os import system
 
+
 def smart_resize(i3, e):
     if e.binding.command.startswith('resize '):
         tree = i3.get_tree()
@@ -10,9 +11,9 @@ def smart_resize(i3, e):
         workspace = focused.workspace()
         scr_x = workspace.rect.x
         scr_y = workspace.rect.y
-        scr_width  = scr_x + workspace.rect.width
+        scr_width = scr_x + workspace.rect.width
         scr_height = scr_y + workspace.rect.height
-        win_width  = focused.rect.width
+        win_width = focused.rect.width
         win_height = focused.rect.height
         old_x = focused.rect.x
         old_y = focused.rect.y
@@ -30,6 +31,7 @@ def smart_resize(i3, e):
 
         if x != old_x or y != old_y:
             i3.command('move position {} {}'.format(x, y))
+
 
 if __name__ == '__main__':
     while system('pgrep -x i3') == 0:
