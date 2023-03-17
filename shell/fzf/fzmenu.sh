@@ -4,19 +4,25 @@
 # set -e
 
 menu() { cat << EOF
-Run conky
-Run fzfanime
-Kill conky
-Close
+close
+conky
+fzfanime
+qutebrowser
+firefox
+chromium
+qbittorrent
+alacritty
+kill conky
 EOF
 }
 run() {
     i3-msg "exec --no-startup-id $*"
 }
 
-opt=$(menu | fzf --disabled --cycle --border=none --reverse --no-info --no-separator --prompt="> fzmenu < ")
+opt=$(menu | fzf --cycle --border=none --no-info --no-separator --prompt="run: ")
 case "$opt" in
-    Kill?conky) killall conky ;;
-    Run?conky) run runconky.sh  ;;
-    Run?fzfanime) run ts -- fzfanime.sh ;;
+    kill?conky) killall conky ;;
+    conky) run runconky.sh  ;;
+    fzfanime) run ts -- fzfanime.sh ;;
+    *) run "$opt" ;;
 esac >/dev/null 2>&1
