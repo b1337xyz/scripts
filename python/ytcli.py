@@ -15,7 +15,7 @@ import sys
 # mpv --keep-open=yes --idle=yes --ytdl-format="ba*" \
 #     --cache=yes --no-video --input-ipc-server=<SOCKET_PATH>
 
-if os.system('pgrep -f "mpv --profile=radio"') != 0:
+if os.system('pgrep -f "mpv --profile=radio" >/dev/null') != 0:
     sp.Popen(['mpv', '--profile=radio'],
              shell=True, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
 

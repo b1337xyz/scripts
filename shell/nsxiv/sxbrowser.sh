@@ -22,7 +22,7 @@ while :;do
     if [ "$l" -eq 0 ];then
         break
     elif [ "$l" -gt 1 ];then
-        out=$(nsxiv -n "$n" -fqito < "$cache" 2>/dev/null)
+        out=$(nsxiv -n "$n" -fZqito < "$cache" 2>/dev/null)
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi

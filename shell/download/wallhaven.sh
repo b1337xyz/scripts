@@ -32,5 +32,5 @@ if [ $# -gt 0 ];then
         echo "[${page}/${last_page}] $*" >&2
         search "$*" "$page" | jq -r '.data[].path'
         ((page++))
-    done | xargs -rP3 wget -nc -P "$WALL_DIR"
+    done | aria2c -j 4 --dir "$WALL_DIR" --input-file=-
 fi

@@ -95,24 +95,22 @@ def list_all():
         gid = i['gid']
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
-            # seeders = i['numSeeders']
-            print('{}[{:>3}% {:>10}/{:>10} {:>10}/s] [{}] - {}'.format(
-                f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed,
-                status, name
-            ))
+            upspeed = get_psize(int(i['uploadSpeed']))
+            print('{}[{:>3}% {:>10}/{:>10} {:>10}/s {:>10}/s] [{}] - {}'.format(
+                f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed, upspeed,
+                status, name))
         else:
             print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
                 f'{gid}: ' if SHOW_GID else '', p, plen, psize,
-                status, name
-            ))
-        
+                status, name))
+
         if status not in counter:
             counter[status] = 1
         else:
             counter[status] += 1
 
-    print(' '.join([f'{k}: {counter[k]}' for k in counter] + \
-          [f'total: {sum([counter[k] for k in counter])}']))
+    total = sum([counter[k] for k in counter])
+    print(f'total: {total}', ' '.join([f'{k}: {counter[k]}' for k in counter]))
 
 
 def pause():
@@ -158,7 +156,7 @@ def remove_all(status=None):
         if status and status != i['status']:
             continue
         remove([i])
-            
+
 
 def purge():
     if not yes(False):
