@@ -5,7 +5,8 @@ from os import system
 
 
 def smart_resize(i3, e):
-    if e.binding.command.startswith('resize '):
+    cmd = e.binding.command
+    if cmd.startswith('resize '):
         tree = i3.get_tree()
         focused = tree.find_focused()
         workspace = focused.workspace()
@@ -34,7 +35,7 @@ def smart_resize(i3, e):
 
 
 if __name__ == '__main__':
-    while system('pgrep -x i3') == 0:
+    while system('pgrep -x i3 >/dev/null') == 0:
         try:
             i3 = Connection()
             i3.on(Event["BINDING"], smart_resize)

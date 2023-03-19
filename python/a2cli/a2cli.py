@@ -168,7 +168,7 @@ def purge():
         if i['status'] in 'error':
             if i['errorCode'] in ['13']:
                 remove([i])
-        elif i['status'] in 'complete':
+        elif i['status'] in ['complete', 'removed']:
             remove([i])
 
 

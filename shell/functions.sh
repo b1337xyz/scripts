@@ -83,9 +83,18 @@ webdav_server() {
         --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
 frep() {
-    # find repeated files
-    find . -maxdepth "${1:-3}" -type f -printf '%f\n' | sort | uniq -d |
-    sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type f -name '{}'
+    # find repeated file
+    local type depth
+    while [ $# -gt 0 ];do
+        case "$1" in
+            -t|-type) shift; type=$1 ;;
+            -d|-depth) shift; depth=$1 ;;
+            -*) shift; printf 'Usage: frep [-type -depth]\n'; return ;;
+        esac
+        shift
+    done
+    find . -maxdepth "${depth:-4}" -type "${type:-f}" -printf '%f\n' | sort | uniq -d |
+    sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type "${type:-f}" -name '{}'
 }
 bkp() {
     local bname output

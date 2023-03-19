@@ -8,7 +8,6 @@ import re
 import requests
 import subprocess as sp
 import xmlrpc.client
-import sys
 
 # MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 HOME = os.getenv('HOME')
@@ -16,9 +15,9 @@ HIST = os.path.join(HOME, '.cache/nhentai_history')
 CONFIG = os.path.join(HOME, '.config/nhentai.json')
 DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
 DOMAIN = 'nhentai.net'
-LOCK = '/tmp/.nhentai.lock'
 ICON = f'{HOME}/Pictures/icons/nhentai.png'
 ICON = ICON if os.path.exists(ICON) else 'folder-download'
+MAX_ATTEMPTS = 10
 
 
 def parse_arguments():
@@ -45,15 +44,27 @@ def notify(msg):
 def download(session, url, dl_dir, fname):
     file = os.path.join(dl_dir, fname)
     if not os.path.exists(file):
-        r = session.get(url, stream=True)
-        with open(file, 'wb') as fp:
-            fp.write(r.raw.read())
+        att = 0
+        while att < MAX_ATTEMPTS:
+            r = session.get(url, stream=True)
+            if r.status_code == 200:
+                with open(file, 'wb') as fp:
+                    fp.write(r.raw.read())
+                break
+            print(url, r.status_code, f'retrying... [{att}/{MAX_ATTEMPTS}]')
+            sleep(15)
     return file
 
 
 def get_soup(session, url):
-    content = session.get(url).content
-    return BS(content, 'html.parser')
+    att = 0
+    while att < MAX_ATTEMPTS:
+        r = session.get(url)
+        if r.status_code == 200:
+            return BS(r.content, 'html.parser')
+        print(url, r.status_code, f'retrying... [{att}/{MAX_ATTEMPTS}]')
+        att += 1
+        sleep(15)
 
 
 def get_posts(soup):
@@ -72,12 +83,19 @@ def get_torrent_name(file):
         return ''
 
 
+def load_config():
+    with open(CONFIG, 'r') as f:
+        config = json.load(f)
+    return config['user-agent'], config['cookie']
+
+
 def main(urls):
     s = requests.Session()
-    s.headers.update({'user-agent': UA})
+    user_agent, cookie = load_config()
+    s.headers.update({'user-agent': user_agent})
     cookies = [
         {'name': x.strip(), 'value': y.strip()} for x, y in
-        [i.split('=') for i in COOKIE.split(';')]
+        [i.split('=') for i in cookie.split(';')]
     ]
     for cookie in cookies:
         s.cookies.set(cookie['name'], cookie['value'], domain=DOMAIN)
@@ -149,32 +167,12 @@ def main(urls):
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
-    while os.path.exists(LOCK):
-        print(f'waiting for lock file to be deleted..., {LOCK}', end='\r')
-        sleep(5)
-
-    with open(CONFIG, 'r') as fp:
-        config = json.load(fp)
-
-    try:
-        UA = config['user-agent']
-        COOKIE = config['cookie']
-    except KeyError:
-        print("Cookie or User-Agent not defined")
-        sys.exit(1)
 
     if opts.input_file:
-        with open(opts.input_file, 'r') as fp:
-            urls = [i.strip() for i in fp.readlines() if DOMAIN in i]
+        with open(opts.input_file, 'r') as f:
+            urls = [i.strip() for i in f.readlines() if DOMAIN in i]
     else:
         urls = [i.strip() for i in args if DOMAIN in i]
 
     aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-    try:
-        open(LOCK, 'w').close()
-        main(urls)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        os.remove(LOCK)
-        print('\nbye')
+    main(urls)

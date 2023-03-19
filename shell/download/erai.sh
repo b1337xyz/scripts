@@ -6,7 +6,7 @@ declare -r -x icon=folder-download
 declare -r -x favorites=~/.cache/erai.txt
 declare -r -x cache_dir=/tmp/erai
 
-end() { find "$cache_dir" -name 'tmp.html' -delete; }
+end() { find "$cache_dir" -name 'tmp.html' -delete 2>/dev/null; }
 trap end EXIT
 
 quote() {
