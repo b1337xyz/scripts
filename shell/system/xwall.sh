@@ -57,4 +57,5 @@ wallpaper=$(realpath "$wallpaper")
 
 printf 'xwallpaper %s "%s"' "${opts[*]}" "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
+cp "$wallpaper" ~/.cache/current_bg.jpg
 exit 0
