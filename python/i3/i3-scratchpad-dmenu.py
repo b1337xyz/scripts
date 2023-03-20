@@ -2,7 +2,6 @@
 import sys
 import i3ipc
 import subprocess
-from time import sleep
 
 dmenu_args = ['-i', '-l', '10', '-c']
 i3 = i3ipc.Connection()
@@ -46,5 +45,5 @@ focus_win_name = sel_focus[0].strip()
 try:
     sp_windows[focus_win_name].command('focus')
     # sp_windows[focus_win_name].command('floating toggle')
-except KeyError as e:
+except KeyError:
     sys.exit(2)
