@@ -91,18 +91,31 @@ def list_all():
         max_len = 80
         if len(name) > max_len:
             name = name[:max_len - 3] + '...'
-        status = i['status']
         gid = i['gid']
+        status = i['status']
+        icon = {
+            'active':   '\033[1;32m⬤\033[m',
+            'error':    '\033[1;31m⬤\033[m',
+            'paused':   '\033[1;30m⬤\033[m',
+            'complete': '\033[1;34m⬤\033[m',
+            'waiting':  '\033[1;33m⬤\033[m',
+        }[status]
+
+        if SHOW_GID:
+            print(gid, end=' ')
+
+        bar_size = 20
+        blocks = p * bar_size // 100
+        blank = bar_size - blocks
+        bar = f'{blocks * "#"}{blank * " "}'
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
-            upspeed = get_psize(int(i['uploadSpeed']))
-            print('{}[{:>3}% {:>10}/{:>10} {:>10}/s {:>10}/s] [{}] - {}'.format(
-                f'{gid}: ' if SHOW_GID else '', p, plen, psize, dlspeed, upspeed,
-                status, name))
+            # upspeed = get_psize(int(i['uploadSpeed']))
+            print('{} [{}] {:>3}% {:>10}/s {:>10} - {}'.format(
+                icon, bar, p, dlspeed, psize, name))
         else:
-            print('{}[{:>3}% {:>10}/{:>10}] [{}] - {}'.format(
-                f'{gid}: ' if SHOW_GID else '', p, plen, psize,
-                status, name))
+            print('{} [{}] {:>3}% {:>10} - {}'.format(
+                icon, bar, p, psize, name))
 
         if status not in counter:
             counter[status] = 1
