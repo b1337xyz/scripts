@@ -99,6 +99,7 @@ def list_all():
             'paused':   '\033[1;30m⬤\033[m',
             'complete': '\033[1;34m⬤\033[m',
             'waiting':  '\033[1;33m⬤\033[m',
+            'removed':  '\033[1;30m⬤\033[m',
         }[status]
 
         if SHOW_GID:

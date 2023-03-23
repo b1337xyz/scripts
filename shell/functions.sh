@@ -357,7 +357,7 @@ edalt() {
 magrep() {
     # grep magnet links
     [ -z "$1" ] && { printf 'Usage: magrep <url>\n'; return 1; }
-    curl -s "$1" | sed 's/<.\?br>//g; s/\&amp;/\&/g' |
+    curl --user-agent mozilla -s "$1" | sed 's/<.\?br>//g; s/\&amp;/\&/g' |
         grep -oP 'magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]+(?=&dn=)'
 }
 trackers_best() {
