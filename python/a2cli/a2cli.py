@@ -111,10 +111,10 @@ def list_all():
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             # upspeed = get_psize(int(i['uploadSpeed']))
-            print('{} [{}] {:>3}% {:>10}/s {:>10} - {}'.format(
+            print('{} [{} {:>3}%] {:>10}/s {:>10} - {}'.format(
                 icon, bar, p, dlspeed, psize, name))
         else:
-            print('{} [{}] {:>3}% {:>10} - {}'.format(
+            print('{} [{} {:>3}%] {:>10} - {}'.format(
                 icon, bar, p, psize, name))
 
         if status not in counter:
