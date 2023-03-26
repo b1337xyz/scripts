@@ -10,12 +10,17 @@
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 domain='https://kemono.party'
 tmpfile=$(mktemp)
-end() { rm "$tmpfile" 2>/dev/null || true; }
+end() {
+    pkill -f 'aria2c -D --enable-rpc --rpc-list-port 6802'
+    rm "$tmpfile" 2>/dev/null
+}
 trap end EXIT
+
+aria2c -D --enable-rpc --rpc-list-port 6802 --continue || exit 1
 
 addUri() {
     data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
-    curl -s "http://localhost:6801/jsonrpc" \
+    curl -s "http://localhost:6802/jsonrpc" \
         -H "Content-Type: application/json" -H "Accept: application/json" \
         -d "$data" >/dev/null 2>&1
     printf '%s -> %s\n' "${1##*/}" "$2"
@@ -100,7 +105,6 @@ main() {
                 case "$url" in
                     http*) addUri "$url" "$dl_dir" ;;
                     *data*) addUri "${domain}${url}" "$dl_dir" ;;
-                    *) printf '%s???\n' "$url" ;;
                 esac
             done
             # done | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true

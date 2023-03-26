@@ -10,6 +10,7 @@ main() {
         "$@"
 }
 
+main gdrive:storage ~/mnt/storage
 main a1337xyz: ~/mnt/gdrive0
 main blind:    ~/mnt/gdrive1
 main wick:     ~/mnt/gdrive2

@@ -107,6 +107,7 @@ def main():
             query = run('dmenu', [], ['-c', '-i', '-p', 'search:'])[-1]
     elif hist:
         query = run('fzf', hist, [
+            '--bind', 'tab:print-query',
             '--height', height, '--prompt', 'search: ',
             '--print-query'
         ])[-1]
