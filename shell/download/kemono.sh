@@ -11,12 +11,12 @@ UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/1
 domain='https://kemono.party'
 tmpfile=$(mktemp)
 end() {
-    pkill -f 'aria2c -D --enable-rpc --rpc-list-port 6802'
+    pkill -f 'aria2c -D --enable-rpc --rpc-listen-port 6802'
     rm "$tmpfile" 2>/dev/null
 }
 trap end EXIT
 
-aria2c -D --enable-rpc --rpc-list-port 6802 --continue || exit 1
+aria2c -D --enable-rpc --rpc-listen-port 6802 -j 1 --continue || exit 1
 
 addUri() {
     data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
