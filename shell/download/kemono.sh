@@ -7,33 +7,19 @@
 #   https://github.com/yt-dlp/yt-dlp
 #   https://github.com/mikf/gallery-dl
 
+RPC_PORT=6802
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 domain='https://kemono.party'
 tmpfile=$(mktemp)
-
-downloading() {
-    active=$(curl -s 'http://localhost:6802/jsonrpc' \
-        --data '{"id":"1", "method":"aria2.tellActive"}' | jq -Mc '.result')
-    waiting=$(curl -s 'http://localhost:6802/jsonrpc' \
-        --data '{"id":"1", "method":"aria2.tellWaiting", "params":[0,1]}}' | jq -Mc '.result')
-
-    [ "$active" != "[]" ] && [ "$waiting" != "[]" ]
-}
-end() {
-    rm "$tmpfile" 2>/dev/null
-    while downloading ;do sleep 5 ;done
-    pkill -f 'aria2c -D --enable-rpc --rpc-listen-port 6802'
-}
+end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
-
-aria2c -D --enable-rpc --rpc-listen-port 6802 -j 1 --continue || exit 1
 
 addUri() {
     data=$(printf '{"jsonrpc":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
-    curl -s "http://localhost:6802/jsonrpc" \
+    curl -s "http://localhost:${RPC_PORT}/jsonrpc" \
         -H "Content-Type: application/json" -H "Accept: application/json" \
-        -d "$data" #>/dev/null 2>&1
-    printf '%s -> %s\n' "${1##*/}" "$2"
+        -d "$data" >/dev/null 2>&1
+    printf '%s\n' "${2}/${1##*/}"
 }
 get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
 main() {
