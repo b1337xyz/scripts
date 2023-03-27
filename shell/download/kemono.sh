@@ -15,11 +15,15 @@ end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
 
 addUri() {
+    file="${2}/${1##*/}"
+    [ -f "$file" ] && return
     data=$(printf '{"jsonrpc":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
     curl -s "http://localhost:${RPC_PORT}/jsonrpc" \
         -H "Content-Type: application/json" -H "Accept: application/json" \
         -d "$data" >/dev/null 2>&1
-    printf '%s\n' "${2}/${1##*/}"
+
+    printf '%s\n' "$file"
+    sleep 1
 }
 get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
 main() {
@@ -54,6 +58,7 @@ main() {
 
             # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
             pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
+            [ -z "$pw" ] && pw=$(grep -ioP 'password is ?:? ?[^ <]*' "$html" | sort -u)
             [ -n "$pw" ] && echo "$pw" >> "${dl_dir}/password"
 
             grep -oP 'https://drive\.google\.com/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
@@ -68,10 +73,10 @@ main() {
                 unset FILEID
             done
 
-            grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
-            do
-                mega-get -q "$url" "$dl_dir"
-            done
+            # grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
+            # do
+            #     mega-get -q "$url" "$dl_dir"
+            # done
 
             grep -oP 'https://gofile\.[^ \t\n\"<]*' "$html" | sed 's/\.$//g' | sort -u | while read -r url
             do

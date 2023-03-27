@@ -20,7 +20,8 @@ fi
 session=${HOME}/.cache/aria2/session.2
 script=${HOME}/.scripts/shell/aria2/aria2_on_complete.sh
 set -- -D -V --enable-rpc --rpc-listen-port=6802 \
-    --continue \
+    -j 2 --continue \
+    --auto-file-renaming=false \
     --on-download-complete="$script" \
     --save-session="$session" \
     --save-session-interval=30

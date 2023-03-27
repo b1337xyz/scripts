@@ -81,29 +81,41 @@ def add_torrent(torrent):
 def list_all():
     downloads = get_all()
     counter = dict()
+    lines = os.get_terminal_size().lines
+    curr_line = 1
     for i in downloads:
+        status = i['status']
+        if status not in counter:
+            counter[status] = 1
+        else:
+            counter[status] += 1
+
+        if curr_line >= lines:  # stop printing
+            continue
+        curr_line += 1
+
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
         p = 0 if size == 0 else completed_length * 100 // size
         psize = get_psize(size)
-        plen = get_psize(completed_length)
+        # plen = get_psize(completed_length)
         name = get_name(i)
         max_len = 80
         if len(name) > max_len:
             name = name[:max_len - 3] + '...'
-        gid = i['gid']
-        status = i['status']
+
+        error_code = '' if status != 'error' else i["errorCode"]
         icon = {
-            'active':   '\033[1;32m⬤\033[m',
-            'error':    '\033[1;31m⬤\033[m',
-            'paused':   '\033[1;36m⬤\033[m',
-            'complete': '\033[1;34m⬤\033[m',
-            'waiting':  '\033[1;33m⬤\033[m',
-            'removed':  '\033[1;30m⬤\033[m',
+            'active': '\033[1;32m⬤ \033[m',
+            'error': f'\033[1;31m{error_code}\033[m',
+            'paused': '\033[1;36m⬤ \033[m',
+            'complete': '\033[1;34m⬤ \033[m',
+            'waiting': '\033[1;33m⬤ \033[m',
+            'removed': '\033[1;30m⬤ \033[m',
         }[status]
 
         if SHOW_GID:
-            print(gid, end=' ')
+            print(i['gid'], end=' ')
 
         bar_size = 20
         blocks = p * bar_size // 100
@@ -117,11 +129,6 @@ def list_all():
         else:
             print('{} [{} {:>3}%] {:>10} - {}'.format(
                 icon, bar, p, psize, name))
-
-        if status not in counter:
-            counter[status] = 1
-        else:
-            counter[status] += 1
 
     total = sum([counter[k] for k in counter])
     print(f'total: {total}', ' '.join([f'{k}: {counter[k]}' for k in counter]))
@@ -166,10 +173,7 @@ def remove_all(status=None):
     if not yes(opts.yes):
         return
 
-    for i in get_all():
-        if status and status != i['status']:
-            continue
-        remove([i])
+    remove([i for i in get_all() if status != i['status']])
 
 
 def purge():
@@ -237,6 +241,8 @@ if __name__ == '__main__':
         move_to_top()
     elif opts.purge:
         purge()
+    elif opts.purge_all:
+        print(s.aria2.purgeDownloadResult())
     elif opts.seed:
         print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:
@@ -272,7 +278,7 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
-                print('\033[2J\033[1;1H')
+                print('\033[2J\033[1;1H') # clear
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

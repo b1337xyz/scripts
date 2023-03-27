@@ -15,7 +15,7 @@ _a2cli() {
     esac
     case $cur in
         -*)
-            COMPREPLY=( $( compgen -W '-h --help -s --save --fzf -l --list --remove -p --pause --port --purge -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes --watch' -- "$cur" ) )
+            COMPREPLY=( $( compgen -W '-h --help -s --save --fzf -l --list --remove -p --pause --port --purge --purge-all -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes --watch' -- "$cur" ) )
         ;;
         *)
             _filedir '@(torrent|magnet|txt)'

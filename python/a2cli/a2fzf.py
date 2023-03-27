@@ -11,17 +11,12 @@ import xmlrpc.client
 
 FIFO = 'test.fifo'
 PREVIEW = 'preview.fifo'
-MAX_SIZE = 2000 * 1000  # 2 MB
 MAX_DOWNLOADS = 200
-HOME = os.getenv('HOME')
-CACHE = os.path.join(HOME, '.cache/torrents')
-DL_DIR = os.path.join(HOME, 'Downloads')
-TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 
 LABEL = '╢ a-p a-u a-t a-r c-r c-a ╟'
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
-    '--border=bottom', '--preview-window', 'up:50%',
+    '--border=bottom', '--preview-window', 'up:50%,wrap',
     '--border-label', LABEL,
     '--padding', '0,0,2%',
     '--preview', f"printf '%s\\n' {{}} > {PREVIEW}; cat {PREVIEW}",
@@ -36,13 +31,6 @@ FZF_ARGS = [
 RED = '\033[1;31m'
 GRN = '\033[1;32m'
 END = '\033[m'
-
-
-def mv(src, dst):
-    try:
-        move(src, dst)
-    except Exception:
-        pass
 
 
 def psize(size):
@@ -73,7 +61,7 @@ def get_name(data):
 
     try:
         return unquote(data['files'][0]['uris'][0]['uri'].split('/')[-1])
-    except Exception as err:
+    except Exception:
         return data['gid']
 
 
@@ -125,7 +113,8 @@ def preview_fifo():
                     int(info["numSeeders"])
 
                 try:
-                    error_code = info["errorCode"]
+                    error_code = info['errorCode']
+                    error_msg = info['errorMessage']
                 except Exception:
                     error_code = None
 
@@ -144,7 +133,7 @@ def preview_fifo():
                     f'Speed:     {psize(dlspeed)}/{psize(upspeed)}',
                     f'Status:    {status}',
                     f'GID:       {info["gid"]}',
-                    f'Error:     {error_code}' if error_code else ''
+                    f'Error:     {error_code} - {error_msg}' if error_code else ''  # noqa: E501
                 ])
 
             except Exception:
@@ -195,46 +184,6 @@ def reload():
             pass
 
 
-def is_torrent(file: str) -> bool:
-    if not os.path.isfile(file):
-        return False
-
-    cmd = ['file', '-Lbi', file]
-    out = sp.run(cmd, stdout=sp.PIPE).stdout.decode()
-    return 'bittorrent' in out or 'octet-stream' in out
-
-
-def add_torrent(torrent_file):
-    options = {
-        'dir': TEMP_DIR,
-        'force-save': 'false',
-        'bt-save-metadata': 'true',
-        'check-integrity': 'true'
-    }
-    if os.path.getsize(torrent_file) > MAX_SIZE:
-        magnet = get_magnet(torrent)
-        add_uri(magnet, options)
-        return
-
-    with open(torrent_file, 'rb') as fp:
-        session.aria2.addTorrent(
-            xmlrpc.client.Binary(fp.read()),
-            [], options
-        )
-    mv(torrent_file, CACHE)
-
-
-def add_uri(uri, options={}):
-    if not options:
-        options = {
-            'dir': DL_DIR,
-            'force-save': 'false',
-            'bt-save-metadata': 'true',
-            'check-integrity': 'true'
-        }
-    session.aria2.addUri([uri], options)
-
-
 def kill_fifo(file):
     if os.path.exists(file):
         with open(file, 'w') as fifo:
@@ -254,15 +203,6 @@ def main(args=[]):
     except ConnectionRefusedError as err:
         print(err)
         sys.exit(1)
-
-    for arg in args:
-        try:
-            if is_torrent(arg):
-                add_torrent(arg)
-            else:
-                add_uri(arg)
-        except Exception as err:
-            print(err)
 
     if not os.path.exists(FIFO):
         os.mkfifo(FIFO)

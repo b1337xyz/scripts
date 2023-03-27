@@ -1,6 +1,6 @@
 #!/bin/sh
 
-main() {
+Mount() {
     [ -d "$2" ] || mkdir -vp "$2"
     rclone mount --daemon   \
         --allow-other       \
@@ -10,7 +10,7 @@ main() {
         "$@"
 }
 
-main gdrive:storage ~/mnt/storage
-main a1337xyz: ~/mnt/gdrive0
-main blind:    ~/mnt/gdrive1
-main wick:     ~/mnt/gdrive2
+Mount gdrive:storage ~/mnt/storage
+Mount a1337xyz: ~/mnt/gdrive0
+Mount blind:    ~/mnt/gdrive1
+Mount wick:     ~/mnt/gdrive2

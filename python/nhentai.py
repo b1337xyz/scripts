@@ -162,4 +162,7 @@ if __name__ == '__main__':
         urls = [i.strip() for i in args if DOMAIN in i]
 
     aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-    main(urls)
+    try:
+        main(urls)
+    except Exception as err:
+        logging.error(f'finished with errors, {err}')
