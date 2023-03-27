@@ -11,7 +11,7 @@
 
 #### Dependencies
 - shell 
-  - [aria2](https://aria2.github.io/)
+  - [aria2](https://aria2.github.io/) - some scripts like nhentai.py are hardcoded to use the rpc on localhost, port 6800
   - [bat](https://github.com/sharkdp/bat)
   - [cksfv](http://zakalwe.fi/~shd/foss/cksfv) - [crc32check](https://github.com/b1337xyz/scripts/blob/main/shell/functions.sh#L184) and [crc32rename](https://github.com/b1337xyz/scripts/blob/main/shell/functions.sh#L207)
   - [dash](http://gondor.apana.org.au/~herbert/dash/)
