@@ -7,27 +7,16 @@
 #   https://github.com/yt-dlp/yt-dlp
 #   https://github.com/mikf/gallery-dl
 
-RPC_PORT=6802
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+
+log=~/.cache/kemono.log
 domain='https://kemono.party'
 tmpfile=$(mktemp)
 end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
 
-addUri() {
-    file="${2}/${1##*/}"
-    [ -f "$file" ] && return
-    data=$(printf '{"jsonrpc":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' "$1" "$2")
-    curl -s "http://localhost:${RPC_PORT}/jsonrpc" \
-        -H "Content-Type: application/json" -H "Accept: application/json" \
-        -d "$data" >/dev/null 2>&1
-
-    printf '%s\n' "$file"
-    sleep 1
-}
 get_posts() { grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'; }
 main() {
-    declare -x user
     main_url=$(echo "$1" | grep -oP 'https://kemono.party/\w*/user/\d*')
     test -z "$main_url" && return 1
     user=$(echo "$1" | grep -oP '\w*/user/\d*' | sed 's/.user//')
@@ -40,7 +29,7 @@ main() {
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
-    echo "$main_url" >> ~/.cache/kemono.log
+    echo "$main_url" >> "$log"
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
@@ -50,7 +39,7 @@ main() {
         else
             curl -A "$UA" -s "${main_url}?o=$page" | get_posts
         fi | while read -r url;do
-            post_url="$domain$url"
+            post_url=${domain}$url
             dl_dir=${DL_DIR}/${url##*/}
             html=${dl_dir}/html
             [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
@@ -83,32 +72,31 @@ main() {
                 gallery-dl -d "$dl_dir" "$url"
             done
 
-            grep -ioP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$html" |
-            sed 's/\.$//g' | sort -u | while read -r url
+            grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$html" | sed 's/\.$//g' | sort -u | while read -r url
             do
                 case "$url" in
                     *giant.gfycat.com*) continue ;; # DEAD
                     *my.mixtape.moe*)   continue ;; # DEAD
                     *a.pomf.cat*)       continue ;; # DEAD
                     *.fanbox.cc*)       continue ;; # use https://github.com/Nandaka/PixivUtil2
-                    # *dropbox*) yt-dlp "$url" ;;
                     # *dropbox*) wget --content-disposition -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "${url%\?*}?dl=1" ;;
-                    *dropbox*) addUri "${url%\?*}?dl=1" "$dl_dir" ;;
+                    *dropbox*) aria2c --dir "$dl_dir" "${url%\?*}?dl=1" ;;
                     *gofile*) gallery-dl -d "$dl_dir" "$url" ;;
-                    *) addUri "$url" "$dl_dir" ;;
+                    *) aria2c --dir "$dl_dir" "$url" ;;
                 esac
                 # wget -t 5 -w 5 -U "$UA" -nc -P "$dl_dir" "$url"
             done
 
-            grep -oiP '(?<=\=\").*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$html" |
-            grep -v thumbnail | sort -u | while read -r url
+            grep -oP '(href|src)=\".*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$html" |
+                grep -v thumbnail | cut -d \" -f2- | sort -u | while read -r url
             do
                 case "$url" in
-                    http*) addUri "$url" "$dl_dir" ;;
-                    *data*) addUri "${domain}${url}" "$dl_dir" ;;
+                    http*) aria2c --dir "$dl_dir" "$url" ;;
+                    *data*) aria2c --dir "$dl_dir" "${domain}${url}" ;;
                 esac
             done
-            # done | aria2c -d "$dl_dir" -s 4 -j 2 --input-file=- || true
+
+            rm -d "$dl_dir" 2>/dev/null || true
         done
     done
 }
