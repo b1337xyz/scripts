@@ -8,13 +8,13 @@ import os
 import re
 import requests
 import subprocess as sp
-import xmlrpc.client
 
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'  # noqa: E501
 HOME = os.getenv('HOME')
+CACHE_DIR = os.getenv('XDG_CACHE_HOME', os.path.join(HOME, '.cache'))
+LOG = os.path.join(CACHE_DIR, 'ehentai.log')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
-LOG = os.path.join(HOME, '.cache/ehentai.log')
-PORT = '6801'   # RPC port
+MAX_ATTEMPS = 5
 
 
 logging.basicConfig(
@@ -45,9 +45,24 @@ def clean_filename(s: str) -> str:
     return re.sub(r'\s{2,}', ' ', s).strip()
 
 
+def download(url: str, dl_dir: str) -> int:
+    p = sp.run(['aria2c', url, '-q', '--dir', dl_dir,
+                '--always-resume=false',
+                '--max-resume-failure-tries=0',
+                '--force-save=false',
+                '--auto-file-renaming=false'])
+    return p.returncode
+
+
+def random_sleep():
+    sleep(random() * .3)
+
+
 def main(url):
     assert 'e-hentai.org' in url
+    sp.run(['notify-send', 'E-hentai downloader started', url])
     logging.info(f'{url = }')
+
     s = requests.Session()
     s.headers.update({'user-agent': UA})
     r = s.get(url)
@@ -58,7 +73,6 @@ def main(url):
     except ValueError:
         max_page = 1
 
-    sp.run(['notify-send', 'E-hentai downloader started', url])
     gallery = list()
     for page in range(curr_page, max_page + 1):
         for link in gallery_regex.findall(r.text):
@@ -68,19 +82,27 @@ def main(url):
             if page_regex.search(url):
                 url = re.sub(r'([\?\&]page)=(\d+)', r'\1={}'.format(page), url)
             else:
-                url += f'&page={page}' if '?' in url else f'&page={page}'
+                url += f'&page={page}' if '?' in url else f'?page={page}'
             r = s.get(url)
+            random_sleep()
 
-    session = xmlrpc.client.ServerProxy(f'http://localhost:{PORT}/rpc')
+    c = 1
+    total = len(gallery)
     for gid, token in gallery:
         url = f'https://e-hentai.org/g/{gid}/{token}/'
-        r = s.get(url)
+        try:
+            r = s.get(url)
+        except Exception as err:
+            logging.error(f'error requesting: {url}, {r.status_code}, {err}')
+            continue
+        logging.info(f'gallery {c} of {total}: {url}')
+        c += 1
 
         try:
             url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text)
             url = url.group()
         except AttributeError:
-            logging.error(f'nothing found: {url = }')
+            logging.error(f'nothing found: {url}')
             continue
 
         try:
@@ -102,29 +124,44 @@ def main(url):
             dl_dir = os.path.join(DL_DIR, title)
 
         if skip_regex and skip_regex.search(title):
-            logging.info(f'Skipping: {title}')
+            logging.info(f'skipping: {title}')
             continue
 
         curr_page = 0
         next_page = curr_page + 1
+        att = 0
         while next_page > curr_page:
+            att += 1
+            if att > MAX_ATTEMPS:
+                break
+
             r = s.get(url)
-            img = img_regex.search(r.text).group(1)
+            random_sleep()
+
+            try:
+                img = img_regex.search(r.text).group(1)
+            except AttributeError:
+                logging.error(f'image not found, {url}, attempt: {att} of {MAX_ATTEMPS}')  # noqa: E501
+                continue
+
             if '/509.gif' in img:
                 logging.warning(f'509 ERROR, {url} - {img}')
                 break
 
-            logging.info(img)
-            session.aria2.addUri([img], {'dir': dl_dir})
+            exit_code = download(img, dl_dir)
+            # 13 - If file already existed
+            if exit_code not in [0, 13]:
+                logging.error(f'aria2c error: {exit_code}, {url}, attempt: {att} of {MAX_ATTEMPS}')  # noqa: E501
+                continue
+
+            att = 0
             curr_page = int(url.split('-')[-1])
             url = next_regex.search(r.text).group(1)
             next_page = int(url.split('-')[-1])
-            sleep(random() * .3)
-        session.aria2.purgeDownloadResult()
 
 
 if __name__ == '__main__':
     try:
         main(argv[1])
     except Exception as err:
-        logging.error('finished with errors, {err}')
+        logging.error(f'finished with errors, {err}')

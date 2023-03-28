@@ -12,9 +12,9 @@ printf 'tac? [y/N] '; read -r ask
 [ "$ask" = y ] && tac "$tmpfile" >> "$tmpfile"
 
 ffmpeg -nostdin -v 24 -stats -y \
-    -r 10 -f concat -safe 0     \
+    -r 24 -f concat -safe 0     \
     -i "$tmpfile" -c:v libx264  \
-    -crf 5 -preset fast -tune animation \
+    -crf 4 -preset slow -tune animation \
     output.mp4
 
 # mpv output.mp4 --loop-file=inf

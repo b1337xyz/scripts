@@ -9,15 +9,26 @@ import requests
 import re
 import os
 
-PHPSESSID = ''  # change this
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/5.15.7 Chrome/87.0.4280.144 Safari/537.36'  # noqa: E501
 ROOT = os.path.dirname(os.path.realpath(__file__))
 HOME = os.getenv('HOME', ROOT)
-DL_DIR = os.path.join(HOME, 'Downloads')
 CACHE_DIR = os.getenv('XDG_CACHE_HOME', ROOT)
 CACHE = os.path.join(CACHE_DIR, 'imhentai.json')
+DL_DIR = os.path.join(HOME, 'Downloads')
 RE_GALLERY = re.compile(r'href="/(gallery/\d+/?)"')
+SESSIONFILE = os.path.join(CACHE_DIR, 'imhentai.session')
+
+try:
+    with open(SESSIONFILE, 'r') as f:
+        PHPSESSID = f.readline().strip()
+    if not PHPSESSID:
+        raise Exception
+except Exception:
+    print('Access the site and open devtools and go to the Netowork tab')
+    PHPSESSID = input('PHPSESSID: ').strip()
+    with open(SESSIONFILE, 'w') as f:
+        f.write(PHPSESSID)
 
 
 def parse_arguments():
@@ -88,7 +99,7 @@ def get_download_url(url, data):
     if 'wait' in resp:
         t = int(resp.split(',')[-1]) + 1
         for i in range(t, 0, -1):
-            print(f'waiting... {i:>3}s', end='\r')
+            print(f'wait {i:>3}s', end='\r')
             sleep(1)
         return get_download_url(url, data)
 
