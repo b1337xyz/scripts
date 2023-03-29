@@ -12,7 +12,7 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
-MAX = 500
+MAX = 999
 MAX_SIZE = 2000 * 1000  # 2 MB
 FZF_ARGS = [
     '-m',

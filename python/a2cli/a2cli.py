@@ -49,8 +49,7 @@ def get_all():
     waiting = s.aria2.tellWaiting(0, MAX)
     stopped = s.aria2.tellStopped(0, MAX)
     active = s.aria2.tellActive()
-    return sorted([] + waiting + stopped + active,
-                  key=lambda x: x['status'])
+    return active + waiting + stopped
 
 
 def add_torrent(torrent):
@@ -181,9 +180,11 @@ def purge():
     if not yes(False):
         return
 
+    # 11     If aria2 was downloading same file at that moment.
+    # 13     If file already existed.
     for i in get_all():
         if i['status'] in 'error':
-            if i['errorCode'] in ['13']:
+            if i['errorCode'] in ['11', '13']:
                 remove([i])
         elif i['status'] in ['complete', 'removed']:
             remove([i])
