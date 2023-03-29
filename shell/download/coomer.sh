@@ -33,7 +33,7 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        if test -f "$tmpfile";then
+        if test -f "$tmpfile";then  # don't request the first page twice
             get_posts < "$tmpfile"
             rm "$tmpfile"
         else
@@ -88,13 +88,13 @@ main() {
             done
 
             grep -oP '(href|src)=\".*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$html" |
-                grep -v thumbnail | cut -d \" -f2- | sort -u | while read -r url
+                grep -v thumbnail | cut -d \" -f2- | while read -r url
             do
                 case "$url" in
-                    http*) aria2c --dir "$dl_dir" "$url" ;;
-                    *data*) aria2c --dir "$dl_dir" "${domain}${url}" ;;
+                    http*) echo "$url" ;;
+                    *data*) echo "${domain}${url}" ;;
                 esac
-            done
+            done | sort -u | aria2c -j 1 --dir "$dl_dir" --input-file=-
 
             rm -d "$dl_dir" 2>/dev/null || true
         done

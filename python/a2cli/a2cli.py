@@ -24,7 +24,7 @@ def select(downloads):
 
     for i, v in enumerate(downloads):
         name = get_name(v)
-        max_len = 80
+        max_len = 70
         if len(name) > max_len:
             name = name[:max_len - 3] + '...'
         size = get_psize(int(v['totalLength']))
@@ -50,7 +50,7 @@ def get_all():
     stopped = s.aria2.tellStopped(0, MAX)
     active = s.aria2.tellActive()
     return sorted([] + waiting + stopped + active,
-                  key=lambda x: x['status'], reverse=True)
+                  key=lambda x: x['status'])
 
 
 def add_torrent(torrent):
@@ -83,6 +83,7 @@ def list_all():
     counter = dict()
     lines = os.get_terminal_size().lines
     curr_line = 1
+    print('\033[2J\033[1;1H')  # clear
     for i in downloads:
         status = i['status']
         if status not in counter:
@@ -278,7 +279,6 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
-                print('\033[2J\033[1;1H')  # clear
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

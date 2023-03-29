@@ -33,7 +33,7 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        if test -f "$tmpfile";then
+        if test -f "$tmpfile";then  # don't request the first page twice
             get_posts < "$tmpfile"
             rm "$tmpfile"
         else
