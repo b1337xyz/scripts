@@ -135,7 +135,7 @@ ex() {
             *.rar)     unrar x -op"${i%.*}" "$i" ;;
             *.zip)     unzip "$i" -d "${i%.*}"   ;;
             *.gz)      gunzip "$i"     ;;
-            *.7z)      7z x "$i"       ;;
+            *.7z)      7z x -o"${i%.*}" "$i"       ;;
             *.Z)       uncompress "$i" ;;
         esac || return 1
     done

@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2086
 
-set -e
-
 # Dependencies:
 #   https://github.com/meganz/MEGAcmd
 #   https://github.com/prasmussen/gdrive
@@ -10,9 +8,8 @@ set -e
 #   https://github.com/mikf/gallery-dl
 
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
-
+DOMAIN='https://kemono.party'
 log=~/.cache/kemono.log
-domain='https://kemono.party'
 tmpfile=$(mktemp)
 end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
@@ -84,7 +81,7 @@ download_post_content() {
     do
         case "$url" in
             http*) echo "$url" ;;
-            *data*) echo "${domain}${url}" ;;
+            *data*) echo "${DOMAIN}${url}" ;;
         esac
     done | sort -u | aria2c -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
 
@@ -115,7 +112,7 @@ main() {
         else
             curl -A "$UA" -s "${main_url}?o=$page" | grep_posts
         fi | while read -r url;do
-            post_url=${domain}$url
+            post_url=${DOMAIN}$url
             download_post_content "$post_url"
         done
     done
