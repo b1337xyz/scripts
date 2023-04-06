@@ -96,13 +96,13 @@ def notify(title, msg, icon='emblem-downloads'):
 def on_complete():
     request('removeDownloadResult', gid)
     if is_metadata:
+        notify(status, name)
         if os.path.exists(torrent_file):
             mv(torrent_file, CACHE)
-        notify(f'{status}', name)
     else:
+        notify(status, f'{name}\nSize: {size}')
         if os.path.exists(path) and _dir == TEMP_DIR:
             mv(path, DL_DIR)
-        notify(f"{status}", f'{name}\nSize: {size}')
 
 
 if __name__ == '__main__':

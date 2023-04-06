@@ -63,16 +63,13 @@ def add_torrent(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
             with open(torrent, 'rb') as fp:
                 try:
-                    s.aria2.addTorrent(
-                        xmlrpc.client.Binary(fp.read()),
-                        [], options
-                    )
-                    mv(torrent, CACHE)
+                    s.aria2.addTorrent(xmlrpc.client.Binary(fp.read()),
+                                       [], options)
                 except Exception as err:
                     logging.error(err)
         else:
             magnet = get_magnet(torrent)
-            return add_torrent(magnet)
+            add_torrent(magnet)
     else:
         s.aria2.addUri([torrent], options)
 
@@ -100,7 +97,7 @@ def list_all():
         psize = get_psize(size)
         # plen = get_psize(completed_length)
         name = get_name(i)
-        max_len = 80
+        max_len = 60
         if len(name) > max_len:
             name = name[:max_len - 3] + '...'
 

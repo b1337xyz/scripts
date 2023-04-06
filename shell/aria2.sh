@@ -135,7 +135,7 @@ btsel() {
         sub(/^[ \t]*/, "", $0);
         printf("%s|%s\n", $1, $2)
     }' | fzf -m --bind 'ctrl-a:select-all' | grep -oP '^\d+(?=\|)' | tr \\n ',' | sed 's/,$//' |
-        xargs -orI{} aria2c --bt-remove-unselected-file --select-file '{}' "$1" 
+        xargs -orI{} aria2c --select-file '{}' "$1" 
 }
 addUri() {
     data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' \
