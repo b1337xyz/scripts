@@ -14,7 +14,9 @@ lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
-upload() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
+0x0() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
+transfer.sh() { curl --upload-file "$1" https://transfer.sh; }
+bashupload() { curl bashupload.com -T "$1"; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
 fvideo() { find . -iregex ".*$VideoPattern"; }

@@ -1,10 +1,6 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-src=alsa_input.pci-0000_00_0e.0.analog-stereo
-out=alsa_output.pci-0000_00_0e.0.analog-stereo
+#!/bin/sh
 src=alsa_output.pci-0000_00_0e.0.analog-stereo
+src=alsa_output.pci-0000_00_0e.0.hdmi-stereo
 
 #pactl load-module module-null-sink sink_name=Virtual1
 #pactl load-module module-loopback source="$src" sink=Virtual1
