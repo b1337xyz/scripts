@@ -86,17 +86,16 @@ def main(url):
             r = s.get(url)
             random_sleep()
 
-    c = 1
+    c = 0
     total = len(gallery)
     for gid, token in gallery:
+        c += 1
         url = f'https://e-hentai.org/g/{gid}/{token}/'
         try:
             r = s.get(url)
         except Exception as err:
             logging.error(f'error requesting: {url}, {r.status_code}, {err}')
             continue
-        logging.info(f'gallery {c} of {total}: {url}')
-        c += 1
 
         try:
             url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text)
@@ -117,6 +116,8 @@ def main(url):
             except AttributeError:
                 title = gid
         title = clean_filename(unescape(title))
+        logging.info(f'gallery {c} of {total}: {title} {url}')
+
         try:
             artist = artist_regex.search(r.text).group(1)
             dl_dir = os.path.join(DL_DIR, f'{artist}/{title}')
@@ -132,9 +133,6 @@ def main(url):
         att = 0
         while next_page > curr_page:
             att += 1
-            if att > MAX_ATTEMPS:
-                break
-
             r = s.get(url)
             random_sleep()
 
@@ -150,7 +148,7 @@ def main(url):
 
             exit_code = download(img, dl_dir)
             # 13 - If file already existed
-            if exit_code not in [0, 13]:
+            if exit_code not in [0, 13] and att < MAX_ATTEMPS:
                 logging.error(f'aria2c error: {exit_code}, {url}, attempt: {att} of {MAX_ATTEMPS}')  # noqa: E501
                 continue
 

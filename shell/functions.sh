@@ -15,7 +15,7 @@ calc() { echo "scale=3;$*" | bc -l; }
 start_xephyr() { Xephyr -br -ac -noreset -screen 800x600 :1; }
 keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\n", $5, $8 }'; }
 0x0() { curl -F"file=@$*" https://0x0.st | tee -a ~/.cache/0x0.st; }
-transfer.sh() { curl --upload-file "$1" https://transfer.sh; }
+transfer.sh() { curl --upload-file "$1" https://transfer.sh | tee -a ~/.cache/transfer.sh; }
 bashupload() { curl bashupload.com -T "$1"; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
@@ -25,12 +25,8 @@ farchive() { find . -iregex ".*$ArchivePattern"; }
 grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
 grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
 grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
-curlt() {
-    # curl html as simple text (from WANDEX scripts-wndx)
-    curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g';
-}
+curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as simple text (from WANDEX scripts-wndx)
 histcount() {
-    # Example: `histcount`
     # Output:
     #  ...
     #  185 git
@@ -114,9 +110,9 @@ alljpg() {
     find "${@:-.}" -maxdepth 1 -type f \! -name '*.jpg' | while read -r i
     do
         mime=$(file -Lbi -- "$i")
-        case "$mime" in
-            image/gif*) continue ;;
-            image/jpeg*)
+        case "${mimetype%;*}" in
+            image/gif) continue ;;
+            image/jpeg)
                 [ "${i##*.}" != "jpg" ] && mv -vn -- "$i" "${i%.*}.jpg" ;;
             image/*)
                 convert -verbose "$i" "${i%.*}.jpg" && rm -v -- "$i" ;;
@@ -623,4 +619,8 @@ qrcode() {
     sleep 1 ; scrot -s -q 100 "$output"
     zbarimg "$output"
     [ -f "$output" ] && rm "$output"
+}
+gamefaq() {
+    # Example: gamefaq https://gamefaqs.gamespot.com/psp/955342-harvest-moon-hero-of-leaf-valley/faqs/59752
+    curl -s "$1" | sed -n '/id="faqtext">/,$p' | tail -n +2 | sed '/<\/pre><\/div>/q' | head -n -2 | "$PAGER"
 }
