@@ -105,7 +105,7 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        printf 'Post %s of %s\n' "$page" "${max_page:-1}" >&2
+        printf 'Post %s of %s\n' "$((page+1))" "${max_page:-1}" >&2
         if test -f "$tmpfile";then  # don't request the first page twice
             grep_posts < "$tmpfile"
             rm "$tmpfile"

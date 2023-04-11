@@ -62,7 +62,7 @@ favorite() {
 
 preview() {
     # shellcheck disable=SC2012
-    ls -tc1 "$DLDIR" 2>/dev/null | awk '/.[Ee]rai.*\.(ass|srt)/{print}END{print NR,"subs"}'
+    ls -tc1 "$DLDIR" 2>/dev/null | awk '/.[Ee]rai.*\.(ass|srt)/{print;c++}END{if(c) print c,"subs"}'
 }
 
 export -f main unquote quote favorite download preview
