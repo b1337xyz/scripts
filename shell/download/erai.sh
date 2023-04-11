@@ -59,7 +59,13 @@ favorite() {
         sed -i "${n}d" "$favorites"
     fi
 }
-export -f main unquote quote favorite download 
+
+preview() {
+    # shellcheck disable=SC2012
+    ls -tc1 "$DLDIR" 2>/dev/null | awk '/.[Ee]rai.*\.(ass|srt)/{print}END{print NR,"subs"}'
+}
+
+export -f main unquote quote favorite download preview
 case "$1" in
     -f|--favorites)
         [ -s "$favorites" ] || exit 1
@@ -78,10 +84,11 @@ case "$1" in
     ;;
     [0-9]*)     main "Sub/${1}"     ;;
     *)          main "${1:-Sub}"    ;;
-esac | fzf --tac --reverse --height 25 -m \
-    --bind 'ctrl-t:last'  \
-    --bind 'ctrl-b:first' \
+esac | fzf --cycle --tac --reverse --height 25 -m \
     --bind 'enter:reload(main {+})+clear-query' \
-    --bind 'ctrl-f:execute(favorite {})'
+    --bind 'ctrl-f:execute(favorite {})' \
+    --bind 'ctrl-h:last+reload(main {})' \
+    --preview-window 'right,border-none' \
+    --preview 'preview'
 
 exit 0

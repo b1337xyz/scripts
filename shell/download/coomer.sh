@@ -7,7 +7,7 @@
 #   https://github.com/yt-dlp/yt-dlp
 #   https://github.com/mikf/gallery-dl
 
-UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:112.0) Gecko/20100101 Firefox/112.0"
 DOMAIN='https://coomer.party'
 log=~/.cache/coomer.log
 tmpfile=$(mktemp)
@@ -19,7 +19,7 @@ a2c() {
 }
 
 grep_posts() {
-    grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'
+    grep -oP '(?<=href\=")/.*/user/.*/post/[^\"]*'
 }
 
 grep_gd() {
@@ -42,7 +42,7 @@ download_post_content() {
     dl_dir=${DL_DIR}/${1##*/}
     html=${dl_dir}/html
     [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
-    [ -f "$html" ] || curl -A "$UA" -s "$1" -o "$html"
+    [ -f "$html" ] || curl -s -A "$UA" "$1" -o "$html"
 
     # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
     pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
@@ -94,7 +94,7 @@ main() {
     if [ -z "$max_page" ];then
         max_page=$(
             curl -A "$UA" -s "$main_url" | tee "$tmpfile" |
-            grep -oP '(?<=href\=\")/\w*/user/\d.*[\?&]o=\d*(?=\")' |
+            grep -oP '(?<=href\=\")/.*/user/.*[\?&]o=\d*(?=\")' |
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
@@ -105,6 +105,7 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
+        printf 'Post %s of %s\n' "$page" "${max_page:-1}" >&2
         if test -f "$tmpfile";then  # don't request the first page twice
             grep_posts < "$tmpfile"
             rm "$tmpfile"

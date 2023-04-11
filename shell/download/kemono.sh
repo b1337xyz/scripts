@@ -19,7 +19,7 @@ a2c() {
 }
 
 grep_posts() {
-    grep -oP '(?<=href\=")/\w*/user/\d*/post/[A-z0-9]*(?=")'
+    grep -oP '(?<=href\=")/.*/user/.*/post/[^\"]*'
 }
 
 grep_gd() {
@@ -94,7 +94,7 @@ main() {
     if [ -z "$max_page" ];then
         max_page=$(
             curl -A "$UA" -s "$main_url" | tee "$tmpfile" |
-            grep -oP '(?<=href\=\")/\w*/user/\d.*[\?&]o=\d*(?=\")' |
+            grep -oP '(?<=href\=\")/.*/user/.*[\?&]o=\d*(?=\")' |
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
@@ -106,6 +106,7 @@ main() {
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
+        printf 'Post %s of %s\n' "$page" "${max_page:-1}" >&2
         if test -f "$tmpfile";then  # don't request the first page twice
             grep_posts < "$tmpfile"
             rm "$tmpfile"
