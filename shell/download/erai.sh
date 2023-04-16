@@ -82,13 +82,13 @@ case "$1" in
         esac
         main "Sub/$y/$s"
     ;;
-    [0-9]*)     main "Sub/${1}"     ;;
-    *)          main "${1:-Sub}"    ;;
+    [0-9]*) main "Sub/${1}"     ;;
+    *)      main "${1:-Sub}"    ;;
 esac | fzf --cycle --tac --reverse --height 25 -m \
     --bind 'enter:reload(main {+})+clear-query' \
     --bind 'ctrl-f:execute(favorite {})' \
     --bind 'ctrl-h:last+reload(main {})' \
-    --preview-window 'right,border-none' \
+    --preview-window 'down,border-none' \
     --preview 'preview'
 
 exit 0
