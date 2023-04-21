@@ -58,12 +58,7 @@ def random_sleep():
     sleep(random() * .3)
 
 
-def main(url):
-    assert 'e-hentai.org' in url
-    sp.run(['notify-send', 'E-hentai downloader started', url])
-    logging.info(f'{url = }')
-
-    s = requests.Session()
+def get_galleries(s, url):
     s.headers.update({'user-agent': UA})
     r = s.get(url)
     curr_page = page_regex.search(url)
@@ -73,11 +68,11 @@ def main(url):
     except ValueError:
         max_page = 1
 
-    gallery = list()
+    galleries = list()
     for page in range(curr_page, max_page + 1):
         for link in gallery_regex.findall(r.text):
             gid, token = link.split('/')
-            gallery.append([gid, token])
+            galleries.append([gid, token])
         if max_page > curr_page:
             if page_regex.search(url):
                 url = re.sub(r'([\?\&]page)=(\d+)', r'\1={}'.format(page), url)
@@ -85,10 +80,24 @@ def main(url):
                 url += f'&page={page}' if '?' in url else f'?page={page}'
             r = s.get(url)
             random_sleep()
+    return galleries
+
+
+def main(url):
+    assert 'e-hentai.org' in url
+    sp.run(['notify-send', 'E-hentai downloader started', url])
+    logging.info(f'{url = }')
+
+    s = requests.Session()
+    if re.search(r'\.org/g/\d+', url):
+        gid, token = re.search(r'/g/(\d+)/([^/]*)', url).group(1, 2)
+        galleries = [(gid, token)]
+    else:
+        galleries = get_galleries(s, url)
 
     c = 0
-    total = len(gallery)
-    for gid, token in gallery:
+    total = len(galleries)
+    for gid, token in galleries:
         c += 1
         url = f'https://e-hentai.org/g/{gid}/{token}/'
         try:

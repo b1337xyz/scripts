@@ -38,11 +38,24 @@ grep_data_links() {
     grep -oP '(href|src)=\".*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$1" | grep -v thumbnail | cut -d \" -f2-
 }
 
+unescape() {
+    python3 -c 'print(__import__("html").unescape(("\n".join(__import__("sys").stdin).strip())))'
+}
+
 download_post_content() {
     dl_dir=${DL_DIR}/${1##*/}
     html=${dl_dir}/html
     [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
     [ -f "$html" ] || curl -A "$UA" -s "$1" -o "$html"
+
+    pub=$(grep -oP '(?<=meta name="published" content=")[^ ]*' "$html")
+    title=$(grep -oP '(?<=meta property="og:title" content="&#34;).*(?=&#34;)' "$html" |
+            sed 's/\// /g; s/ \{2,\}/ /g' | unescape)
+
+    new_dir="${dl_dir} ${title} ${pub}"
+    mv -v "$dl_dir" "$new_dir"
+    dl_dir=${new_dir}
+    html=${dl_dir}/html
 
     # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
     pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
