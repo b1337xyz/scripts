@@ -52,9 +52,9 @@ download_post_content() {
     grep_gd "$html" | while read -r url
     do
         case "$url" in
-            *[\&\?]id=*) FILEID=$(echo "$url" | grep -oP '(?<=[\?&]id=)[^&$]*')    ;;
-            */folders/*) FILEID=$(echo "$url" | grep -oP '(?<=/folders/)[^\?$/]*') ;;
-            */file/d/*)  FILEID=$(echo "$url" | grep -oP '(?<=/file/d/)[^/\?$]*')  ;;
+            *[\&\?]id=*) FILEID=$(printf '%s' "$url" | grep -oP '(?<=[\?&]id=)[^&$]*')    ;;
+            */folders/*) FILEID=$(printf '%s' "$url" | grep -oP '(?<=/folders/)[^\?$/]*') ;;
+            */file/d/*)  FILEID=$(printf '%s' "$url" | grep -oP '(?<=/file/d/)[^/\?$]*')  ;;
         esac
         test -z "$FILEID" && continue
         gdrive download --path "$dl_dir" --skip -r "$FILEID"
@@ -80,8 +80,8 @@ download_post_content() {
     grep_data_links "$html" | while read -r url
     do
         case "$url" in
-            http*) echo "$url" ;;
-            *data*) echo "${DOMAIN}${url}" ;;
+            http*) printf '%s\n' "$url" ;;
+            *data*) printf '%s\n' "${DOMAIN}${url}" ;;
         esac
     done | sort -u | aria2c -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
 
@@ -98,7 +98,7 @@ main() {
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
         )
     fi
-    echo "$main_url" >> "$log"
+    printf '%s\n' "$main_url" >> "$log"
     user=$(printf '%s' "$1" | grep -oP '\w*/user/[^/$]*' | sed 's/.user//')
     DL_DIR=~/Downloads/coomer/"$user"
     [ -d "$DL_DIR" ] || mkdir -vp "${DL_DIR}"

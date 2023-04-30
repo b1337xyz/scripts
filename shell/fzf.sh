@@ -144,3 +144,6 @@ fzman() {
         sed -e 's/[]\[?\*\$()]/\\\\&/g' |
         xargs -rI{} man -P 'less -p"^{}"' "$1"
 }
+gitlog() {
+    git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086
+# shellcheck disable=SC2086,SC2317
 
 # Dependencies:
 #   https://github.com/meganz/MEGAcmd
@@ -15,7 +15,8 @@ end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
 
 a2c() {
-    aria2c --auto-file-renaming=false --dir "$1" "$2"
+    printf '%s -> %s\n' "$2" "$1"
+    aria2c -q --auto-file-renaming=false --dir "$1" "$2"
 }
 
 grep_posts() {
@@ -42,6 +43,14 @@ unescape() {
     python3 -c 'print(__import__("html").unescape(("\n".join(__import__("sys").stdin).strip())))'
 }
 
+unquote () {
+    python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
+}
+
+skip() {
+    [[ "$1" =~ $2 ]] && printf 'Skipping: %s\n' "$1"
+}
+
 download_post_content() {
     dl_dir=${DL_DIR}/${1##*/}
     html=${dl_dir}/html
@@ -52,10 +61,8 @@ download_post_content() {
     title=$(grep -oP '(?<=meta property="og:title" content="&#34;).*(?=&#34;)' "$html" |
             sed 's/\// /g; s/ \{2,\}/ /g' | unescape)
 
-    new_dir="${dl_dir} ${title} ${pub}"
-    mv -v "$dl_dir" "$new_dir"
-    dl_dir=${new_dir}
-    html=${dl_dir}/html
+    dl_dir="${dl_dir}/${title} ${pub}"
+    mkdir -vp "$dl_dir"
 
     # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
     pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
@@ -64,6 +71,7 @@ download_post_content() {
 
     grep_gd "$html" | while read -r url
     do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         case "$url" in
             *[\&\?]id=*) FILEID=$(echo "$url" | grep -oP '(?<=[\?&]id=)[^&$]*')    ;;
             */folders/*) FILEID=$(echo "$url" | grep -oP '(?<=/folders/)[^\?$/]*') ;;
@@ -74,17 +82,20 @@ download_post_content() {
         unset FILEID
     done
 
-    # grep_mega "$html" | while read -r url
-    # do
-    #     mega-get "$url" "$dl_dir"
-    # done
+    grep_mega "$html" | while read -r url
+    do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
+        # mega-get "$url" "$dl_dir"
+    done
 
     grep_file_links "$html" | while read -r url
     do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         case "$url" in
             *giant.gfycat.com*) continue ;; # DEAD
             *my.mixtape.moe*)   continue ;; # DEAD
             *a.pomf.cat*)       continue ;; # DEAD
+            *fanbox.cc*)        continue ;;
             *dropbox*) a2c "$dl_dir" "${url%\?*}?dl=1" ;;
             *) a2c "$dl_dir" "$url" ;;
         esac
@@ -92,13 +103,12 @@ download_post_content() {
 
     grep_data_links "$html" | while read -r url
     do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         case "$url" in
-            http*) echo "$url" ;;
-            *data*) echo "${DOMAIN}${url}" ;;
+            http*)  printf '%s\n' "$url" ;;
+            *data*) printf '%s\n' "${DOMAIN}${url}" ;;
         esac
-    done | sort -u | aria2c -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
-
-    rm -d "$dl_dir" 2>/dev/null || true
+    done | sort -u | aria2c -q -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
 }
 
 main() {
@@ -132,7 +142,7 @@ main() {
     done
 }
 help() {
-    printf 'Usage: %s [-m|--max-page <N> -p|--start-page <N>] <URL | FILE>\n' "${0##*/}"
+    printf 'Usage: %s [-o|--output <FILE> -m|--max-page <N> -p|--start-page <N>] <URL | FILE>\n' "${0##*/}"
     exit 0
 }
 
@@ -141,6 +151,7 @@ input_file=
 max_page=
 while (( $# ));do
     case "$1" in
+        -o|--output) shift; OUTPUT="$1" ;;
         -m|--max-page) shift; [ "$1" -gt 1 ] && max_page="$1" ;;
         -p|--start-page) shift; [ "$1" -ge 0 ] && start_page="$1" ;;
         -h|--help) help ;; 

@@ -15,6 +15,7 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
 ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
+LOCK = '/tmp/a2notify.lock'
 
 logging.basicConfig(
     filename=LOG,
@@ -86,6 +87,9 @@ def mv(src, dst):
 
 
 def notify(title, msg, icon='emblem-downloads'):
+    if os.path.exists(LOCK):
+        return
+
     try:
         sp.Popen(['notify-send', '-i', icon, f'[aria2] {title}', msg],
                  stderr=sp.DEVNULL)
@@ -107,7 +111,6 @@ def on_complete():
 
 if __name__ == '__main__':
     sleep(1)
-    # request('tellStopped', [0, 10])
     gid = argv[1]
     info = request('tellStatus', gid)
     if not info:
@@ -130,3 +133,9 @@ if __name__ == '__main__':
             notify(f"{status}", name, icon='dialog-error')
         case _:
             notify(f"{status}", f'{name}\nSize: {size}')
+
+    open(LOCK, 'w').close()
+    try:
+        sleep(60)  # avoid spamming a bunch of notifications
+    finally:
+        os.remove(LOCK)
