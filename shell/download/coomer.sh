@@ -69,6 +69,12 @@ download_post_content() {
     # do
     #     mega-get "$url" "$dl_dir"
     # done
+    
+    grep_dropbox "$html" | while read -r url
+    do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
+        a2c "$dl_dir" "$url"
+    done
 
     grep_file_links "$html" | while read -r url
     do
