@@ -30,6 +30,10 @@ grep_mega() {
     grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$1" | sed 's/\.$//g' | sort -u
 }
 
+grep_dropbox() {
+    grep -oP 'https://(www\.)?dropbox\.[^\"]*' "$1" | sed 's/\([&?]\)dl=0/\1dl=1/'
+}
+
 grep_file_links() {
     grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$1" | sort -u
 }

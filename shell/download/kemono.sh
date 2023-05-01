@@ -31,6 +31,10 @@ grep_mega() {
     grep -oP 'https://mega\.nz/[^ \t\n\"<]*' "$1" | sed 's/\.$//g' | sort -u
 }
 
+grep_dropbox() {
+    grep -oP 'https://(www\.)?dropbox\.[^\"]*' "$1" | sed 's/\([&?]\)dl=0/\1dl=1/'
+}
+
 grep_file_links() {
     grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$1" | sort -u
 }
@@ -86,6 +90,12 @@ download_post_content() {
     do
         [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         # mega-get "$url" "$dl_dir"
+    done
+
+    grep_dropbox "$html" | while read -r url
+    do
+        [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
+        a2c "$dl_dir" "$url"
     done
 
     grep_file_links "$html" | while read -r url

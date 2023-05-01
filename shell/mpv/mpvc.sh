@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# echo '{"command": ["get_property", "property-list"]}' | socat - /tmp/mpvradio | jq -C 
 
 while [ $1 ];do
     case "$1" in
