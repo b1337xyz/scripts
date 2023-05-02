@@ -3,6 +3,7 @@ set -e
 
 INFO_FILE=~/.local/share/mytrash/info
 TRASH_DIR=~/.local/share/mytrash/files
+[ -d "$TRASH_DIR" ] || mkdir -p "$TRASH_DIR"
 
 help() {
     printf 'Usage: %s -r <files*>\n' "${0##*/}"; exit 1
@@ -27,7 +28,7 @@ case "$1" in
         for i in "$@";do
             if [ -e "$i" ];then
                 rp=$(realpath "$i")
-                destdir=$(mktemp -dp "${TRASH_DIR}/trash-XXXXXXXXXX");
+                destdir=$(mktemp -d "${TRASH_DIR}/trash-XXXXXXXXXX")
                 mv -v -- "$rp" "$destdir"
                 echo "[$(date '+%Y-%m-%d %H:%M')] '$rp' -> '$destdir'" >>"$INFO_FILE"
             fi
