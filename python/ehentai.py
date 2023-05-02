@@ -142,6 +142,9 @@ def main(url):
         att = 0
         while next_page > curr_page:
             att += 1
+            if att > MAX_ATTEMPS:
+                break
+
             r = s.get(url)
             random_sleep()
 

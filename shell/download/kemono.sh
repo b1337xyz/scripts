@@ -179,6 +179,4 @@ elif [ "${#urls[@]}" -gt 0 ]; then
     for url in "${urls[@]}"; do
         main "$url"
     done
-else
-    help
 fi

@@ -1,42 +1,36 @@
 #!/usr/bin/env bash
-
 set -e
 
-declare -r -x INFO_FILE=~/.local/share/mytrash/info
-declare -r -x TRASH_DIR=~/.local/share/mytrash/files
-[ -d "$TRASH_DIR" ] || mkdir -p "$TRASH_DIR"
+INFO_FILE=~/.local/share/mytrash/info
+TRASH_DIR=~/.local/share/mytrash/files
+
+help() {
+    printf 'Usage: %s -r <files*>\n' "${0##*/}"; exit 1
+}
+[ "$1" ] || help
 
 preview() {
-    local file="${TRASH_DIR}/$1"
-    stat -c '%x' "$file"
-    file -bi -- "$file" | grep -q '^text' &&
-        bat --color=always --style=plain -- "$file"
+    stat -c '%x' "$1"
+    file -bi -- "$1" | grep -q '^text' && bat --color=always --style=plain -- "$1"
 }
 export -f preview
 
-while [ $# -gt 0 ];do
-    case "$1" in
-        -r)
-            find "$TRASH_DIR" -type f -printf '%T@ %f\n' | sort -rn | cut -d' ' -f2-  |
-            fzf --no-sort -m --preview-window 'right:60%' \
-                --preview 'preview {}' --print0 | xargs -or0I{} mv -vi "${TRASH_DIR}/{}" .
-        ;;
-        -*) printf 'usage: %s -r <files*>\n' "${0##*/}"; exit 1 ;;
-        *)
-            f=$(printf '%s' "$1" | sed 's/\/*$//')
-            if [ -f "$f" ];then
-                fname="${f##*/}"
-                f="${TRASH_DIR}/$fname"
-                rp=$(realpath "$1")
-                n=1
-                while [ -f "$f" ];do
-                    f="${TRASH_DIR}/${fname}.$n"
-                    n=$((n + 1))
-                done
-                mv -v -- "$1" "$f"
-                echo "[$(date '+%Y.%m.%d %H:%M:%S')] '$rp' > '$f'" >> "$INFO_FILE"
+case "$1" in
+    -r)
+        while read -r i;do
+            mv -vi -- "$i" . && rm -d "${i%/*}"
+        done < <(find "$TRASH_DIR" -mindepth 2 -maxdepth 2 -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2- |
+                 fzf -m -d '/' --no-sort --with-nth -1 --preview-window 'right:60%' --preview 'preview {}')
+    ;;
+    -*) help ;;
+    *)
+        for i in "$@";do
+            if [ -e "$i" ];then
+                rp=$(realpath "$i")
+                destdir=$(mktemp -dp "${TRASH_DIR}/trash-XXXXXXXXXX");
+                mv -v -- "$rp" "$destdir"
+                echo "[$(date '+%Y-%m-%d %H:%M')] '$rp' -> '$destdir'" >>"$INFO_FILE"
             fi
-        ;;
-    esac
-    shift
-done
+        done
+    ;;
+esac
