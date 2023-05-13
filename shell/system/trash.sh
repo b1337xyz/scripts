@@ -17,5 +17,6 @@ else
         mv -vi -- "$i" . && rm -d "${i%/*}"
     done < <(find "$TRASH_DIR" -mindepth 2 -maxdepth 2 -printf '%T@ %p\n' |
              sort -rn | cut -d' ' -f2- |
-             fzf -m -d '/' --no-sort --with-nth -1)
+             fzf -m -d '/' --no-sort --with-nth -1 \
+             --preview-window 'bottom,1' --preview 'stat -c %x {}')
 fi

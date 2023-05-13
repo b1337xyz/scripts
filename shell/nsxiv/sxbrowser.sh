@@ -19,10 +19,10 @@ while :;do
     fi
 
     l=$(wc -l < "$cache")
-    if [ "$l" -eq 0 ];then
-        break
-    elif [ "$l" -gt 1 ];then
-        out=$(nsxiv -n "$n" -fZqito < "$cache" 2>/dev/null)
+    [ "$l" -eq 0 ] && break
+
+    if [ "$l" -gt 1 ];then
+        out=$(nsxiv -n "$n" -qito < "$cache" 2>/dev/null)
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi
@@ -38,10 +38,16 @@ while :;do
     x=$(grep -nxF "$out" "$cache") x=${x%%:*}
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
-        cd "$out"
-        n=1
-        # shellcheck disable=SC2068
-        set -- "$x" $@
+        if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
+            nsxiv -qr "$out" 2>/dev/null
+            out=
+            n=$x
+        else
+            cd "$out"
+            n=1
+            # shellcheck disable=SC2068
+            set -- "$x" $@
+        fi
     else
         # nsxiv -fqo "$out" 2>/dev/null
         out=
