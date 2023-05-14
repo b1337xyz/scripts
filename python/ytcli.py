@@ -88,7 +88,7 @@ def main():
 
     hist = load_history()
     hist_len = len(hist)
-    height = str(hist_len) if hist_len <= 10 else '10'
+    height = str(hist_len) if hist_len <= 20 else '20'
 
     if args:
         query = ' '.join(args)
