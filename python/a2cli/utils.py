@@ -139,8 +139,9 @@ def get_name(info):
         return info['gid']
 
 
-def fzf(args):
-    proc = sp.Popen(["fzf"] + FZF_ARGS, stdin=sp.PIPE, stdout=sp.PIPE,
+def fzf(prompt, args):
+    proc = sp.Popen(["fzf", '--prompt', f'{prompt}:'] + FZF_ARGS,
+                    stdin=sp.PIPE, stdout=sp.PIPE,
                     universal_newlines=True)
     out = proc.communicate('\n'.join(args))
     if proc.returncode != 0:

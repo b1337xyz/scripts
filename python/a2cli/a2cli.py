@@ -6,7 +6,7 @@ import sys
 import xmlrpc.client
 
 
-def select(downloads):
+def select(action, downloads):
     if not downloads:
         return []
 
@@ -16,7 +16,7 @@ def select(downloads):
     if USE_FZF:
         return [
             downloads[int(i.split(':')[0])]
-            for i in fzf([
+            for i in fzf(action, [
                 f'{i}:{get_name(v)} [{v["status"]}]'
                 for i, v in enumerate(downloads)
             ])
@@ -34,7 +34,7 @@ def select(downloads):
         try:
             selected = [
                 downloads[int(i.strip())]
-                for i in input(': ').split()
+                for i in input(f'{action}: ').split()
             ]
             break
         except Exception as err:
@@ -79,7 +79,6 @@ def list_all():
     counter = dict()
     lines = os.get_terminal_size().lines
     curr_line = 1
-    print('\033[2J\033[1;1H')  # clear
     for i in downloads:
         status = i['status']
         if status not in counter:
@@ -133,19 +132,19 @@ def list_all():
 
 def pause():
     downloads = s.aria2.tellActive()
-    for dl in select(downloads):
+    for dl in select('pause', downloads):
         s.aria2.pause(dl['gid'])
 
 
 def unpause():
     downloads = s.aria2.tellWaiting(0, MAX)
-    for dl in select(downloads):
+    for dl in select('unpause', downloads):
         s.aria2.unpause(dl['gid'])
 
 
 def remove(downloads=[]):
     if not downloads:
-        downloads = select(get_all())
+        downloads = select('remove', get_all())
 
     for dl in downloads:
         name = get_name(dl)
@@ -204,7 +203,7 @@ def remove_metadata(status=None):
 def move_to_top():
     downloads = s.aria2.tellWaiting(0, MAX)
     try:
-        gid = select(downloads)[0]['gid']
+        gid = select('move to top', downloads)[0]['gid']
     except IndexError:
         return
     s.aria2.changePosition(gid, 0, 'POS_SET')
@@ -277,6 +276,7 @@ if __name__ == '__main__':
     elif opts.watch:
         try:
             while True:
+                print('\033[2J\033[1;1H')  # clear
                 list_all()
                 sleep(5)
         except KeyboardInterrupt:

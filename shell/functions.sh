@@ -153,6 +153,13 @@ loop() {
     [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
     while :;do eval "$*"; sleep "${s:-15}"; done
 }
+wait_for() {
+    [ $# -lt 2 ] && return 1
+    local prog
+    prog=$1
+    shift
+    while pgrep -f "$prog" >/dev/null 2>&1;do sleep 1;done && eval "$*"
+}
 lst() {
     # list the total of files in the current directory and its subdirectories
 
@@ -233,6 +240,33 @@ bulkrename() {
             ((i++))
         done < "$tmpfile"
     fi
+    command rm "$tmpfile"
+}
+massbulkrename() {
+    declare -f -a files=()
+    while IFS= read -r -d $'\0' i;do
+        files+=("$i")
+    done < <(find -L . -type f -print0 | sort -zV)
+
+    [ "${#files[@]}" -eq 0 ] && return 0
+
+    tmpfile=$(mktemp)
+    printf '%s\n' "${files[@]}" >> "$tmpfile"
+
+    vim "$tmpfile"
+    
+    l=$(wc -l < "$tmpfile")
+    [ "${#files[@]}" -ne "$l" ] && {
+        printf 'Number of lines mismatch.\n';
+        rm "$tmpfile";
+        return 1;
+    }
+
+    i=0
+    while read -r f;do
+        [ "${files[i]}" != "$f" ] && mv -vn -- "${files[i]}" "$f"
+        i=$((i+1))
+    done < "$tmpfile"
     command rm "$tmpfile"
 }
 crc32check() {
