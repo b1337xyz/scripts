@@ -11,7 +11,7 @@ while IFS= read -r -d $'\0' i;do
     files+=("${i#*/}")
 done < <($FIND | sort -zV)
 
-[ "${#files[@]}" -eq 0 ] && { printf 'Nothing to to\n'; exit 0; }
+[ "${#files[@]}" -eq 0 ] && { printf 'Nothing to do\n'; exit 0; }
 
 tmpfile=$(mktemp)
 trap 'rm "$tmpfile"' EXIT
