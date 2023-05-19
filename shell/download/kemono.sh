@@ -90,6 +90,7 @@ download_post_content() {
     do
         [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         # mega-get "$url" "$dl_dir"
+        printf '%s\n' "$url" >> "${dl_dir}"/mega
     done
 
     grep_dropbox "$html" | while read -r url

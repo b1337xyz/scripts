@@ -13,15 +13,6 @@ def select(action, downloads):
     if len(downloads) == 1:
         return downloads
 
-    if USE_FZF:
-        return [
-            downloads[int(i.split(':')[0])]
-            for i in fzf(action, [
-                f'{i}:{get_name(v)} [{v["status"]}]'
-                for i, v in enumerate(downloads)
-            ])
-        ]
-
     for i, v in enumerate(downloads):
         name = get_name(v)
         max_len = 70
@@ -214,7 +205,6 @@ if __name__ == '__main__':
 
     s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
 
-    USE_FZF = opts.fzf
     SHOW_GID = opts.show_gid
 
     if opts.list:

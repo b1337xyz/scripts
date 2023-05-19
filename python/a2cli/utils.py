@@ -14,10 +14,6 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
 MAX = 999
 MAX_SIZE = 2000 * 1000  # 2 MB
-FZF_ARGS = [
-    '-m',
-]
-
 
 logging.basicConfig(
     filename=LOG,
@@ -33,7 +29,6 @@ def parse_arguments():
     from optparse import OptionParser
     usage = 'Usage: %prog [options] [FILE | URI]'
     parser = OptionParser(usage=usage)
-    parser.add_option('--fzf', action='store_true')
     parser.add_option('-w', '--watch', action='store_true')
     parser.add_option('--port', type='string', default='6800')
     parser.add_option('-l', '--list', action='store_true',
@@ -135,15 +130,5 @@ def get_name(info):
 
     try:
         return unquote(info['files'][0]['uris'][0]['uri'].split('/')[-1])
-    except Exception as err:
+    except Exception:
         return info['gid']
-
-
-def fzf(prompt, args):
-    proc = sp.Popen(["fzf", '--prompt', f'{prompt}:'] + FZF_ARGS,
-                    stdin=sp.PIPE, stdout=sp.PIPE,
-                    universal_newlines=True)
-    out = proc.communicate('\n'.join(args))
-    if proc.returncode != 0:
-        exit(proc.returncode)
-    return [i for i in out[0].split('\n') if i]
