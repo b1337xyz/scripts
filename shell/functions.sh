@@ -216,59 +216,6 @@ sort_by_year() {
         }
     }' | sort -n | cut -d',' -f2-
 }
-bulkrename() {
-    local tmpfile
-    declare -f -a files=()
-    tmpfile=$(mktemp)
-    while IFS= read -r -d $'\0' i;do
-        files+=("${i#*/}")
-        printf '%s\n' "${i#*/}" >> "$tmpfile" 
-    done < <(find . -mindepth 1 -maxdepth 1 \! -path '*/\.*' -print0 | sort -zV)
-
-    [ "${#files[@]}" -eq 0 ] && return 1
-    vim "$tmpfile"
-
-    lines=$(wc -l < "$tmpfile")
-    if [ "${#files[@]}" -ne "$lines" ];then
-        printf 'The number of lines does not match the amount of files!'
-        command rm "$tmpfile"
-        return 1
-    else
-        i=0
-        while read -r l;do
-            [ -e "$l" ] || mv -vn -- "${files[i]}" "$l"
-            ((i++))
-        done < "$tmpfile"
-    fi
-    command rm "$tmpfile"
-}
-massbulkrename() {
-    declare -f -a files=()
-    while IFS= read -r -d $'\0' i;do
-        files+=("$i")
-    done < <(find -L . -type f -print0 | sort -zV)
-
-    [ "${#files[@]}" -eq 0 ] && return 0
-
-    tmpfile=$(mktemp)
-    printf '%s\n' "${files[@]}" >> "$tmpfile"
-
-    vim "$tmpfile"
-    
-    l=$(wc -l < "$tmpfile")
-    [ "${#files[@]}" -ne "$l" ] && {
-        printf 'Number of lines mismatch.\n';
-        rm "$tmpfile";
-        return 1;
-    }
-
-    i=0
-    while read -r f;do
-        [ "${files[i]}" != "$f" ] && mv -vn -- "${files[i]}" "$f"
-        i=$((i+1))
-    done < "$tmpfile"
-    command rm "$tmpfile"
-}
 crc32check() {
     # How it works:
     #   anime_[12345678].ext > 12345678 = crc32
