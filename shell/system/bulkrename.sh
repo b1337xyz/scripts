@@ -2,7 +2,7 @@
 set -eo pipefail
 
 case "$1" in
-    -m) FIND='find -L . -mindepth 1 -type f -print0' ;;
+    -m) FIND='find -L . -mindepth 1 -type f -print0'     ;;
     *)  FIND='find -L . -mindepth 1 -maxdepth 1 -print0' ;;
 esac
 
@@ -11,7 +11,7 @@ while IFS= read -r -d $'\0' i;do
     files+=("${i#*/}")
 done < <($FIND | sort -zV)
 
-[ "${#files[@]}" -eq 0 ] && { printf 'nothing to to\n'; exit 0; }
+[ "${#files[@]}" -eq 0 ] && { printf 'Nothing to to\n'; exit 0; }
 
 tmpfile=$(mktemp)
 trap 'rm "$tmpfile"' EXIT
