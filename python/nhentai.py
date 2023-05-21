@@ -1,168 +1,121 @@
 #!/usr/bin/env python3
 from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
-from time import sleep
-import json
-import os
-import re
-import requests
+from pathlib import Path
 import xmlrpc.client
-import logging
+import requests
+import re
+import os
 
-# MAKE SURE YOU USE THE SAME IP AND USERAGENT AS WHEN YOU GOT YOUR COOKIE!
-HOME = os.getenv('HOME')
-HIST = os.path.join(HOME, '.cache/nhentai_history')
-CONFIG = os.path.join(HOME, '.config/nhentai.json')
-DL_DIR = os.path.join(HOME, 'Downloads/nhentai')
-CACHE_DIR = os.getenv('XDG_CACHE_HOME', os.path.join(HOME, '.cache'))
-LOG = os.path.join(CACHE_DIR, 'nhentai.log')
+USER_AGENT = '''
+Mozilla...
+'''  # noqa: E501
+
+COOKIE = '''
+csrftoken=...; sessionid=...; cf_clearance=...
+'''  # noqa: E501
+
+HOME = Path(os.getenv('HOME'))
+DL_DIR = HOME / 'Downloads/nhentai'
+
+CACHE_DIR = Path(os.getenv('XDG_CACHE_HOME', HOME / '.cache'))
+HISTORY = CACHE_DIR / 'nhentai_history'
 DOMAIN = 'nhentai.net'
-MAX_ATTEMPTS = 10
-
-logging.basicConfig(
-    filename=LOG,
-    encoding='utf-8',
-    filemode='a',
-    level=logging.INFO,
-    format='%(asctime)s:%(levelname)s: %(message)s',
-    datefmt='%d-%m-%Y %H:%M:%S',
-)
+RPC_HOST = 'http://localhost'
+RPC_PORT = 6800
 
 
 def parse_arguments():
     usage = 'Usage: %prog [options] <url>'
     parser = OptionParser(usage=usage)
-    parser.add_option('-d', '--dir', dest='dl_dir', default=DL_DIR,
-                      metavar='DIR', help='download directory')
-    parser.add_option('-i', '--input-file', dest='input_file', metavar='FILE',
-                      action='store', help='Download URLs found in FILE')
+    parser.add_option('-d', '--dir', default=DL_DIR)
+    parser.add_option('-i', '--file')
     opts, args = parser.parse_args()
-    if len(args) == 0 and not opts.input_file:
+    if not args and not opts.file:
         parser.error('<url> not provided')
     return opts, args
 
 
-def download(session, url, dl_dir, fname):
-    file = os.path.join(dl_dir, fname)
-    if os.path.exists(file):
-        return file
+def start_session():
+    s = requests.Session()
+    s.headers.update({'user-agent': USER_AGENT.strip()})
+    for cookie in COOKIE.split(';'):
+        name, value = map(str.strip, cookie.split('='))
+        s.cookies.set(name, value, domain=DOMAIN)
+    return s
 
-    att = 0
-    while att < MAX_ATTEMPTS:
+
+def get_soup(url):
+    print(f'GET: {url}')
+    r = session.get(url)
+    return BS(r.text, 'html.parser')
+
+
+def download(url, file):
+    if file.exists():
+        with open(file, 'rb') as f:
+            data = f.read()
+    else:
         r = session.get(url, stream=True)
-        if r.status_code == 200:
-            break
-        logging.info(url, r.status_code, f'attempt: {att} of {MAX_ATTEMPTS}')
-        sleep(10)
+        data = r.raw.read()
+        open(file, 'wb').write(data)
 
-    with open(file, 'wb') as f:
-        f.write(r.raw.read())
-    return file
-
-
-def get_soup(session, url):
-    att = 0
-    while att < MAX_ATTEMPTS:
-        r = session.get(url)
-        if r.status_code == 200:
-            return BS(r.content, 'html.parser')
-        logging.info(url, r.status_code, f'attempt: {att} of {MAX_ATTEMPTS}')
-        att += 1
-        sleep(10)
+    try:
+        aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
+            'rpc-save-upload-metadata': 'false', 'force-save': 'false',
+            'dir': str(file.parent)
+        })
+    except Exception:
+        pass  # probably a connection error, check the rpc
 
 
-def get_posts(soup):
-    return [
-        div.a.get('href') for div in soup.findAll('div', {'class': 'gallery'})
-        if 'english' in div.text.lower()
-    ]
-
-
-def load_config():
-    with open(CONFIG, 'r') as f:
-        config = json.load(f)
-    return config['user-agent'], config['cookie']
+def get_posts(url, page=1):
+    posts = []
+    while True:
+        soup = get_soup(url.format(page))
+        posts += [
+            'https://{}{}download'.format(DOMAIN, div.a.get('href'))
+            for div in soup.find_all('div', class_='gallery')
+            if 'english' in div.text.lower()
+        ]
+        if soup.find('a', class_='last') is None:
+            return posts
+        page += 1
 
 
 def main(urls):
-    s = requests.Session()
-    user_agent, cookie = load_config()
-    s.headers.update({'user-agent': user_agent})
-    cookies = [
-        {'name': x.strip(), 'value': y.strip()} for x, y in
-        [i.split('=') for i in cookie.split(';')]
-    ]
-    for cookie in cookies:
-        s.cookies.set(cookie['name'], cookie['value'], domain=DOMAIN)
-
-    if not os.path.exists(DL_DIR):
-        os.mkdir(DL_DIR)
-
+    global session
+    session = start_session()
     for url in urls:
-        open(HIST, 'a').write(url + '\n')
+        open(HISTORY, 'a').write(f'{url}\n')
 
+        dl_dir = Path(opts.dir)
         try:
-            if '?q=' in url:
-                r = re.compile(r'\?q=([^&]*)')
-            else:
-                r = re.compile(r'\.net/\w*/([^/\?$]*)')
-            tag = r.search(url.strip()).group(1)
-            dl_dir = os.path.join(opts.dl_dir, tag)
-            if not os.path.exists(dl_dir):
-                os.mkdir(dl_dir)
-        except AttributeError:
-            dl_dir = opts.dl_dir
+            tag = url.split('/')[4].split('?')[0]
+            dl_dir /= tag
+        except Exception:
+            pass
+        dl_dir.mkdir(parents=True, exist_ok=True)
 
         if 'page=' in url:
             url = re.sub(r'([\?&]page=)\d*', r'\1{}', url)
-        elif '?' in url:
-            url += '&page={}'
         else:
-            url += '?page={}'
+            url += '&page={}' if '?' in url else '?page={}'
 
-        soup = get_soup(s, url.format(1))
-        posts = get_posts(soup)
-        last_page = soup.find('a', {'class': 'last'})
-        if last_page:
-            last_page = int(last_page.get('href').split('=')[-1])
-            for page in range(2, last_page + 1):
-                soup = get_soup(s, url.format(page))
-                posts += get_posts(soup)
-
-        if not posts:
-            logging.info(f'nothing found, {url}')
-            continue
-
-        for i, post in enumerate(posts, start=1):
-            url = f'https://{DOMAIN}{post}download'
-            fname = post.split('/')[-2] + '.torrent'
-            torrent = download(s, url, dl_dir, fname)
-
-            try:
-                with open(torrent, 'rb') as fp:
-                    data = fp.read()
-            except Exception as err:
-                logging.error(f'Error reading {torrent}, {err}')
-                continue
-
-            aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
-                'rpc-save-upload-metadata': 'false',
-                'force-save': 'false',
-                'dir': dl_dir
-            })
+        for url in get_posts(url):
+            fname = url.split('/')[-2] + '.torrent'
+            file = dl_dir / fname
+            download(url, file)
 
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
+    aria2 = xmlrpc.client.ServerProxy(f'{RPC_HOST}:{RPC_PORT}/rpc')
 
-    if opts.input_file:
-        with open(opts.input_file, 'r') as f:
+    if opts.file:
+        with open(opts.file, 'r') as f:
             urls = [i.strip() for i in f.readlines() if DOMAIN in i]
     else:
         urls = [i.strip() for i in args if DOMAIN in i]
 
-    aria2 = xmlrpc.client.ServerProxy('http://localhost:6800/rpc')
-    try:
-        main(urls)
-    except Exception as err:
-        logging.error(f'finished with errors, {err}')
+    main(urls)

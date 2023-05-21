@@ -136,6 +136,6 @@ if __name__ == '__main__':
 
     open(LOCK, 'w').close()
     try:
-        sleep(60)  # avoid spamming a bunch of notifications
+        sleep(30)  # avoid spamming a bunch of notifications
     finally:
         os.remove(LOCK)

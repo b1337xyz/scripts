@@ -27,9 +27,10 @@ if [ -e "$1" ];then
     done
 else
     while read -r i;do
-        mv -vi -- "$i" . && rm -d "${i%/*}"
+        [ -e "$i" ] && mv -vi -- "$i" . && rm -d "${i%/*}"
     done < <(find "$TRASH_DIR" -mindepth 2 -maxdepth 2 -printf '%C@ %p\n' |
              sort -rn | cut -d' ' -f2- |
              fzf -m -d '/' --no-sort --with-nth -1 \
+             --bind 'ctrl-e:execute($TERMINAL -e vim {})' \
              --preview-window 'right:68%' --preview 'preview {}')
 fi

@@ -179,7 +179,6 @@ lst2() {
 }
 lstar() {
     # list and extract tar files
-    local tmpfile
     for i in "$@";do
         [ -f "$i" ] || continue
         printf '>>> \033[1;31m%s\033[m\n' "$i"

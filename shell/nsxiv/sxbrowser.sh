@@ -1,5 +1,10 @@
 #!/usr/bin/env dash
 set -e
+
+if hash devour && [ -z "$DEVOUR" ];then
+    DEVOUR=y devour "$0"; exit 0
+fi
+
 cd "${1:-.}"
 
 tmp=$(mktemp -d)

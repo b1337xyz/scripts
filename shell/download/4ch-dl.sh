@@ -16,7 +16,8 @@ main() {
     board=$(echo "$url" | grep -oP '(?<=\.org/).*(?=/thread)')
     thread=$(echo "$url" | grep -oP '(?<=/thread/)\d*')
     subject=$(curl -s "https://a.4cdn.org/${board}/catalog.json" |
-              jq -r '.[]["threads"][] | select(.no == '"$thread"') | .semantic_url[:60]')
+              jq -r '.[]["threads"][] | select(.no == '"$thread"') | .semantic_url')
+
     dl_dir=~/Downloads/4ch/"${board}/${thread} ${subject}"
 
     notify-send -i "$ICON" "thread: $thread" "$subject"
