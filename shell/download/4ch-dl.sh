@@ -5,9 +5,9 @@ PID=$$
 LOCK=/tmp/.4chan-dl
 ICON=~/Pictures/icons/4chan.png
 
-trap 'sed -i 1d $LOCK' EXIT
 echo $PID >> "$LOCK"
-while ! head -1 "$LOCK" | grep -qx "$PID" ;do sleep 1; done
+trap 'sed -i 1d $LOCK' EXIT
+while ! head -1 "$LOCK" | grep -qx "$PID" ;do sleep 3; done
 
 main() {
     [[ "$1" =~ 4chan ]] || return 1

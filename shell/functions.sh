@@ -153,6 +153,12 @@ loop() {
     [ -z "$1" ] && { printf 'Usage: loop <seconds> <cmd...>\n'; return 1; }
     while :;do eval "$*"; sleep "${s:-15}"; done
 }
+_loop() {
+    local cur
+    _get_comp_words_by_ref cur
+    # shellcheck disable=SC2207
+    COMPREPLY=( $( compgen -W "$(compgen -c)" -- "$cur" ) )
+} && complete -F _loop loop
 wait_for() {
     [ $# -lt 2 ] && return 1
     local prog

@@ -55,7 +55,7 @@ def download(url: str, dl_dir: str) -> int:
 
 
 def random_sleep():
-    sleep(random() * .3)
+    sleep(random() * .55)
 
 
 def get_galleries(s, url):
@@ -70,6 +70,7 @@ def get_galleries(s, url):
 
     galleries = list()
     for page in range(curr_page, max_page + 1):
+        random_sleep()
         for link in gallery_regex.findall(r.text):
             gid, token = link.split('/')
             galleries.append([gid, token])
@@ -79,7 +80,6 @@ def get_galleries(s, url):
             else:
                 url += f'&page={page}' if '?' in url else f'?page={page}'
             r = s.get(url)
-            random_sleep()
     return galleries
 
 
@@ -98,6 +98,7 @@ def main(url):
     c = 0
     total = len(galleries)
     for gid, token in galleries:
+        random_sleep()
         c += 1
         url = f'https://e-hentai.org/g/{gid}/{token}/'
         try:
