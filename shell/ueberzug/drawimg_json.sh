@@ -5,7 +5,8 @@ path=$1
 
 mkfifo "$FIFO"
 end() {
-    printf '{"action": "remove", "identifier": "test"}\n' > "$FIFO"
+    # printf '{"action": "remove", "identifier": "test"}\n' > "$FIFO"
+    jobs -p | xargs -r kill
     rm "$FIFO" 2>/dev/null
 }
 trap end EXIT

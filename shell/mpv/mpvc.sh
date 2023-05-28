@@ -1,29 +1,23 @@
 #!/usr/bin/env bash
-# echo '{"command": ["get_property", "property-list"]}' | socat - /tmp/mpvradio | jq -C 
-
-while [ $1 ];do
-    case "$1" in
-        -s)
-            shift
-            [ -S "$1" ] || { echo "$1: not a socket"; exit 1; }
-            sockect="$1"
-        ;;
-        *)  arg="$1" ;;
-    esac
-    shift
+# set -x
+declare -a args=()
+for arg in "$@";do
+    if [ -S "$arg" ];then sockect=$arg ;else args+=("$arg"); fi
 done
 sockect=${sockect:-/tmp/mpvsocket}
 
 check_status() {
     echo '{"command":["get_property", "pid"]}' | socat - "$1"
 }
-
 check_status "$sockect" || exit 1
 
-case "$arg" in
+case "${args[0]}" in
+    lsp)      cmd='"get_property", "property-list"'     ;;
+    lsc)      cmd='"get_property", "command-list"' ;;
     toggle)   cmd='"cycle", "pause"'        ;;
     next)     cmd='"playlist-next"'         ;;
     prev)     cmd='"playlist-prev"'         ;;
+    replay)   cmd='"seek", "0", "absolute"' ;;
     forward)  cmd='"seek", "50"'            ;;
     backward) cmd='"seek", "-50"'           ;;
     mute)     cmd='"cycle", "mute"'         ;;
@@ -34,7 +28,8 @@ case "$arg" in
     nextc)    cmd='"add", "chapter", "1"'   ;;
     prevc)    cmd='"add", "chapter", "-1"'  ;;
     show)     cmd='"script-binding", "stats/display-stats"' ;;
-    *) echo "${0##*/} [-s <SOCKET>] [toggle next prev forward backward mute up down fs loop]"; exit 1 ;;
+    load)     cmd=$(printf '"loadfile", "%s"' "${args[1]}") ;;
+    *) echo "${0##*/} [toggle next prev forward backward mute up down fs loop load] <SOCKET>"; exit 1 ;;
 esac
 
 echo '{"command": ['"${cmd}"']}' | socat - "$sockect"

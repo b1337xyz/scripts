@@ -47,7 +47,7 @@ else
             [ "${ask,,}" = "y" ] && dest=${orig}
         fi
         mv -vi -- "$i" "${dest:-.}" && rm -dv "${i%/*}.info" "${i%/*}"
-    done < <(load | fzf -m -d '/' --no-sort --with-nth -1 --border bottom \
+    done < <(load | fzf -0 -m -d '/' --no-sort --with-nth -1 --border bottom \
              --border-label '╢ ctrl-e open in vim | ctrl-r remove ╟' \
              --bind 'ctrl-o:execute-silent(xdg-open {})+reload(load)' \
              --bind 'ctrl-r:execute-silent(remove {})+reload(load)' \

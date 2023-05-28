@@ -5,12 +5,9 @@ if hash devour && [ -z "$DEVOUR" ];then
     DEVOUR=y devour "$0"; exit 0
 fi
 
-cd "${1:-.}"
-
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-ptr='.*\.\(jpe?g\|png\|gif\|webp\)'
 n=1
 cwd=$PWD
 while :;do
@@ -19,7 +16,7 @@ while :;do
     if ! [ -f "$cache" ];then
         for i in ./*;do
             d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
-            find -L "${d:-$i}" -iregex "$ptr" | sort -V | head -1
+            find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|gif\|webp\)' | sort -V | head -1
         done > "$cache"
     fi
 
@@ -44,7 +41,7 @@ while :;do
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
-            nsxiv -qr "$out" 2>/dev/null
+            nsxiv -s w -bqr "$out" 2>/dev/null
             out=
             n=$x
         else
@@ -54,7 +51,6 @@ while :;do
             set -- "$x" $@
         fi
     else
-        # nsxiv -fqo "$out" 2>/dev/null
         out=
     fi
 done

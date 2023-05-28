@@ -3,6 +3,10 @@ set -e
 default_target=~/Pictures/wallpapers
 cache=~/.cache/xwallpaper
 
+_help() {
+    printf 'Usage: %s [--no-cache --sxiv --dmenu --<xwallpaper option>] IMAGE\n' "${0##*/}"
+    exit 0
+}
 get_path() {
     # find -L "$1" -iregex '.*\.\(jpg\|png\)' -printf '%h\n' | sort -u | dmenu -c -i -l 20 -n
     {
@@ -20,10 +24,11 @@ declare -a opts=()
 declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
-        -h|--help) printf 'Usage: %s [--sxiv --dmenu --<xwallpaper option>] IMAGE\n' "${0##*/}"; exit 0 ;;
+        -h|--help) _help ;;
         --dmenu) use_dmenu=y ;;
         --sxiv) use_sxiv=y ;;
         --current) current=y ;;
+        --no-cache) cache=$(mktemp) ;;
         -*) opts+=("$1")        ;; # xwallpaper options
         *)
             if [ -d "$1" ];then

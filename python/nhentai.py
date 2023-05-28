@@ -2,11 +2,14 @@
 from bs4 import BeautifulSoup as BS
 from optparse import OptionParser
 from pathlib import Path
+from random import random
+from time import sleep
 import xmlrpc.client
 import requests
 import re
 import os
 
+# MAKE SURE YOU USE THE SAME USERAGENT AS WHEN YOU GOT YOUR COOKIE!
 USER_AGENT = '''
 Mozilla...
 '''  # noqa: E501
@@ -47,6 +50,7 @@ def start_session():
 
 def get_soup(url):
     print(f'GET: {url}')
+    sleep(random() * .5)
     r = session.get(url)
     return BS(r.text, 'html.parser')
 
@@ -102,7 +106,11 @@ def main(urls):
         else:
             url += '&page={}' if '?' in url else '?page={}'
 
-        for url in get_posts(url):
+        posts = get_posts(url)
+        if not posts:
+            print('nothing found.')
+
+        for url in posts:
             fname = url.split('/')[-2] + '.torrent'
             file = dl_dir / fname
             download(url, file)
