@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from urllib.request import Request, urlopen
+from urllib.parse import unquote
 from sys import argv, exit
 from time import sleep
 from shutil import move
-import logging
 import subprocess as sp
 import json
 import os
@@ -13,18 +13,6 @@ HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 CACHE = os.path.join(HOME, '.cache/torrents')
-ROOT = os.path.dirname(os.path.realpath(__file__))
-LOG = os.path.join(ROOT, 'log')
-LOCK = '/tmp/a2notify.lock'
-
-logging.basicConfig(
-    filename=LOG,
-    encoding='utf-8',
-    filemode='a',
-    level=logging.INFO,
-    format='%(asctime)s:%(levelname)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-)
 
 
 def request(method, params):
@@ -38,11 +26,8 @@ def request(method, params):
     # r.add_header('Content-Length', len(jsonreq))
     # r.add_header('Content-Type', 'application/json; charset=utf-8')
     # r.add_header('Accept', 'application/json')
-    try:
-        with urlopen(r, jsonreq) as data:
-            return json.loads(data.read().decode('utf-8'))["result"]
-    except Exception as err:
-        logging.error(str(err))
+    with urlopen(r, jsonreq) as data:
+        return json.loads(data.read().decode('utf-8'))["result"]
 
 
 def get_name(info):
@@ -57,7 +42,7 @@ def get_name(info):
 
     try:
         return unquote(info['files'][0]['uris'][0]['uri'].split('/')[-1])
-    except Exception as err:
+    except Exception:
         return info['gid']
 
 
@@ -87,12 +72,10 @@ def mv(src, dst):
 
 
 def notify(title, msg, icon='emblem-downloads'):
-    if os.path.exists(LOCK):
-        return
-
     try:
-        sp.Popen(['notify-send', '-i', icon, f'[aria2] {title}', msg],
-                 stderr=sp.DEVNULL)
+        sp.Popen([
+            'notify-send', '-r', '1337', '-i', icon, f'[aria2] {title}', msg
+        ], stderr=sp.DEVNULL)
     except Exception:
         pass
 
@@ -114,8 +97,8 @@ if __name__ == '__main__':
     gid = argv[1]
     info = request('tellStatus', gid)
     if not info:
-        exit(0)     
-    if int(info["totalLength"]) <= 10:
+        exit(0)
+    if int(info["totalLength"]) < 10:
         exit(0)
 
     name = get_name(info)
@@ -133,9 +116,3 @@ if __name__ == '__main__':
             notify(f"{status}", name, icon='dialog-error')
         case _:
             notify(f"{status}", f'{name}\nSize: {size}')
-
-    open(LOCK, 'w').close()
-    try:
-        sleep(30)  # avoid spamming a bunch of notifications
-    finally:
-        os.remove(LOCK)

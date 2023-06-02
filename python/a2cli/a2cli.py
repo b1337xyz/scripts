@@ -93,28 +93,28 @@ def list_all():
 
         error_code = '' if status != 'error' else i["errorCode"]
         icon = {
-            'active': '\033[1;32m⬤ \033[m',
-            'error': f'\033[1;31m{error_code}\033[m',
-            'paused': '\033[1;36m⬤ \033[m',
+            'active': '\033[1;32m⏩\033[m',
+            'error': f'\033[1;31m{error_code} \033[m',
+            'paused': '\033[1;36m⏸ \033[m',
             'complete': '\033[1;34m⬤ \033[m',
-            'waiting': '\033[1;33m⬤ \033[m',
-            'removed': '\033[1;30m⬤ \033[m',
+            'waiting': '\033[1;33m⌛\033[m',
+            'removed': '\033[1;30m⌧ \033[m',
         }[status]
 
         if SHOW_GID:
             print(i['gid'], end=' ')
 
-        bar_size = 20
+        bar_size = 12
         blocks = p * bar_size // 100
         blank = bar_size - blocks
         bar = f'{blocks * "#"}{blank * " "}'
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             # upspeed = get_psize(int(i['uploadSpeed']))
-            print('{} [{} {:>3}%] {:>10}/s {:>10} - {}'.format(
+            print('{}[{} {:>3}%] {:>10}/s {:>10} - {}'.format(
                 icon, bar, p, dlspeed, psize, name))
         else:
-            print('{} [{} {:>3}%] {:>10} - {}'.format(
+            print('{}[{} {:>3}%] {:>10} - {}'.format(
                 icon, bar, p, psize, name))
 
     total = sum([counter[k] for k in counter])

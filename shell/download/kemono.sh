@@ -8,6 +8,7 @@
 #   https://github.com/mikf/gallery-dl
 
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+BASE_DIR=~/Downloads/kemono
 DOMAIN='https://kemono.party'
 log=~/.cache/kemono.log
 tmpfile=$(mktemp)
@@ -43,6 +44,16 @@ grep_data_links() {
     grep -oP '(href|src)=\".*data/[^\"]*\.(mp4|webm|mov|m4v|7z|zip|rar|png|jpe?g|gif)' "$1" | grep -v thumbnail | cut -d \" -f2-
 }
 
+grep_artist() {
+    if ! grep -oP '(?<=meta name="artist_name" content=").*(?=">)' "$1" ;then
+        tr -d \\n < "$1" | grep -oP 'post__user-name[^<]*' | sed -E 's/ +$//; s/.*> +(.*)/\1/'
+    fi
+}
+
+grep_user() {
+    grep -oP '(?<=meta name="user" content=").*(?=">)' "$1"
+}
+
 unescape() {
     python3 -c 'print(__import__("html").unescape(("\n".join(__import__("sys").stdin).strip())))'
 }
@@ -56,9 +67,10 @@ skip() {
 }
 
 download_post_content() {
-    dl_dir=${DL_DIR}/${1##*/}
+    dl_dir=$2
     html=${dl_dir}/html
-    [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
+    [ -d "$dl_dir" ] || mkdir -vp "$dl_dir"
+    [ -f "$1" ] && mv -v "$1" "$html"
     [ -f "$html" ] || curl -A "$UA" -s "$1" -o "$html"
 
     pub=$(grep -oP '(?<=meta name="published" content=")[^ ]*' "$html")
@@ -90,7 +102,6 @@ download_post_content() {
     do
         [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
         # mega-get "$url" "$dl_dir"
-        printf '%s\n' "$url" >> "${dl_dir}"/mega
     done
 
     grep_dropbox "$html" | while read -r url
@@ -123,6 +134,15 @@ download_post_content() {
 }
 
 main() {
+    # https://kemono.party/patreon/user/43155915/post/83922675
+    if [[ "$1" = */post/* ]];then
+        curl -A "$UA" -s -o "$tmpfile" "$1"
+        user=$(grep_user "$tmpfile")
+        artist=$(grep_artist "$tmpfile")
+        download_post_content "$tmpfile" "${BASE_DIR}/${user} - ${artist}"
+        return
+    fi
+
     main_url=$(printf '%s' "$1" | grep -oP 'https://kemono.party/\w*/user/\d*')
     test -z "$main_url" && return 1
     if [ -z "$max_page" ];then
@@ -133,22 +153,19 @@ main() {
         )
     fi
     echo "$main_url" >> "$log"
-    user=$(printf '%s' "$1" | grep -oP '\w*/user/\d*' | sed 's/.user//')
-    artist=$(grep -oP '(?<=meta name="artist_name" content=").*(?=">)' "$tmpfile")
-    DL_DIR=~/Downloads/kemono/"$user - $artist"
-    [ -d "$DL_DIR" ] || mkdir -vp "${DL_DIR}"
+    user=$(grep_user "$tmpfile")
+    artist=$(grep_artist "$tmpfile")
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
         printf 'Post %s of %s\n' "$((page+1))" "${max_page:-1}" >&2
         if test -f "$tmpfile";then  # don't request the first page twice
             grep_posts < "$tmpfile"
-            rm "$tmpfile"
         else
             curl -A "$UA" -s "${main_url}?o=$page" | grep_posts
         fi | while read -r url;do
             post_url=${DOMAIN}$url
-            download_post_content "$post_url"
+            download_post_content "$post_url" "${BASE_DIR}/${user} - ${artist}"
         done
     done
 }

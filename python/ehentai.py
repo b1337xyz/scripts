@@ -46,7 +46,7 @@ def clean_filename(s: str) -> str:
 
 
 def download(url: str, dl_dir: str) -> int:
-    p = sp.run(['aria2c', url, '-q', '--dir', dl_dir,
+    p = sp.run(['aria2c', url, '-q', '--dir', dl_dir, '-U', UA,
                 '--always-resume=false',
                 '--max-resume-failure-tries=0',
                 '--force-save=false',
