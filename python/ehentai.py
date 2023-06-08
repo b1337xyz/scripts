@@ -5,6 +5,8 @@ from sys import argv
 from time import sleep
 from http.cookiejar import MozillaCookieJar
 from pathlib import Path
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import os
 import re
 import requests
@@ -14,9 +16,8 @@ requests.packages.urllib3.disable_warnings()
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0'  # noqa: E501
 HOME = os.getenv('HOME')
 CACHE_DIR = os.getenv('XDG_CACHE_HOME', os.path.join(HOME, '.cache'))
-LOG = os.path.join(CACHE_DIR, 'ehentai.log')
 DL_DIR = os.path.join(HOME, 'Downloads/e_hentai')
-COOKIE_FILE = os.path.join(CACHE_DIR, 'ehentai.cookie')
+COOKIE_FILE = os.path.join(CACHE_DIR, 'e-hentai.cookie')
 HIST = os.path.join(CACHE_DIR, 'ehentai.history')
 MAX_ATTEMPS = 5
 
@@ -44,7 +45,7 @@ def mkdir(path):
 
 
 def get(s, url, stream=False):
-    sleep(random() * .99)
+    sleep(random() * .8)
     return s.get(url, stream=stream, verify=False)
 
 
@@ -66,11 +67,7 @@ def get_galleries(s, url):
     r = get(s, url)
     curr_page = page_regex.search(url)
     curr_page = 1 if not curr_page else int(curr_page.group(1))
-    try:
-        max_page = max([int(i) for i in page_regex.findall(r.text)])
-    except ValueError:
-        max_page = 1
-
+    max_page = max(map(int, page_regex.findall(r.text)), default=1)
     galleries = list()
     for page in range(curr_page, max_page + 1):
         for link in gallery_regex.findall(r.text):
@@ -86,16 +83,27 @@ def get_galleries(s, url):
     return galleries
 
 
+def create_session():
+    s = requests.Session()
+
+    # https://stackoverflow.com/questions/23013220/max-retries-exceeded-with-url-in-requests
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    s.mount('http://', adapter)
+    s.mount('https://', adapter)
+
+    s.headers.update({'user-agent': UA})
+    cj = MozillaCookieJar(COOKIE_FILE)
+    cj.load(ignore_discard=True, ignore_expires=True)
+    s.cookies = cj
+    return s
+
+
 def main(url):
     assert 'e-hentai.org' in url
     open(HIST, 'a').write(f'{url}\n')
 
-    s = requests.Session()
-    s.headers.update({'user-agent': UA})
-    if os.path.exists(COOKIE_FILE):
-        cj = MozillaCookieJar(COOKIE_FILE)
-        cj.load(ignore_discard=True, ignore_expires=True)
-        s.cookies = cj
+    s = create_session()
 
     if re.search(r'\.org/g/\d+', url):
         gid, token = re.search(r'/g/(\d+)/([^/]*)', url).group(1, 2)
@@ -108,11 +116,7 @@ def main(url):
     for gid, token in galleries:
         c += 1
         url = f'https://e-hentai.org/g/{gid}/{token}/'
-        try:
-            r = get(s, url)
-        except Exception as err:
-            print(f'request failed, {url}, {r.status_code}, {err}')
-            continue
+        r = get(s, url)
 
         try:
             url = re.search(r'https://e-hentai\.org/s/[^/]*/\d*-1', r.text)
@@ -121,17 +125,13 @@ def main(url):
             print(f'nothing found, {url}')
             continue
 
-        try:
-            title = title_regex.search(r.text).group(1)
-        except AttributeError:
-            title = None
+        if (title := title_regex.search(r.text)):
+            title = title.group(1)
+        elif (title := title_regex_fallback.search(r.text)):
+            title = ''.join(title.group(1).split('-')[:-1])
+        else:
+            title = gid
 
-        if not title:
-            try:
-                title = title_regex_fallback.search(r.text).group(1)
-                title = ''.join(title.split('-')[:-1])
-            except AttributeError:
-                title = gid
         title = clean_filename(unescape(title))
         print(f'gallery {c} of {total}: {title} {url}')
 
@@ -171,8 +171,7 @@ def main(url):
                 try:
                     download(s, img, filepath)
                     break
-                except Exception as err:
-                    print(err)
+                except Exception:
                     print(f'download failed, {url}, attempt: {att} of {MAX_ATTEMPS}')  # noqa: E501
 
             curr_page = int(url.split('-')[-1])
