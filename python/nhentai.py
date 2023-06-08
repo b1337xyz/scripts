@@ -130,18 +130,25 @@ class Downloader:
             with open(file, 'rb') as f:
                 data = f.read()
         else:
-            r = self.session.get(url, stream=True)
+            att = 0
+            max_attempts = 5
+            while (att := att + 1) <= max_attempts:
+                r = self.session.get(url, stream=True)
+                content_type = r.headers.get('content-type', '')
+                if re.search(r'torrent|octet', content_type):
+                    break
+            else:
+                print('HTTP ERROR', r.status_code)
+                return
+
             data = r.raw.read()
             open(file, 'wb').write(data)
 
-        try:
-            self.rpc.addTorrent(Binary(data), [], {
-                'rpc-save-upload-metadata': 'false',
-                'force-save': 'false',
-                'dir': str(file.parent)
-            })
-        except Exception as err:
-            print(err)  # probably a connection error, check the rpc
+        self.rpc.addTorrent(Binary(data), [], {
+            'rpc-save-upload-metadata': 'false',
+            'force-save': 'false',
+            'dir': str(file.parent)
+        })
 
     def get_soup(self, url):
         print(f'GET: {url}')
