@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086,SC2317
-
 # Dependencies:
 #   https://github.com/meganz/MEGAcmd
 #   https://github.com/prasmussen/gdrive
@@ -58,7 +56,7 @@ unescape() {
     python3 -c 'print(__import__("html").unescape(("\n".join(__import__("sys").stdin).strip())))'
 }
 
-unquote () {
+unquote() {
     python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
 }
 

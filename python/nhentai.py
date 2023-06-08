@@ -4,126 +4,190 @@ from optparse import OptionParser
 from pathlib import Path
 from random import random
 from time import sleep
-import xmlrpc.client
+from xmlrpc.client import ServerProxy, Binary
+from urllib.parse import unquote
+import sqlite3 as sql
 import requests
+import json
 import re
 import os
 
-# MAKE SURE YOU USE THE SAME USERAGENT AS WHEN YOU GOT YOUR COOKIE!
-USER_AGENT = '''
-Mozilla...
-'''  # noqa: E501
-
-COOKIE = '''
-csrftoken=...; sessionid=...; cf_clearance=...
-'''  # noqa: E501
-
-HOME = Path(os.getenv('HOME'))
-DL_DIR = HOME / 'Downloads/nhentai'
-
-CACHE_DIR = Path(os.getenv('XDG_CACHE_HOME', HOME / '.cache'))
-HISTORY = CACHE_DIR / 'nhentai_history'
-DOMAIN = 'nhentai.net'
-RPC_HOST = 'http://localhost'
-RPC_PORT = 6800
-
 
 def parse_arguments():
-    usage = 'Usage: %prog [options] <url>'
-    parser = OptionParser(usage=usage)
-    parser.add_option('-d', '--dir', default=DL_DIR)
-    parser.add_option('-i', '--file')
+    parser = OptionParser(usage='usage: %prog [option]... URL...')
+    parser.add_option('-d', dest='dir', metavar='PATH',
+                      help='Download directory')
+    parser.add_option('-i', dest='input_file', metavar='FILE',
+                      help='Download URLs found in FILE')
+    parser.add_option('-c', dest='cookie', default='',
+                      help='Cookie string')
+    parser.add_option('-C', dest='cookie_file', default='', metavar='FILE',
+                      help='Load cookies from file (WIP)')
+    parser.add_option('-A', dest='user_agent', default='', metavar='UA',
+                      help='User Agent from when you got your cookies')
     opts, args = parser.parse_args()
-    if not args and not opts.file:
-        parser.error('<url> not provided')
+    if not args and not opts.input_file:
+        parser.print_help()
+        exit(1)
     return opts, args
 
 
-def start_session():
-    s = requests.Session()
-    s.headers.update({'user-agent': USER_AGENT.strip()})
-    for cookie in COOKIE.split(';'):
-        name, value = map(str.strip, cookie.split('='))
-        s.cookies.set(name, value, domain=DOMAIN)
-    return s
+def path_from_env(env, fallback):
+    return Path(os.getenv(env, fallback))
 
 
-def get_soup(url):
-    print(f'GET: {url}')
-    sleep(random() * .5)
-    r = session.get(url)
-    return BS(r.text, 'html.parser')
+class Downloader:
+    def __init__(self):
+        opts, args = parse_arguments()
+        home = Path.home()
+        cache_dir = path_from_env('XDG_CACHE_HOME', home / '.cache')
+        config_dir = path_from_env('XDG_CONFIG_HOME', home / '.config')
+        dl_dir = path_from_env('XDG_DOWNLOAD_DIR', home / 'Downloads')
 
+        self.config_file = config_dir / 'nhentai.json'
+        self.history_file = cache_dir / 'nhentai_history'
+        self.domain = 'nhentai.net'
+        self.config = {  # default settings
+            'dir': str(home / dl_dir / 'nhentai'),
+            'cookie_file': opts.cookie_file,
+            'cookie': opts.cookie,
+            'rpc_host': 'http://localhost',
+            'rpc_port': 6800,
+            # MAKE SURE YOU USE THE SAME USERAGENT
+            # AS WHEN YOU GOT YOUR COOKIE!
+            'user_agent': 'Mozilla/5.0'
+        }
+        self.load_config()  # overwrites self.config
 
-def download(url, file):
-    if file.exists():
-        with open(file, 'rb') as f:
-            data = f.read()
-    else:
-        r = session.get(url, stream=True)
-        data = r.raw.read()
-        open(file, 'wb').write(data)
+        if opts.cookie:
+            self.config['cookie'] = opts.cookie
+        if opts.cookie_file:
+            self.config['cookie_file'] = opts.cookie_file
+        if opts.user_agent:
+            self.config['user_agent'] = opts.user_agent
+        if opts.input_file:
+            args = self.load_urls_from_file(opts.input_file)
 
-    try:
-        aria2.aria2.addTorrent(xmlrpc.client.Binary(data), [], {
-            'rpc-save-upload-metadata': 'false', 'force-save': 'false',
-            'dir': str(file.parent)
-        })
-    except Exception:
-        pass  # probably a connection error, check the rpc
+        self.cookie_file = self.config.get('cookie_file')
+        self.cookie = self.config.get('cookie')
+        if not self.cookie_file and not self.cookie:
+            self.cookie = input('Cookie: ')
 
+        self.dir = Path(opts.dir if opts.dir else self.config.get('dir'))
+        self.rpc_host = self.config.get('rpc_host')
+        self.rpc_port = self.config.get('rpc_port')
+        self.user_agent = self.config.get('user_agent')
+        self.urls = [i.strip() for i in args if self.domain in i]
 
-def get_posts(url, page=1):
-    posts = []
-    while True:
-        soup = get_soup(url.format(page))
-        posts += [
-            'https://{}{}download'.format(DOMAIN, div.a.get('href'))
-            for div in soup.find_all('div', class_='gallery')
-            if 'english' in div.text.lower()
-        ]
-        if soup.find('a', class_='last') is None:
-            return posts
-        page += 1
+        self.start_session()
+        self.save_config()
+        self.rpc = ServerProxy(f'{self.rpc_host}:{self.rpc_port}/rpc').aria2
 
+    def save_config(self):
+        with open(self.config_file, 'w') as f:
+            json.dump(self.config, f, indent=4)
 
-def main(urls):
-    global session
-    session = start_session()
-    for url in urls:
-        open(HISTORY, 'a').write(f'{url}\n')
-
-        dl_dir = Path(opts.dir)
+    def load_config(self):
         try:
-            tag = url.split('/')[4].split('?')[0]
-            dl_dir /= tag
-        except Exception:
-            pass
-        dl_dir.mkdir(parents=True, exist_ok=True)
+            with open(self.config_file, 'r') as f:
+                self.config.update(json.load(f))
+        except Exception as err:
+            print(f'Error loading config file, {err}, using default settings.')
 
-        if 'page=' in url:
-            url = re.sub(r'([\?&]page=)\d*', r'\1{}', url)
+    def start_session(self):
+        self.session = requests.Session()
+        self.session.headers.update({'user-agent': self.user_agent})
+        self.load_cookies()
+
+    def get_cookies_from_browser(self):
+        # TODO: for now this function only supports
+        #       chromium based browsers (WIP)
+
+        con = sql.connect(f'file:{self.cookie_file}?nolock=1', uri=True)
+        cur = con.cursor()
+        cur.execute("""
+            SELECT host_key, name, value FROM cookies
+            WHERE host_key LIKE '%nhentai%';
+        """)
+        return cur.fetchall()
+
+    def load_cookies(self):
+        if os.path.exists(self.cookie_file):
+            cookies = self.get_cookies_from_browser()
+            for domain, name, value in cookies:
+                self.session.cookies.set(name, value, domain=domain)
         else:
-            url += '&page={}' if '?' in url else '?page={}'
+            for cookie in self.cookie.split(';'):
+                name, value = map(str.strip, cookie.split('='))
+                self.session.cookies.set(name, value, domain=self.domain)
 
-        posts = get_posts(url)
-        if not posts:
-            print('nothing found.')
+    def load_urls_from_file(self, file):
+        with open(file, 'r') as f:
+            return f.readlines()
 
-        for url in posts:
-            fname = url.split('/')[-2] + '.torrent'
-            file = dl_dir / fname
-            download(url, file)
+    def download(self, url, file):
+        if file.exists():
+            with open(file, 'rb') as f:
+                data = f.read()
+        else:
+            r = self.session.get(url, stream=True)
+            data = r.raw.read()
+            open(file, 'wb').write(data)
+
+        try:
+            self.rpc.addTorrent(Binary(data), [], {
+                'rpc-save-upload-metadata': 'false',
+                'force-save': 'false',
+                'dir': str(file.parent)
+            })
+        except Exception as err:
+            print(err)  # probably a connection error, check the rpc
+
+    def get_soup(self, url):
+        print(f'GET: {url}')
+        sleep(random() * .55)
+        r = self.session.get(url)
+        return BS(r.text, 'html.parser')
+
+    def get_posts(self, url, page=0):
+        posts = []
+        while (page := page+1):
+            soup = self.get_soup(url.format(page))
+            for div in soup.find_all('div', class_='gallery'):
+                if 'english' not in div.text.lower():
+                    continue
+                href = div.a.get('href')
+                posts.append(f'https://{self.domain}{href}download')
+
+            if soup.find('a', class_='last') is None:
+                return posts
+
+    def parse_url(self, url):
+        if (match := re.match(r'.*nhentai.net/(\w+/[^/]+)', url)):
+            return match.group(1)
+
+        if (match := re.match(r'.*[\?&]q=([^&]+)', url)):
+            return 'search/{}'.format(unquote(match.group(1)))
+
+    def run(self):
+        for url in self.urls:
+            open(self.history_file, 'a').write(f'{url}\n')
+            path = self.parse_url(url)
+            if path:
+                dl_dir = self.dir / path
+            dl_dir.mkdir(parents=True, exist_ok=True)
+
+            if 'page=' in url:
+                url = re.sub(r'([\?&]page=)\d*', r'\1{}', url)
+            else:
+                url += '&page={}' if '?' in url else '?page={}'
+
+            posts = self.get_posts(url)
+            print(f'posts found: {len(posts)}')
+            for url in posts:
+                fname = url.split('/')[-2] + '.torrent'
+                self.download(url, dl_dir / fname)
 
 
 if __name__ == '__main__':
-    opts, args = parse_arguments()
-    aria2 = xmlrpc.client.ServerProxy(f'{RPC_HOST}:{RPC_PORT}/rpc')
-
-    if opts.file:
-        with open(opts.file, 'r') as f:
-            urls = [i.strip() for i in f.readlines() if DOMAIN in i]
-    else:
-        urls = [i.strip() for i in args if DOMAIN in i]
-
-    main(urls)
+    Downloader().run()

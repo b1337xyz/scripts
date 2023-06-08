@@ -2,7 +2,7 @@
 # shellcheck disable=SC2086
 
 VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
-ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|gif\|webp\)$'
+ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
 ArchivePattern='\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$'
 UserAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:111.0) Gecko/20100101 Firefox/111.0'
 

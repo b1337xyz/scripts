@@ -101,18 +101,18 @@ def main():
     elif opts.dmenu:
         if opts.history and hist:
             query = run('dmenu', hist, [
-                '-i', '-c', '-l', height, '-p', 'search:'
+                '-i', '-c', '-l', height, '-p', 'YouTube'
             ])[-1]
         else:
-            query = run('dmenu', [], ['-c', '-i', '-p', 'search:'])[-1]
+            query = run('dmenu', [], ['-c', '-i', '-p', 'YouTube'])[-1]
     elif hist:
         query = run('fzf', hist, [
             '--bind', 'tab:print-query',
-            '--height', height, '--prompt', 'search: ',
+            '--height', height, '--prompt', 'YouTube ',
             '--print-query'
         ])[-1]
     else:
-        query = input('search: ').strip()
+        query = input('YouTube ').strip()
 
     with open(HIST, 'a') as fp:
         fp.write(query + '\n')

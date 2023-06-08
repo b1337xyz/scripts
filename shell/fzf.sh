@@ -19,7 +19,7 @@ e() {
     local file
     file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
         -type f -size -100k -regextype posix-extended \
-        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json)' \) |
+        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json|json.bak)' \) |
         awk -v home="$HOME" 'sub(home, "~")' |
         fzf -e --layout=reverse --height 20  |
         awk -v home="$HOME" 'sub("~", home)')
