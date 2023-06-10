@@ -147,3 +147,11 @@ fzman() {
 gitlog() {
     git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
 }
+fzkill() {
+    local proc
+    proc=$(ps -u anon h -o 'pid:1' -o cmd | fzf --tac --prompt 'kill> ' --height 25)
+    [ -z "$proc" ] && return
+    printf 'Kill "%s"? [y/N] ' "$proc"
+    read -r ask
+    [ "$ask" = y ] && kill "${proc%% *}" && echo "Killed"
+}

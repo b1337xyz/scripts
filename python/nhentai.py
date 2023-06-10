@@ -170,7 +170,7 @@ class Downloader:
                 return posts
 
     def parse_url(self, url):
-        if (match := re.match(r'.*nhentai.net/(\w+/[^/]+)', url)):
+        if (match := re.match(r'.*nhentai.net/(\w+/[^?]+)', url)):
             return match.group(1)
 
         if (match := re.match(r'.*[\?&]q=([^&]+)', url)):

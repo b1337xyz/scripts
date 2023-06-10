@@ -12,7 +12,7 @@ check_status() {
 check_status "$sockect" || exit 1
 
 case "${args[0]}" in
-    lsp)      cmd='"get_property", "property-list"'     ;;
+    lsp)      cmd='"get_property", "property-list"' ;;
     lsc)      cmd='"get_property", "command-list"' ;;
     toggle)   cmd='"cycle", "pause"'        ;;
     next)     cmd='"playlist-next"'         ;;
