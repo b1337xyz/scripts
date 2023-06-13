@@ -125,6 +125,7 @@ ex() {
         [ -f "$i" ] || return 1
         case "$i" in
             *.tar.zst) tar --zstd -xf "$i" ;;
+            *.tar.xz)  tar xvJf "$i"   ;;
             *.tar.bz2) tar xvjf "$i"   ;;
             *.tar.gz)  tar xvzf "$i"   ;;
             *.tar)     tar xvf "$i"    ;;

@@ -12,10 +12,11 @@ if xrandr | grep -q 'HDMI1 connected';then
     # xrandr --dpi "${dpi:-96}" --output eDP1 --off \
     #     --output HDMI1 --primary --auto
 
-    pgrep -x i3 && i3-msg restart 
-    [ -x ~/.cache/xwallpaper ] && sleep 1 && ~/.cache/xwallpaper
-
-    runconky.sh 
+    if pgrep -x i3; then
+        i3-msg restart 
+        [ -x ~/.cache/xwallpaper ] && sleep 1 && ~/.cache/xwallpaper
+        runconky.sh 
+    fi
 else
     echo "Xft.dpi: 102" | xrdb -merge
 fi
