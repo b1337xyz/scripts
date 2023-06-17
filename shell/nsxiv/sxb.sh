@@ -13,10 +13,12 @@ cwd=$PWD
 while :;do
     cache=${tmp}${PWD}/files
     mkdir -p "${cache%/*}"
-    for i in ./*;do
-        d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
-        find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|gif\|webp\)' | sort -V | head -1
-    done > "$cache"
+    if [ ! -f "$cache" ];then
+        for i in ./*;do
+            d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
+            find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|gif\|webp\)' | sort -V | head -1
+        done > "$cache"
+    fi
 
     l=$(wc -l < "$cache")
     [ "$l" -eq 0 ] && break
