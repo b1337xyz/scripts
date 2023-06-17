@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-set -eu
+set -e
 
 NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio
 LOCK=/tmp/.cmus
 
-[ -e "$LOCK" ] && exit 1
+[ -e "$LOCK" ] && exit 0
 :>"$LOCK"
 trap 'rm $LOCK' EXIT
 
