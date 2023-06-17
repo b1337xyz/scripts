@@ -521,30 +521,25 @@ todo() {
     TODOFILE=${TODOFILE:-${HOME}/.todo}
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
-        e*) [ -s "$TODOFILE" ] && "${EDITOR:-vim}" "$TODOFILE" ;;
-        l*)
-            if test -s "$TODOFILE";then
-                printf '\n\e[1;30;43m TODO \033[m\n'
-                cat "$TODOFILE"; echo
-            fi
-        ;;
+        e*) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
+        l*) [ -s "$TODOFILE" ] && { printf '\n\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
         r*)
-            nl "$TODOFILE"
-            read -r -p ": " n
-            [[ "$n" =~ ^[0-9]+$ ]] && sed -i "${n}d" "$TODOFILE"
+            if [ -s "$TODOFILE" ]; then
+                nl "$TODOFILE"
+                read -r -p "1,2...: " n
+                [[ "$n" =~ ^[0-9]+,?[0-9]+$ ]] && sed -i "${n}d" "$TODOFILE"
+            fi
         ;;
         a*)
             shift
-            [ -n "$1" ] && printf '%s: %s\n' \
-                "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
+            [ -n "$1" ] && printf '%s: %s\n' "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
         ;;
-        *) echo 'Usage: todo [ed ls rm add] <TODO>' ;;
+        *) echo 'usage: todo [ed ls rm add] <TODO>' ;;
     esac
 }
 ftext() {
     # find text files
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
-    return 0
 }
 paclog() {
     awk -v x="${1:-upgraded}" '$3 == x' /var/log/pacman.log |

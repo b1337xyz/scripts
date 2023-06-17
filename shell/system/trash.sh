@@ -21,7 +21,9 @@ preview() {
 }
 
 remove() {
-    rm -rf "${1%/*}" "${1%/*}.info"
+    for i in "$@";do
+        rm -rf "${i%/*}" "${i%/*}.info"
+    done
 }
 
 load() {
@@ -50,7 +52,7 @@ else
     done < <(load | fzf -0 -m -d '/' --no-sort --with-nth -1 --border bottom \
              --border-label '╢ ctrl-e open in vim | ctrl-r remove ╟' \
              --bind 'ctrl-o:execute-silent(xdg-open {})+reload(load)' \
-             --bind 'ctrl-r:execute-silent(remove {})+reload(load)' \
+             --bind 'ctrl-r:execute-silent(remove {+})+reload(load)' \
              --bind 'ctrl-e:execute-silent($TERMINAL -e vim {})' \
              --preview-window 'right:65%:wrap' --preview 'preview {}')
 fi
