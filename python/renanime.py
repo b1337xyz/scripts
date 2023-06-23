@@ -4,6 +4,7 @@ from urllib.parse import quote
 from thefuzz import process
 from time import sleep
 from shutil import which
+from datetime import datetime
 import requests
 import subprocess as sp
 import re
@@ -28,10 +29,12 @@ opts, args = parser.parse_args()
 assert os.path.isdir(opts.path)
 if opts.rename:
     assert len(args) > 0
-    assert all([os.path.isdir(i) for i in args])
+    assert all([os.path.isdir(i) for i in args]), \
+        "All arguments must be a directory."
 if opts.fzf:
     assert which('fzf')
 
+YEAR_NOW = datetime.now().year
 YEAR = opts.year
 USE_ANILIST = opts.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
@@ -72,7 +75,8 @@ def cleanup_filename(string: str) -> str:
         r's\d+e\d+',
         r'(?:animesplus|tnnac.animax|test.kun|(?:multi.?)?mattmurdock|abertura|encerramento|unico)',  # noqa: E501
         r'(?:xvid|\w fansub| tv| dvd| hd|blu.?ray| \d+p|flac|opus)',  # noqa: E501
-        r'(?:epis.d[ie]o|\sep?|sp)?\s?\d+.?(?:v\d+|final)?',
+        r'(?:epis.d[ie]o|\sep?|sp|season)?\s?\d+(?:v\d+|final)?',
+        r' \d+nd',
         r"(?ui)\W",
     ]
 
@@ -144,6 +148,9 @@ def parse_data(data: dict, file_count: int) -> list:
             year = i['year']
             year = i['aired']['prop']['from']['year'] if not year else year
 
+        if year and int(year) > YEAR_NOW:
+            continue
+
         if YEAR and year and YEAR != int(year):
             continue
 
@@ -187,6 +194,9 @@ def move_to(files: list, folder: str):
     if not opts.rename and not os.path.exists(folder):
         os.mkdir(folder)
 
+    if not files:
+        raise ValueError
+
     cmd = ['ln', '-rvs'] if opts.link else ['mv', '-vn']
     sp.run(cmd + files + [folder])
 
@@ -194,7 +204,7 @@ def move_to(files: list, folder: str):
 def fzf(args: list, prompt: str) -> str:
     try:
         proc = sp.Popen(
-           ['fzf', '--prompt', prompt],
+           ['fzf', '--height', '25', '--prompt', prompt],
            stdin=sp.PIPE,
            stdout=sp.PIPE,
            universal_newlines=True
@@ -248,7 +258,7 @@ def main():
         if opts.fzf and len(data) > 1:
             out = fzf([
                 f'{title} ({year})' for _, title, year, _ in data
-            ], prompt=f'Query: {query}>')
+            ], prompt=f'Query: {query}> ')
             if not out:
                 continue
             folder = out[0]
