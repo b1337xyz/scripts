@@ -26,7 +26,7 @@ cmd=$(sort -u "$programs" | dmenu -p 'run:' -i -c -l 10)
 case "$cmd" in
     pulsemixer|top) run ts -n floating_terminal -- "$cmd" ;;
     sxcs)           run alacritty --class floating_terminal --hold -e "$cmd" ;;
-    cmus)           run ts -n cmus -t cmus -- cmus.sh ;; 
+    cmus)           run cmus.sh ;; 
     ncmpcpp)        run ts -n ncmpcpp -t ncmpcpp -- ncmpcpp ;; 
     newsboat)       run ts -n newsboat -t newsboat -- newsboat ;;
     spotify)        run spotify -no-zygote ;;

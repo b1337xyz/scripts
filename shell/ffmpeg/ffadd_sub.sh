@@ -10,9 +10,8 @@ for i in "$@";do
 done
 [ -f "$sub" ] || sub=${vid%.*}.ass
 [ -f "$sub" ] || sub=${vid%.*}.srt
-[ -f "$sub" ] || { printf 'subtitle not found\n'; exit 1; }
-echo "vid: $vid"
-echo "sub: $sub"
+[ -f "$sub" ] || { printf 'usage: %s <video> <subtitle>\n' "${0##*/}"; exit 1; }
+printf 'vid: \033[1;32m%s\033[m\nsub: \033[1;32m%s\033[m\n' "$vid" "$sub"
 
 if ffmpeg -i "$vid" 2>&1 | grep -q 'Stream #0:.(jpn): Audio:' 
 then

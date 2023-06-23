@@ -93,12 +93,12 @@ def list_all():
 
         error_code = '' if status != 'error' else i["errorCode"]
         icon = {
-            'active': '\033[1;32m⏩\033[m',
-            'error': f'\033[1;31m{error_code} \033[m',
-            'paused': '\033[1;36m⏸ \033[m',
-            'complete': '\033[1;34m⬤ \033[m',
-            'waiting': '\033[1;33m⌛\033[m',
-            'removed': '\033[1;30m⌧ \033[m',
+            'active':   '\033[1;32mA \033[m',
+            'error':   f'\033[1;31m{error_code} \033[m',
+            'paused':   '\033[1;36mP \033[m',
+            'complete': '\033[1;34mC \033[m',
+            'waiting':  '\033[1;33mW \033[m',
+            'removed':  '\033[1;30mR \033[m',
         }[status]
 
         if SHOW_GID:

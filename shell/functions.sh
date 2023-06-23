@@ -4,7 +4,7 @@
 VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
 ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
 ArchivePattern='\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$'
-UserAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:111.0) Gecko/20100101 Firefox/111.0'
+UserAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0'
 
 f() { find . -xdev -iname "$*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
@@ -341,9 +341,8 @@ edalt() {
 }
 magrep() {
     # grep magnet links
-    [ -z "$1" ] && { printf 'Usage: magrep <url>\n'; return 1; }
     curl -s --user-agent "$UserAgent" "$1" |
-        sed 's/<.\?br>//g; s/\&amp;/\&/g' |
+        sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
         grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)'
 }
 trackers_best() {
