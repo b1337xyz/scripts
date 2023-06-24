@@ -177,25 +177,22 @@ def ask(question: str) -> bool:
 
 
 def move_to(files: list, folder: str):
-    folder = os.path.join(opts.path, folder)
-    if os.path.exists(folder):
-        if not os.path.isdir(folder) or \
-           not ask(f'{folder} already exists, move files to it?'):
-            c = 1
-            _copy = folder
-            while os.path.exists(folder):
-                folder = f'{_copy} ({c})'
-                c += 1
-
-    print(f'{files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
-    if not ask('Are you sure?'):
+    if opts.rename and len(files) > 1:
+        for i in files:
+            move_to([i], folder)
         return
 
+    folder = os.path.join(opts.path, folder)
+    if os.path.exists(folder):
+        if not (os.path.isdir(folder) and ask(f'{folder} exists, move files to it?')):  # noqa: E501
+            c = 0
+            _copy = folder
+            while os.path.exists(folder) and (c := c + 1):
+                folder = f'{_copy} ({c})'
+
+    print(f'{files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
     if not opts.rename and not os.path.exists(folder):
         os.mkdir(folder)
-
-    if not files:
-        raise ValueError
 
     cmd = ['ln', '-rvs'] if opts.link else ['mv', '-vn']
     sp.run(cmd + files + [folder])
@@ -235,7 +232,7 @@ def main():
     for query in uniq:
         files = uniq[query]
         print(f'{RED}< {files[0]}{END}\n{GRN}> {query}{END}')
-        if not ask('Is that right?'):
+        if ask('Change query?'):
             query = input('Query: ').strip()
         if not query:
             continue
