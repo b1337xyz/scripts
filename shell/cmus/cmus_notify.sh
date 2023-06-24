@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -e
-
 NID=$$
 COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio

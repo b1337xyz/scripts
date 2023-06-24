@@ -571,7 +571,6 @@ random_notepadpp_quote() {
     }'
 }
 random_color() {
-    clear
     find ~/.scripts/playground/shell/Colors \
         -maxdepth 1 -type f -print0 | shuf -zn 1 | xargs -r0 bash
     printf '\e[0m'
