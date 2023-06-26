@@ -73,7 +73,7 @@ def cleanup_filename(string: str) -> str:
         r'\.(?:bd|flac(?:\d\.\d)?|hevc|x265)\.',
         r'[_\-\.]',
         r's\d+e\d+',
-        r'(?:animesplus|tnnac.animax|test.kun|(?:multi.?)?mattmurdock|abertura|encerramento|unico)',  # noqa: E501
+        r'(?:animesplus|tnnac.animax|softsub|test.kun|(?:multi.?)?mattmurdock|abertura|encerramento|unico)',  # noqa: E501
         r'(?:xvid|\w fansub| tv| dvd| hd|blu.?ray| \d+p|flac|opus)',  # noqa: E501
         r'(?:epis.d[ie]o|\sep?|sp|season)?\s?\d+(?:v\d+|final)?',
         r' \d+nd',
@@ -201,12 +201,12 @@ def move_to(files: list, folder: str):
 def fzf(args: list, prompt: str) -> str:
     try:
         proc = sp.Popen(
-           ['fzf', '--height', '25', '--prompt', prompt],
+           ['fzf', '--height', '10', '--prompt', prompt],
            stdin=sp.PIPE,
            stdout=sp.PIPE,
            universal_newlines=True
         )
-        out = proc.communicate('\n'.join(args))
+        out = proc.communicate('\n'.join(args[::-1]))
         if proc.returncode != 0:
             return None
         return [i for i in out[0].split('\n') if i]
