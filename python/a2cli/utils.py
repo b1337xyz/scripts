@@ -14,6 +14,10 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 LOG = os.path.join(ROOT, 'log')
 MAX = 999
 MAX_SIZE = 2000 * 1000  # 2 MB
+FZF_ARGS = [
+    '-m', '--delimiter=:', '--with-nth=2',
+    '--height', '20'
+]
 
 logging.basicConfig(
     filename=LOG,
@@ -55,6 +59,8 @@ def parse_arguments():
                       help='return a JSON of given GID')
     parser.add_option('--show-gid', action='store_true',
                       help='show gid')
+    parser.add_option('--show', action='store_true',
+                      help='show download information')
     parser.add_option('--seed', action='store_true',
                       help='sets seed-time=0.0')
     parser.add_option('-m', '--max-downloads', type='int', metavar='[0-9]+',
@@ -63,8 +69,11 @@ def parse_arguments():
                       help='overall download speed limit')
     parser.add_option('--upload-limit', type='string', metavar='<SPEED>',
                       help='overall upload speed limit')
-    parser.add_option('-y', '--yes', action='store_false', help='don\'t ask')
-    parser.add_option('-s', '--save', action='store_true', help='save torrent')
+    parser.add_option('-y', '--yes', action='store_false',
+                      help='don\'t ask')
+    parser.add_option('-s', '--save', action='store_true',
+                      help='save torrent')
+    parser.add_option('--fzf', action='store_true', help='use fzf')
     parser.add_option('--list-gids', action='store_true')
     parser.add_option('--purge', action='store_true')
     parser.add_option('--purge-all', action='store_true')
@@ -132,3 +141,14 @@ def get_name(info):
         return unquote(info['files'][0]['uris'][0]['uri'].split('/')[-1])
     except Exception:
         return info['gid']
+
+
+def fzf(prompt, args):
+    if not args:
+        return
+
+    proc = sp.Popen(["fzf", '--prompt', f'{prompt}> '] + FZF_ARGS,
+                    stdin=sp.PIPE, stdout=sp.PIPE,
+                    universal_newlines=True)
+    sel, _ = proc.communicate('\n'.join(args))
+    return [i for i in sel.split('\n') if i]

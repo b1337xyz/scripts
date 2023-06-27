@@ -605,3 +605,7 @@ gamefaq() {
     # Example: gamefaq https://gamefaqs.gamespot.com/psp/955342-harvest-moon-hero-of-leaf-valley/faqs/59752
     curl -s "$1" | sed -n '/id="faqtext">/,$p' | tail -n +2 | sed '/<\/pre><\/div>/q' | head -n -2 | "$PAGER"
 }
+mvff() {
+    [ -f "$1" ] && [ -d "$2" ] || return 1
+    while read -r i;do [ -f "$i" ] && mv -vn "$i" "$2" ;done < "$1"
+}

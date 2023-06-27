@@ -13,6 +13,15 @@ def select(action, downloads):
     if len(downloads) == 1:
         return downloads
 
+    if USE_FZF:
+        return [
+            downloads[int(i.split(':')[0])]
+            for i in fzf(prompt=action, args=[
+                f'{i}:{get_name(v)} [{v["status"]}]'
+                for i, v in enumerate(downloads)
+            ])
+        ]
+
     for i, v in enumerate(downloads):
         name = get_name(v)
         max_len = 70
@@ -93,12 +102,12 @@ def list_all():
 
         error_code = '' if status != 'error' else i["errorCode"]
         icon = {
-            'active':   '\033[1;32mA \033[m',
-            'error':   f'\033[1;31m{error_code} \033[m',
-            'paused':   '\033[1;36mP \033[m',
+            'active': '\033[1;32mA \033[m',
+            'error': f'\033[1;31m{error_code} \033[m',
+            'paused': '\033[1;36mP \033[m',
             'complete': '\033[1;34mC \033[m',
-            'waiting':  '\033[1;33mW \033[m',
-            'removed':  '\033[1;30mR \033[m',
+            'waiting': '\033[1;33mW \033[m',
+            'removed': '\033[1;30mR \033[m',
         }[status]
 
         if SHOW_GID:
@@ -125,6 +134,17 @@ def pause():
     downloads = s.aria2.tellActive()
     for dl in select('pause', downloads):
         s.aria2.pause(dl['gid'])
+
+
+def show():
+    downloads = s.aria2.tellActive() + s.aria2.tellWaiting(0, MAX)
+    try:
+        dl = select('show', downloads)[0]
+        for f in s.aria2.tellStatus(dl['gid']).get('files', []):
+            if f['completedLength'] == f['length']:
+                print('OK', f['path'])
+    except IndexError:
+        pass
 
 
 def unpause():
@@ -206,6 +226,7 @@ if __name__ == '__main__':
     s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
 
     SHOW_GID = opts.show_gid
+    USE_FZF = opts.fzf
 
     if opts.list:
         list_all()
@@ -247,6 +268,8 @@ if __name__ == '__main__':
         }))
     elif opts.list_gids:
         print('\n'.join([i['gid'] for i in get_all()]))
+    elif opts.show:
+        show()
     elif args:
         for arg in args:
             if arg.startswith('magnet:?'):
