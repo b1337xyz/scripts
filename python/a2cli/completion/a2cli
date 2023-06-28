@@ -3,7 +3,7 @@ _a2cli() {
     local opts cur prev split=false
     COMPREPLY=()
     _get_comp_words_by_ref cur prev
-    opts='-h --help -s --save -l --list --remove -p --pause --port --purge --purge-all -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes --watch'
+    opts='-h --help -s --save -l --list --remove -p --pause --port --purge --purge-all -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes --watch --files'
 
     case $prev in
         --status)

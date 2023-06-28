@@ -31,6 +31,7 @@ case "$cmd" in
     newsboat)       run ts -n newsboat -t newsboat -- newsboat ;;
     spotify)        run spotify -no-zygote ;;
     conky)          runconky.sh ;;
-    fzfanime.sh)       run ts -- fzfanime.sh ;;
+    fzfanime.sh)    run ts -- fzfanime.sh ;;
+    cava)           run st -n Cava -g 40x10+15-15 cava ;;
     *) run "$cmd" ;;
 esac

@@ -9,25 +9,10 @@ set -- -D -V --enable-rpc --continue \
     --on-download-error="${script}" \
     --on-download-start="${script}" \
     --save-session="$session" \
-    --save-session-interval=30
+    --save-session-interval=60
 
-if [ -s "$session" ];then
+if [ -f "$session" ];then
     aria2c "$@" --input-file="$session"
 else
     aria2c "$@" 
 fi
-
-# session=${HOME}/.cache/aria2/session.2
-# script=${HOME}/.scripts/shell/aria2/aria2_on_complete.sh
-# set -- -D -V --enable-rpc --rpc-listen-port=6802 \
-#     -j 2 --continue \
-#     --auto-file-renaming=false \
-#     --on-download-complete="$script" \
-#     --save-session="$session" \
-#     --save-session-interval=30
-
-# if [ -s "$session" ];then
-#     aria2c "$@" --input-file="$session"
-# else
-#     aria2c "$@" 
-# fi

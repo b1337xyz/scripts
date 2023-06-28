@@ -6,6 +6,15 @@ case "$1" in
     down)   pactl set-sink-volume @DEFAULT_SINK@ -5%    ;;
     toggle) pactl set-sink-mute @DEFAULT_SINK@ toggle   ;;
     [0-9]*) pactl set-sink-volume @DEFAULT_SINK@ "$1"%  ;;
-esac # && pkill -SIGRTMIN+10 i3blocks
+esac
+
+volume=$(pactl list sinks | awk '/^[ \t]*Volume:/{print substr($5, 1, length($5)-1); exit}')
+if pactl list sinks | grep -q 'Mute: yes' ;then
+    dunstify -r 1337 -i audio-volume-muted -h "int:value:$volume" "Volume" 
+else
+    dunstify -r 1337 -i audio-volume-high -h "int:value:$volume" "Volume" 
+fi
+
+# pkill -SIGRTMIN+10 i3blocks
 
 exit 0

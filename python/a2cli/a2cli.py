@@ -40,8 +40,7 @@ def select(action, downloads):
         except Exception as err:
             print(err)
         except KeyboardInterrupt:
-            print('\nbye')
-            sys.exit(0)
+            sys.exit(130)
     return selected
 
 
@@ -136,13 +135,18 @@ def pause():
         s.aria2.pause(dl['gid'])
 
 
-def show():
+def list_files():
     downloads = s.aria2.tellActive() + s.aria2.tellWaiting(0, MAX)
     try:
-        dl = select('show', downloads)[0]
+        dl = select('files', downloads)[0]
+        output = []
         for f in s.aria2.tellStatus(dl['gid']).get('files', []):
-            if f['completedLength'] == f['length']:
-                print('OK', f['path'])
+            p = int(f['completedLength']) * 100 // int(f['length'])
+            output.append((p, f['path']))
+
+        print('\n'.join([
+            f'{p}%\t{f}' for p, f in sorted(output, key=lambda x: x[0])
+        ]))
     except IndexError:
         pass
 
@@ -172,7 +176,6 @@ def remove(downloads=[]):
             except Exception as err:
                 print(err)
                 s.aria2.forceRemove(gid)
-
         print(name, 'removed')
 
 
@@ -268,8 +271,8 @@ if __name__ == '__main__':
         }))
     elif opts.list_gids:
         print('\n'.join([i['gid'] for i in get_all()]))
-    elif opts.show:
-        show()
+    elif opts.files:
+        list_files()
     elif args:
         for arg in args:
             if arg.startswith('magnet:?'):

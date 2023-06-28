@@ -145,7 +145,7 @@ fzman() {
         xargs -rI{} man -P 'less -p"^{}"' "$1"
 }
 gitlog() {
-    git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
+    git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --cycle --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
 }
 fzkill() {
     ps -u anon h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | xargs -r kill

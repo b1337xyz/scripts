@@ -59,8 +59,8 @@ def parse_arguments():
                       help='return a JSON of given GID')
     parser.add_option('--show-gid', action='store_true',
                       help='show gid')
-    parser.add_option('--show', action='store_true',
-                      help='show download information')
+    parser.add_option('--files', action='store_true',
+                      help='list downloaded files from selected download')
     parser.add_option('--seed', action='store_true',
                       help='sets seed-time=0.0')
     parser.add_option('-m', '--max-downloads', type='int', metavar='[0-9]+',
