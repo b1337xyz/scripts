@@ -56,7 +56,7 @@ def add_torrent(torrent):
         'dir': TEMP_DIR,
         'force-save': 'false',
         'bt-save-metadata': 'true',
-        'check-integrity': 'true'
+        'check-integrity': 'false'
     }
     if os.path.isfile(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:

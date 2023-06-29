@@ -18,11 +18,11 @@ get_scr() {
 }
 
 if [ "$1" = "-x" ];then
-    read w h x y < <(xwininfo | grep -oP '(?<= -geometry ).*' | parse_display)
+    read -r w h x y < <(xwininfo | grep -oP '(?<= -geometry ).*' | parse_display)
 elif [ "$1" = "-s" ];then
-    read w h x y < <(slop -o | parse_display)
+    read -r w h x y < <(slop -o | parse_display)
 else
-    read _ w h x y < <(get_scr | fzf)
+    read -r _ w h x y < <(get_scr | fzf)
 fi
 
 [ -z "$w" ] && exit
