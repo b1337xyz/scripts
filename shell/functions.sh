@@ -26,6 +26,8 @@ grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
 grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
 grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as simple text (from WANDEX scripts-wndx)
+lowercave() { tr '[:upper:]' '[:lower:]'; }
+uppercase() { tr '[:lower:]' '[:upper:]'; }
 histcount() {
     # Output:
     #  ...

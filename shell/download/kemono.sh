@@ -15,7 +15,7 @@ trap end EXIT
 
 a2c() {
     printf '%s -> %s\n' "$2" "$1"
-    aria2c -q --auto-file-renaming=false --dir "$1" "$2"
+    aria2c --summary-interval=0 --auto-file-renaming=false --dir "$1" "$2"
 }
 
 grep_posts() {
@@ -49,7 +49,9 @@ grep_artist() {
 }
 
 grep_user() {
-    grep -oP '(?<=meta name="user" content=").*(?=">)' "$1"
+    if ! grep -oP '(?<=meta name="user" content=").*(?=">)' "$1"; then
+        grep -oP '(?<=meta name="id" content=").*(?=">)' "$1"
+    fi
 }
 
 unescape() {
@@ -128,11 +130,11 @@ download_post_content() {
             http*)  printf '%s\n' "$url" ;;
             *data*) printf '%s\n' "${DOMAIN}${url}" ;;
         esac
-    done | sort -u | aria2c -q -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
+    done | sort -u | aria2c -j 1 --auto-file-renaming=false \
+        --summary-interval=0 --dir "$dl_dir" --input-file=-
 }
 
 main() {
-    # https://kemono.party/patreon/user/43155915/post/83922675
     if [[ "$1" = */post/* ]];then
         curl -A "$UA" -s -o "$tmpfile" "$1"
         user=$(grep_user "$tmpfile")
@@ -143,22 +145,21 @@ main() {
 
     main_url=$(printf '%s' "$1" | grep -oP 'https://kemono.party/\w*/user/\d*')
     test -z "$main_url" && return 1
-    if [ -z "$max_page" ];then
-        max_page=$(
-            curl -A "$UA" -s "$main_url" | tee "$tmpfile" |
-            grep -oP '(?<=href\=\")/.*/user/.*[\?&]o=\d*(?=\")' |
-            grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1
-        )
-    fi
+    curl -A "$UA" -s "$main_url" -o "$tmpfile"
+
+    [ -z "$max_page" ] && max_page=$(
+        grep -oP '(?<=href\=\")/.*/user/.*[\?&]o=\d*(?=\")' "$tmpfile" |
+            grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1;
+    )
     echo "$main_url" >> "$log"
     user=$(grep_user "$tmpfile")
     artist=$(grep_artist "$tmpfile")
 
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        printf 'Post %s of %s\n' "$((page+1))" "${max_page:-1}" >&2
         if test -f "$tmpfile";then  # don't request the first page twice
             grep_posts < "$tmpfile"
+            rm "$tmpfile"
         else
             curl -A "$UA" -s "${main_url}?o=$page" | grep_posts
         fi | while read -r url;do
@@ -178,7 +179,7 @@ max_page=
 while (( $# ));do
     case "$1" in
         -o|--output) shift; OUTPUT="$1" ;;
-        -m|--max-page) shift; [ "$1" -gt 1 ] && max_page="$1" ;;
+        -m|--max-page) shift; [ "$1" -ge 0 ] && max_page="$1" ;;
         -p|--start-page) shift; [ "$1" -ge 0 ] && start_page="$1" ;;
         -h|--help) help ;; 
         http*) urls+=("$1") ;;

@@ -183,7 +183,7 @@ def remove_all(status=None):
     if not yes(opts.yes):
         return
 
-    remove([i for i in get_all() if status != i['status']])
+    remove([i for i in get_all() if status is None or status == i['status']])
 
 
 def purge():
