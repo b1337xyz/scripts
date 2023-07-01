@@ -8,14 +8,13 @@
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 BASE_DIR=~/Downloads/kemono
 DOMAIN='https://kemono.party'
-log=~/.cache/kemono.log
 tmpfile=$(mktemp)
 end() { rm "$tmpfile" 2>/dev/null; }
 trap end EXIT
 
 a2c() {
     printf '%s -> %s\n' "$2" "$1"
-    aria2c --summary-interval=0 --auto-file-renaming=false --dir "$1" "$2"
+    aria2c -q --auto-file-renaming=false --dir "$1" "$2"
 }
 
 grep_posts() {
@@ -70,8 +69,11 @@ download_post_content() {
     dl_dir=$2
     html=${dl_dir}/html
     [ -d "$dl_dir" ] || mkdir -vp "$dl_dir"
-    [ -f "$1" ] && mv -v "$1" "$html"
-    [ -f "$html" ] || curl -A "$UA" -s "$1" -o "$html"
+    if [ -f "$1" ]; then
+        mv -v "$1" "$html"
+    else
+        curl -A "$UA" -s "$1" -o "$html"
+    fi
 
     pub=$(grep -oP '(?<=meta name="published" content=")[^ ]*' "$html")
     title=$(grep -oP '(?<=meta property="og:title" content="&#34;).*(?=&#34;)' "$html" |
@@ -123,6 +125,8 @@ download_post_content() {
         esac
     done
 
+    echo "$dl_dir"
+
     grep_data_links "$html" | while read -r url
     do
         [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
@@ -130,8 +134,7 @@ download_post_content() {
             http*)  printf '%s\n' "$url" ;;
             *data*) printf '%s\n' "${DOMAIN}${url}" ;;
         esac
-    done | sort -u | aria2c -j 1 --auto-file-renaming=false \
-        --summary-interval=0 --dir "$dl_dir" --input-file=-
+    done | sort -u | aria2c -q -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
 }
 
 main() {
@@ -151,7 +154,6 @@ main() {
         grep -oP '(?<=href\=\")/.*/user/.*[\?&]o=\d*(?=\")' "$tmpfile" |
             grep -oP '(?<=[\?&]o=)\d*' | sort -n | tail -1;
     )
-    echo "$main_url" >> "$log"
     user=$(grep_user "$tmpfile")
     artist=$(grep_artist "$tmpfile")
 
