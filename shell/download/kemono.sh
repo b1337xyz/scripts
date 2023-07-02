@@ -9,11 +9,10 @@ UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/1
 BASE_DIR=~/Downloads/kemono
 DOMAIN='https://kemono.party'
 tmpfile=$(mktemp)
-end() { rm "$tmpfile" 2>/dev/null; }
+end() { rm "${tmpfile}" "${tmpfile}.posts" 2>/dev/null || true; }
 trap end EXIT
 
 a2c() {
-    printf '%s -> %s\n' "$2" "$1"
     aria2c -q --auto-file-renaming=false --dir "$1" "$2"
 }
 
@@ -68,7 +67,7 @@ skip() {
 download_post_content() {
     dl_dir=$2
     html=${dl_dir}/html
-    [ -d "$dl_dir" ] || mkdir -vp "$dl_dir"
+    [ -d "$dl_dir" ] || mkdir -p "$dl_dir"
     if [ -f "$1" ]; then
         mv -v "$1" "$html"
     else
@@ -80,7 +79,7 @@ download_post_content() {
             sed 's/\// /g; s/ \{2,\}/ /g' | unescape)
 
     dl_dir="${dl_dir}/${title} ${pub}"
-    mkdir -vp "$dl_dir"
+    mkdir -p "$dl_dir"
 
     # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'
     pw=$(grep -ioP '(pw|pass\w+) ?: ?[^ <]*' "$html" | sort -u)
@@ -125,8 +124,6 @@ download_post_content() {
         esac
     done
 
-    echo "$dl_dir"
-
     grep_data_links "$html" | while read -r url
     do
         [ "$OUTPUT" ] && { printf '%s\n' "$url" >> "$OUTPUT"; continue; }
@@ -157,30 +154,38 @@ main() {
     user=$(grep_user "$tmpfile")
     artist=$(grep_artist "$tmpfile")
 
+    post_counter=0
+    total_posts=0
     # shellcheck disable=SC2086
     for page in $(seq ${start_page:-0} 25 ${max_page:-0});do
-        if test -f "$tmpfile";then  # don't request the first page twice
+        if test -f "$tmpfile";then
             grep_posts < "$tmpfile"
             rm "$tmpfile"
         else
             curl -A "$UA" -s "${main_url}?o=$page" | grep_posts
-        fi | while read -r url;do
+        fi > "${tmpfile}.posts"
+
+        l_posts=$(wc -l < "${tmpfile}.posts")
+        ((total_posts += l_posts))
+        while read -r url; do
+            ((post_counter++))
+            [ "$max_posts" ] && [[ "$post_counter" -gt "$max_posts" ]] && return
+            printf '[%s/%s] %s\n' "$post_counter" "$total_posts" "$artist"
             post_url=${DOMAIN}$url
             download_post_content "$post_url" "${BASE_DIR}/${user} - ${artist}"
-        done
+        done < "${tmpfile}.posts"
     done
 }
 help() {
-    printf 'Usage: %s [-o|--output <FILE> -m|--max-page <N> -p|--start-page <N>] <URL | FILE>\n' "${0##*/}"
+    printf 'Usage: %s [-o|--output <FILE> -m|--max-page <N> -p|--start-page <N> -P|--max-posts <N>] <URL | FILE>\n' "${0##*/}"
     exit 0
 }
 
 urls=()
-input_file=
-max_page=
 while (( $# ));do
     case "$1" in
         -o|--output) shift; OUTPUT="$1" ;;
+        -P|--max-posts) shift; [ "$1" -ge 0 ] && max_posts="$1" ;;
         -m|--max-page) shift; [ "$1" -ge 0 ] && max_page="$1" ;;
         -p|--start-page) shift; [ "$1" -ge 0 ] && start_page="$1" ;;
         -h|--help) help ;; 
