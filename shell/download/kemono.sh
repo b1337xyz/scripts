@@ -78,7 +78,7 @@ download_post_content() {
     title=$(grep -oP '(?<=meta property="og:title" content="&#34;).*(?=&#34;)' "$html" |
             sed 's/\// /g; s/ \{2,\}/ /g' | unescape)
 
-    dl_dir="${dl_dir}/${title} ${pub}"
+    dl_dir="${dl_dir}/${pub} ${title}"
     mkdir -p "$dl_dir"
 
     # grep -ioP '(pw|password)[: ]?[^ \t\n<]*' "$html" | awk '{sub(/(password|pw)[ :]\?/ "")}'

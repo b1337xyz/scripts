@@ -611,3 +611,6 @@ mvff() {
     [ -f "$1" ] && [ -d "$2" ] || return 1
     while read -r i;do [ -f "$i" ] && mv -vn "$i" "$2" ;done < "$1"
 }
+downloadarch() {
+    curl -s 'https://archlinux.org/download/' | grep -oP '(?<=href=")magnet:.*\.iso(?=")' | aria2c --input-file=-
+}
