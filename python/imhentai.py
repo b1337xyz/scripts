@@ -25,7 +25,7 @@ try:
     if not PHPSESSID:
         raise Exception
 except Exception:
-    print('Access the site and open devtools and go to the Netowork tab')
+    print('Access the site, open devtools and go to the Network tab')
     PHPSESSID = input('PHPSESSID: ').strip()
     with open(SESSIONFILE, 'w') as f:
         f.write(PHPSESSID)
@@ -199,12 +199,9 @@ def main():
     for url in args:
         dl_dir = opts.dir
         for v in ['tag', 'artist', 'parody', 'character']:
-            try:
-                v = re.search(r'/{}/([^/]*)'.format(v), url).group(1)
-                dl_dir = os.path.join(opts.dir, v)
+            if (r := re.search(r'/{}/([^/]*)'.format(v), url)):
+                dl_dir = os.path.join(opts.dir, r.group(1))
                 break
-            except AttributeError:
-                pass
         mkdir(dl_dir)
 
         if '/gallery/' in url:

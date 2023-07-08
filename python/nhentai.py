@@ -145,6 +145,7 @@ class Downloader:
             open(file, 'wb').write(data)
 
         self.rpc.addTorrent(Binary(data), [], {
+            'check-integrity': 'true',
             'rpc-save-upload-metadata': 'false',
             'force-save': 'false',
             'dir': str(file.parent)
@@ -152,7 +153,7 @@ class Downloader:
 
     def get_soup(self, url):
         print(f'GET: {url}')
-        sleep(random() * .55)
+        sleep(random() * .8)
         r = self.session.get(url)
         return BS(r.text, 'html.parser')
 

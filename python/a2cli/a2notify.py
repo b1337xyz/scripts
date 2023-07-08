@@ -36,8 +36,7 @@ def get_name(info):
     except KeyError:
         pass
 
-    path = info['files'][0]['path']
-    if path:
+    if (path := info['files'][0]['path']):
         return path.split('/')[-1]
 
     try:
@@ -96,9 +95,7 @@ if __name__ == '__main__':
     sleep(1)
     gid = argv[1]
     info = request('tellStatus', gid)
-    if not info:
-        exit(0)
-    if int(info["totalLength"]) < 10:
+    if not info or int(info.get("totalLength", 0)) < 10:
         exit(0)
 
     name = get_name(info)
