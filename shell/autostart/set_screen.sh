@@ -15,7 +15,6 @@ if xrandr | grep -q 'HDMI1 connected';then
     if pgrep -x i3; then
         i3-msg restart 
         [ -x ~/.cache/xwallpaper ] && sleep 1 && ~/.cache/xwallpaper
-        runconky.sh 
     fi
 else
     echo "Xft.dpi: 102" | xrdb -merge

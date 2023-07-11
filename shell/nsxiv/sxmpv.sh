@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-ptr='.*\.(mp4|mkv|webm|avi)'
-THUMB=~/.cache/thumbnails/video
-find . -maxdepth 1 -regextype posix-extended \
-    -iregex "$ptr" -type f | sort -V | while read -r i
+ptr='.*\.(mp4|mkv|webm|avi|m4v)'
+DIR=~/.cache/thumbnails/sxmpv
+find . -maxdepth 1 -regextype posix-extended -iregex "$ptr" -type f | sort -V | while read -r i
 do
-    img="${THUMB}/${i##*/}.jpg"
+    img="${DIR}/${i##*/}.jpg"
     if ! [ -f "$img" ];then
         mkdir -p "${img%/*}"
         ffmpegthumbnailer -s 0 -i "$i" -o "$img" 2>/dev/null
