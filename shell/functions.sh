@@ -123,6 +123,8 @@ alljpg() {
 }
 ex() {
     # decompress stuff
+    local delete
+    for i in "$@";do [ "$i" = "-d" ] && delete=y ;done
     for i in "$@";do
         [ -f "$i" ] || return 1
         case "$i" in
@@ -139,6 +141,7 @@ ex() {
             *.7z)      7z x -o"${i%.*}" "$i"       ;;
             *.Z)       uncompress "$i" ;;
         esac || return 1
+        [ "$delete" ] && rm -v "$i"
     done
 }
 repeat() {
