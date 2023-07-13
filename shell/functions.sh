@@ -18,7 +18,8 @@ keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\
 transfer.sh() { curl --upload-file "$1" https://transfer.sh | tee -a ~/.cache/transfer.sh; }
 bashupload() { curl bashupload.com -T "$1"; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
-fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
+# fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
+fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | awk '{ a[$0] += 1 } END { for ( i in a ) printf("%s\t%s\n", a[i], i) }'; }
 fvideo() { find . -iregex ".*$VideoPattern"; }
 fimage() { find . -iregex ".*$ImagePattern"; }
 farchive() { find . -iregex ".*$ArchivePattern"; }
@@ -126,7 +127,6 @@ ex() {
     local delete
     for i in "$@";do [ "$i" = "-d" ] && delete=y ;done
     for i in "$@";do
-        [ -f "$i" ] || return 1
         case "$i" in
             *.tar.zst) tar --zstd -xf "$i" ;;
             *.tar.xz)  tar xvJf "$i"   ;;
@@ -140,6 +140,7 @@ ex() {
             *.gz)      gunzip "$i"     ;;
             *.7z)      7z x -o"${i%.*}" "$i"       ;;
             *.Z)       uncompress "$i" ;;
+            *) continue ;;
         esac || return 1
         [ "$delete" ] && rm -v "$i"
     done

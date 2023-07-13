@@ -24,7 +24,7 @@ while :;do
     [ "$l" -eq 0 ] && break
 
     if [ "$l" -gt 1 ];then
-        out=$(nsxiv -n "$n" -qito < "$cache" 2>/dev/null || true)
+        out=$(nsxiv -n "$n" -qito < "$cache" 2>/dev/null || { shift; n=$1; })
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi

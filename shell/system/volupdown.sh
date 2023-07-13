@@ -8,7 +8,7 @@ case "$1" in
     [0-9]*) pactl set-sink-volume @DEFAULT_SINK@ "$1"%  ;;
 esac
 
-volume=$(pactl list sinks | awk '/^[ \t]*Volume:/{print substr($5, 1, length($5)-1); exit}')
+volume=$(pactl get-sink-volume @DEFAULT_SINK@ | awk '/Volume:/{print substr($5, 1, length($5)-1)}')
 if pactl list sinks | grep -q 'Mute: yes' ;then
     dunstify -r 1337 -i audio-volume-muted -h "int:value:$volume" "Volume" 
 else
