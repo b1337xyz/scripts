@@ -2,6 +2,9 @@
 from i3ipc import Connection, Event
 
 def main(i3, e):
+    if e.change != 'new':
+        return
+
     tree = i3.get_tree()
     focused = tree.find_focused()
     if not focused.floating:

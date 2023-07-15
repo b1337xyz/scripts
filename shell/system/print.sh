@@ -16,7 +16,7 @@ copy='xclip -sel clip -t image/png -i $f; notify "$f" "$n" "$wx$h"'
 image="${DIR}/scr_%Y.%m.%d_%H%M%S.png"
 tmpimg="/tmp/scr_%Y%m%d%H%M%S.png"
 
-sleep 0.5
+sleep .2
 case "$1" in
     -*|help) printf 'Usage: %s [focused|select|copy|copf|selc]\n' "${0##*/}"; exit 0 ;;
     foc*) scrot -q 100 -u "$image"  -e "$cmd" ;;
@@ -24,6 +24,7 @@ case "$1" in
     copf) scrot -q 100 -u "$tmpimg" -e "$copy" ;;
     cops) scrot -q 100 -s "$tmpimg" -e "$copy" ;;
     copy) scrot -q 100 -m "$tmpimg" -e "$copy" ;;
+    [0-9]) sleep "$1"; bash "$0" ;;
     *)    scrot -q 100 -m "$image"  -e "$cmd" ;;
 esac
 

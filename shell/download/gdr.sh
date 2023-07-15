@@ -11,7 +11,7 @@ printf 'FILEID: \e[1;31m%s\e[m\n' "$FILEID"
 
 if hash gdrive; then
     # https://github.com/prasmussen/gdrive
-    gdrive download --path ~/Downloads --skip -r "$FILEID"
+    gdrive download --skip -r "$FILEID"
 else
     printf 'gdrive not installed, using wget\n'
     CONFIRM=$(

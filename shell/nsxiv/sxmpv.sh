@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-ptr='.*\.(mp4|mkv|webm|avi|m4v)'
+ptr='.*\.(mp4|mkv|webm|avi|m4v|mov)'
 DIR=~/.cache/thumbnails/sxmpv
 find . -maxdepth 1 -regextype posix-extended -iregex "$ptr" -type f | sort -V | while read -r i
 do

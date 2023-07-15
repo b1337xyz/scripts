@@ -19,7 +19,7 @@ transfer.sh() { curl --upload-file "$1" https://transfer.sh | tee -a ~/.cache/tr
 bashupload() { curl bashupload.com -T "$1"; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
 # fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
-fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | awk '{ a[$0] += 1 } END { for ( i in a ) printf("%s\t%s\n", a[i], i) }'; }
+fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | awk '{a[$0] += 1} END {for ( i in a ) printf("%s\t%s\n", a[i], i)}' | sort -n; }
 fvideo() { find . -iregex ".*$VideoPattern"; }
 fimage() { find . -iregex ".*$ImagePattern"; }
 farchive() { find . -iregex ".*$ArchivePattern"; }
