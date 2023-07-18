@@ -1,5 +1,10 @@
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
+#
+# Resources:
+#   https://tldp.org/LDP/abs/html/sample-bashrc.html
+#   https://github.com/WANDEX/scripts-wndx
+#   https://gitlab.com/TheOuterLinux/Command-Line/-/blob/master/System/Terminals%20and%20Muxinators/bashrc/bashrc%20-%20Basic.txt
 
 VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
 ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
@@ -335,6 +340,7 @@ odr() {
     wget "$@" -w 3 -r -nc --no-parent --no-check-certificate \
            -U mozilla -l 200 -e robots=off -R "index.html*" -x
 }
+grabindex() { wget  -e robots=off -r -k -nv -nH -l inf -R --reject-regex '(.*)\?(.*)' --no-parent "$1" ; }
 save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
@@ -386,6 +392,7 @@ random_str() {
     done
     chr=${chr:-a-zA-Z0-9@!<>&%\$#_\\-\\.}
     tr -dc "$chr" < /dev/urandom | fold -w "${n:-10}" | head -1
+    # shuf -er -n8 {A..Z} {a..z} {0..9}| tr -d '\n'
 }
 iommu_groups() {
     for d in /sys/kernel/iommu_groups/*/devices/*
@@ -618,3 +625,45 @@ mvff() {
 downloadarch() {
     curl -s 'https://archlinux.org/download/' | grep -oP '(?<=href=")magnet:.*\.iso(?=")' | aria2c --input-file=-
 }
+translate() {
+    # Usage: translate <phrase> <output-language> 
+    # Example: translate "Bonjour! Ca va?" en 
+    #
+    # See this for a list of language codes: 
+    # http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    local query
+    query=$(echo -n "$1" | sed "s/[\"'<>]//g")
+    wget -U "Mozilla/5.0" -qO - "http://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=$2&dt=t&q=$query" |
+        sed "s/,,,0]],,.*//g" | awk -F'"' '{print $2, $6}'
+}
+howin() {
+    # Use curl and "https://cht.sh/" to quickly search how to do things
+    # Examples: 'howin html do I view an image'
+    #           'howin python do I add numbers'
+    where="$1"; shift
+    q=$* q=${q// /+}
+    curl "https://cht.sh/$where/$q"
+}
+optimg() {
+    # Potentially lower an image's file size using ImageMagick by lowering
+    # the amount of colors, using dithering, increasing contrast, etc...
+    # 
+    #     Usage: optimg '/path/to/image.ext'
+    # 
+    convert "$1" -dither FloydSteinberg -colors 256 \
+        -morphology Thicken:0.5 '3x1+0+0:1,0,0' \
+        -remap netscape: -ordered-dither o8x8,6 +contrast "$1_converted"
+}
+optpdf() {
+    # Potentially lower a PDF's file size using Ghostscript
+    # 
+    #     Usage: optpdf '/path/to/file.pdf'
+    # 
+    gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
+        -dPDFSETTINGS=/screen -sOutputFile="${1%%.*}_small.pdf" "$1"
+}
+#Day-mode...Ooooh aaaAAAh! Enemy of the nightmode... Ooooh aaaAAAh!
+#Use daymode/nightmode to toggle the a red screen tint on/off for doing 
+#things such as Astronomy.
+daymode() { xgamma -gamma 1 && echo -en "\\033[37m\\033[8]"; }
+nightmode() { xgamma -rgamma 1 -ggamma 0.3 -bgamma 0.3; }
