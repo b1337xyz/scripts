@@ -3,7 +3,7 @@ from utils import *
 from time import sleep
 import json
 import sys
-import xmlrpc.client
+from xmlrpc.client import ServerProxy, Binary
 
 
 def select(action, downloads):
@@ -45,9 +45,9 @@ def select(action, downloads):
 
 
 def get_all():
-    waiting = s.aria2.tellWaiting(0, MAX)
-    stopped = s.aria2.tellStopped(0, MAX)
-    active = s.aria2.tellActive()
+    waiting = aria2.tellWaiting(0, MAX)
+    stopped = aria2.tellStopped(0, MAX)
+    active = aria2.tellActive()
     return active + waiting + stopped
 
 
@@ -62,15 +62,14 @@ def add_torrent(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
             with open(torrent, 'rb') as fp:
                 try:
-                    s.aria2.addTorrent(xmlrpc.client.Binary(fp.read()),
-                                       [], options)
+                    aria2.addTorrent(Binary(fp.read()), [], options)
                 except Exception as err:
                     logging.error(err)
         else:
             magnet = get_magnet(torrent)
             add_torrent(magnet)
     else:
-        s.aria2.addUri([torrent], options)
+        aria2.addUri([torrent], options)
 
 
 def list_all():
@@ -130,17 +129,17 @@ def list_all():
 
 
 def pause():
-    downloads = s.aria2.tellActive()
+    downloads = aria2.tellActive()
     for dl in select('pause', downloads):
-        s.aria2.pause(dl['gid'])
+        aria2.pause(dl['gid'])
 
 
 def list_files():
-    downloads = s.aria2.tellActive() + s.aria2.tellWaiting(0, MAX)
+    downloads = aria2.tellActive() + aria2.tellWaiting(0, MAX)
     try:
         dl = select('files', downloads)[0]
         output = []
-        for f in s.aria2.tellStatus(dl['gid']).get('files', []):
+        for f in aria2.tellStatus(dl['gid']).get('files', []):
             p = int(f['completedLength']) * 100 // int(f['length'])
             output.append((p, f['path']))
 
@@ -152,9 +151,9 @@ def list_files():
 
 
 def unpause():
-    downloads = s.aria2.tellWaiting(0, MAX)
+    downloads = aria2.tellWaiting(0, MAX)
     for dl in select('unpause', downloads):
-        s.aria2.unpause(dl['gid'])
+        aria2.unpause(dl['gid'])
 
 
 def remove(downloads=[]):
@@ -166,16 +165,16 @@ def remove(downloads=[]):
         gid = dl['gid']
         if dl['status'] in ['active', 'waiting']:
             try:
-                s.aria2.remove(gid)
+                aria2.remove(gid)
             except Exception as err:
                 print(err)
-                s.aria2.forceRemove(gid)
+                aria2.forceRemove(gid)
         else:
             try:
-                s.aria2.removeDownloadResult(gid)
+                aria2.removeDownloadResult(gid)
             except Exception as err:
                 print(err)
-                s.aria2.forceRemove(gid)
+                aria2.forceRemove(gid)
         print(name, 'removed')
 
 
@@ -201,32 +200,32 @@ def purge():
 
 
 def remove_metadata(status=None):
-    for dl in s.aria2.tellStopped(0, MAX):
+    for dl in aria2.tellStopped(0, MAX):
         if status and status != dl['status']:
             continue
         name = get_name(dl)
         gid = dl['gid']
         if name.startswith('[METADATA]'):
             try:
-                s.aria2.removeDownloadResult(gid)
+                aria2.removeDownloadResult(gid)
                 print(name, 'removed')
             except Exception as err:
                 print(err)
 
 
 def move_to_top():
-    downloads = s.aria2.tellWaiting(0, MAX)
+    downloads = aria2.tellWaiting(0, MAX)
     try:
         gid = select('move to top', downloads)[0]['gid']
     except IndexError:
         return
-    s.aria2.changePosition(gid, 0, 'POS_SET')
+    aria2.changePosition(gid, 0, 'POS_SET')
 
 
 if __name__ == '__main__':
     opts, args = parse_arguments()
 
-    s = xmlrpc.client.ServerProxy(f'http://localhost:{opts.port}/rpc')
+    aria2 = ServerProxy(f'http://localhost:{opts.port}/rpc').aria2
 
     SHOW_GID = opts.show_gid
     USE_FZF = opts.fzf
@@ -242,11 +241,11 @@ if __name__ == '__main__':
     elif opts.unpause:
         unpause()
     elif opts.pause_all:
-        s.aria2.pauseAll()
+        aria2.pauseAll()
     elif opts.unpause_all:
-        s.aria2.unpauseAll()
+        aria2.unpauseAll()
     elif opts.gid:
-        print(json.dumps(s.aria2.tellStatus(opts.gid), indent=2))
+        print(json.dumps(aria2.tellStatus(opts.gid), indent=2))
     elif opts.remove_metadata:
         remove_metadata(opts.status)
     elif opts.top:
@@ -254,19 +253,19 @@ if __name__ == '__main__':
     elif opts.purge:
         purge()
     elif opts.purge_all:
-        print(s.aria2.purgeDownloadResult())
+        print(aria2.purgeDownloadResult())
     elif opts.seed:
-        print(s.aria2.changeGlobalOption({'seed-time': '0.0'}))
+        print(aria2.changeGlobalOption({'seed-time': '0.0'}))
     elif opts.max_downloads:
-        print(s.aria2.changeGlobalOption({
+        print(aria2.changeGlobalOption({
             'max-concurrent-downloads': str(opts.max_downloads)
         }))
     elif opts.download_limit:
-        print(s.aria2.changeGlobalOption({
+        print(aria2.changeGlobalOption({
             'max-overall-download-limit': opts.download_limit
         }))
     elif opts.upload_limit:
-        print(s.aria2.changeGlobalOption({
+        print(aria2.changeGlobalOption({
             'max-overall-upload-limit': opts.download_limit
         }))
     elif opts.list_gids:
@@ -286,7 +285,7 @@ if __name__ == '__main__':
                         magnet = fp.readline().strip()
                     add_torrent(magnet)
             elif is_uri(arg):
-                s.aria2.addUri([arg], {'dir': DL_DIR})
+                aria2.addUri([arg], {'dir': DL_DIR})
             else:
                 print(f'Unrecognized URI: {arg}')
     elif opts.watch:
@@ -298,4 +297,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             pass
     else:
-        list_all()
+        try:
+            list_all()
+        except Exception as err:
+            print(err)
