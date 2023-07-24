@@ -46,7 +46,7 @@ else
         if [ -d "$orig" ]; then
             printf 'move to %s? [Y/n] ' "$orig"
             read -r ask </dev/tty
-            [ "${ask,,}" = "y" ] && dest=${orig}
+            [ "${ask,,}" = y ] || [ -z "$ask" ] && dest=${orig}
         fi
         mv -vi -- "$i" "${dest:-.}" && rm -dv "${i%/*}.info" "${i%/*}"
     done < <(load | fzf -0 -m -d '/' --no-sort --with-nth -1 --border bottom \

@@ -2,7 +2,7 @@
 set -e
 
 PID=$$
-LOCK=/tmp/.4chan-dl
+LOCK=/tmp/.4ch-dl
 ICON=~/Pictures/icons/4chan.png
 
 echo $PID >> "$LOCK"
@@ -23,6 +23,6 @@ main() {
     notify-send -i "$ICON" "thread: $thread" "$subject"
 
     curl -L -s "$url" | grep -oP '(?<=href\=")[^"]*\.(jpg|png|gif|webm)' |
-        sort -u | xargs -rI{} wget -nc -nv -P "$dl_dir" "http:{}" 2>&1 | grep -v SSL_INIT
+        sort -u | xargs -P2 -rI{} wget -nc -nv -P "$dl_dir" "http:{}" 2>&1 | grep -v SSL_INIT
 }
 [ -n "$1" ] && main "$1"

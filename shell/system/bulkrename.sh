@@ -10,7 +10,7 @@ esac
 declare -a files=()
 while IFS= read -r -d $'\0' i;do
     files+=("${i#*/}")
-done < <($FIND | sort -zV) # -t / -k 3
+done < <($FIND | sort -zV)
 
 [ "${#files[@]}" -eq 0 ] && { printf 'Nothing to do\n'; exit 0; }
 
@@ -24,6 +24,6 @@ l=$(wc -l < "$tmpfile")
 
 i=0
 while read -r f;do
-    [ "${files[i]}" != "$f" ] && { mv -vn -- "${files[i]}" "$f" || continue; }
+    [ "${files[i]}" != "$f" ] && mv -vn -- "${files[i]}" "$f"
     i=$((i+1))
 done < "$tmpfile"

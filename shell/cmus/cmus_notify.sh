@@ -18,7 +18,7 @@ while [ -n "$1" ];do
     shift
 done
 
-filename=${file##*/}
+filename=${file##*/} filename=${filename%.*}
 title=${title:-$filename}
 img=$(md5sum "$file" | awk '{print $1".jpg"}')
 img="${COVER}/${img}"
@@ -29,5 +29,5 @@ img="${COVER}/${img}"
 dunstify -r 1337 -i "$img" "♪ ${status}" \
     "${title}\n${artist}\n${album}\n$duration"
 
-echo -n "$title - ${album}, $artist" > /tmp/.cmus-status
+echo -n "$title ${album} $artist" | sed 's/ \+$//' > /tmp/.cmus-status
 pkill -SIGRTMIN+20 i3blocks

@@ -5,6 +5,7 @@
 #   https://tldp.org/LDP/abs/html/sample-bashrc.html
 #   https://github.com/WANDEX/scripts-wndx
 #   https://gitlab.com/TheOuterLinux/Command-Line/-/blob/master/System/Terminals%20and%20Muxinators/bashrc/bashrc%20-%20Basic.txt
+#   https://www.reddit.com/r/bash
 
 VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
 ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
@@ -667,3 +668,9 @@ optpdf() {
 #things such as Astronomy.
 daymode() { xgamma -gamma 1 && echo -en "\\033[37m\\033[8]"; }
 nightmode() { xgamma -rgamma 1 -ggamma 0.3 -bgamma 0.3; }
+vmrss() {
+    while :;do
+        ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
+        sleep 1
+    done
+}
