@@ -33,7 +33,7 @@ grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
 grep_image() { grep --color=never -i "$ImagePattern" "$1"; }
 grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as simple text (from WANDEX scripts-wndx)
-lowercave() { tr '[:upper:]' '[:lower:]'; }
+lowercase() { tr '[:upper:]' '[:lower:]'; }
 uppercase() { tr '[:lower:]' '[:upper:]'; }
 histcount() {
     # Output:
@@ -42,8 +42,8 @@ histcount() {
     #  223 pacman
     #  411 vi
     #  441 sudo
-    # 9969 neofetch
-    HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail
+    #  999 neofetch
+    HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail -10
 }
 cpl() {
     # Example:
@@ -130,8 +130,6 @@ alljpg() {
 }
 ex() {
     # decompress stuff
-    local delete
-    for i in "$@";do [ "$i" = "-d" ] && delete=y ;done
     for i in "$@";do
         case "$i" in
             *.tar.zst) tar --zstd -xf "$i" ;;
@@ -141,14 +139,14 @@ ex() {
             *.tar)     tar xvf "$i"    ;;
             *.bz2)     bunzip2 "$i"    ;;
             *.zst)     unzstd "$i"     ;;
+            *.gz)      gunzip "$i"     ;;
             *.rar)     unrar x -op"${i%.*}" "$i" ;;
             *.zip)     unzip "$i" -d "${i%.*}"   ;;
-            *.gz)      gunzip "$i"     ;;
-            *.7z)      7z x -o"${i%.*}" "$i"       ;;
+            *.7z)      7z x -o"${i%.*}" "$i"     ;;
             *.Z)       uncompress "$i" ;;
-            *) continue ;;
+            *) printf 'File cannot be extracted: "%s"\n' "$i"; continue ;;
         esac || return 1
-        [ "$delete" ] && rm -v "$i"
+        [ "$1" = -d ] && rm -v "$i"
     done
 }
 repeat() {
@@ -667,7 +665,7 @@ optpdf() {
 #Use daymode/nightmode to toggle the a red screen tint on/off for doing 
 #things such as Astronomy.
 daymode() { xgamma -gamma 1 && echo -en "\\033[37m\\033[8]"; }
-nightmode() { xgamma -rgamma 1 -ggamma 0.3 -bgamma 0.3; }
+nightmode() { xgamma -rgamma 0.9 -ggamma 0.5 -bgamma 0.5; }
 vmrss() {
     while :;do
         ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
