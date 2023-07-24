@@ -1,6 +1,6 @@
 #!/bin/sh
-pkill -x dunst #  && $(dunst >/dev/null 2>&1 &)
-sleep 0.3
-notify-send -u low "Low notification" "$(uname -a)" 
-notify-send -u normal "Normal notification" "$(uname -a)" 
-notify-send -u critical "Critical notification" "$(uname -a)" 
+pkill -x dunst; sleep .15
+msg="$(date)\n$(uname -r) $(uname -o)" 
+notify-send -u low "Low urgency" "$msg"
+notify-send -u normal "Normal urgency" "$msg"
+notify-send -u critical "Critical urgency" "$msg"
