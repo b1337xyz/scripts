@@ -5,7 +5,6 @@
 #   https://tldp.org/LDP/abs/html/sample-bashrc.html
 #   https://github.com/WANDEX/scripts-wndx
 #   https://gitlab.com/TheOuterLinux/Command-Line/-/blob/master/System/Terminals%20and%20Muxinators/bashrc/bashrc%20-%20Basic.txt
-#   https://www.reddit.com/r/bash
 
 VideoPattern='\.\(mkv\|webm\|flv\|ogv\|ogg\|avi\|ts\|mts\|m2ts\|mov\|wmv\|rmvb\|mp4\|m4v\|m4p\|mpg\|mpeg\|3gp\|gif\)$'
 ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
@@ -618,8 +617,9 @@ gamefaq() {
     curl -s "$1" | sed -n '/id="faqtext">/,$p' | tail -n +2 | sed '/<\/pre><\/div>/q' | head -n -2 | "$PAGER"
 }
 mvff() {
-    [ -f "$1" ] && [ -d "$2" ] || return 1
-    while read -r i;do [ -f "$i" ] && mv -vn "$i" "$2" ;done < "$1"
+    # Move files listed on a text file ($1) to a directory ($2)
+    file -Lbi "$1" | grep -q ^text/plain && [ -d "$2" ] || return 1
+    while read -r i;do mv -vn "$i" "$2" || break ;done < "$1"
 }
 downloadarch() {
     curl -s 'https://archlinux.org/download/' | grep -oP '(?<=href=")magnet:.*\.iso(?=")' | aria2c --input-file=-
@@ -661,11 +661,6 @@ optpdf() {
     gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
         -dPDFSETTINGS=/screen -sOutputFile="${1%%.*}_small.pdf" "$1"
 }
-#Day-mode...Ooooh aaaAAAh! Enemy of the nightmode... Ooooh aaaAAAh!
-#Use daymode/nightmode to toggle the a red screen tint on/off for doing 
-#things such as Astronomy.
-daymode() { xgamma -gamma 1 && echo -en "\\033[37m\\033[8]"; }
-nightmode() { xgamma -rgamma 0.9 -ggamma 0.5 -bgamma 0.5; }
 vmrss() {
     while :;do
         ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
