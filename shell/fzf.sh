@@ -24,10 +24,7 @@ e() {
         fzf -e --layout=reverse --height 20  |
         awk -v home="$HOME" 'sub("~", home)')
 
-    if [ -f "$file" ]; then
-        cd "${file%/*}" || return 1
-        vim "$file"
-    fi
+    [ -f "$file" ] && vim "$file"
 }
 c() { 
     local file
@@ -38,10 +35,7 @@ c() {
         fzf -e --layout=reverse --height 20  |
         awk -v home="$HOME" 'sub("~", home)')
 
-    if [ -f "$file" ];then 
-        cd "${file%/*}" || return 1
-        vim "$file"
-    fi
+    [ -f "$file" ] && vim "$file"
 }
 fzumount() {
     command df -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |

@@ -12,7 +12,7 @@ height = focused.rect.height
 x = focused.rect.x
 y = focused.rect.y
 if 'off' in focused.floating:
-    sys.exit(0)
+    sys.exit(1)
 
 # sp.call('alacritty --class floating_terminal &', shell=True)
 i3.command('exec alacritty --class floating_terminal')
@@ -21,6 +21,5 @@ while focused.id == fid:
     tree = i3.get_tree()
     focused = tree.find_focused()
 
-if terminal in focused.window_class.lower():
-    i3.command('resize set {} {}'.format(width, height))
-    i3.command('move position {} {}'.format(x, y))
+i3.command('resize set {} {}'.format(width, height))
+i3.command('move position {} {}'.format(x, y))
