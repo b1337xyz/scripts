@@ -1,0 +1,4 @@
+#!/bin/sh
+n=$(tmux new-window -d sleep 1 \; display -p '#{last_window_index}')
+tmux joinp -t :"$n" \; last-window
+exit 0

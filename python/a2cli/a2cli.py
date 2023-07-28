@@ -74,6 +74,9 @@ def add_torrent(torrent):
 
 def list_all():
     downloads = get_all()
+    if not downloads:
+        return
+
     counter = dict()
     lines = os.get_terminal_size().lines
     curr_line = 1

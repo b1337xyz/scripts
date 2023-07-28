@@ -10,7 +10,6 @@ Mount() {
         "$@"
 }
 
-Mount gdrive:storage ~/mnt/storage
 Mount a1337xyz: ~/mnt/gdrive0
 Mount blind:    ~/mnt/gdrive1
 Mount wick:     ~/mnt/gdrive2

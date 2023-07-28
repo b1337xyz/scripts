@@ -1,7 +1,6 @@
 bcat() { aria2c -S "$1";  }
-bthead() {
-    aria2c -S "$1" | sed '/^idx\|path\/length/q'
-}
+bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
+btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
 dubt() {
     [ $# -eq 0 ] && set -- ./*.torrent
     aria2c -S "$@" | awk '/^Total | 1\|\.\//{

@@ -1,8 +1,0 @@
-#!/bin/sh
-if ! tmux list-panes | wc -l | grep -q 1; then
-    curr=$(tmux display -p '#{I}')
-    n=$(tmux new-window -d sleep 1 \; display -p '#{last_window_index}')
-    tmux joinp -t :"$n" \; last-window
-fi
-
-

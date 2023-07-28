@@ -144,3 +144,6 @@ gitlog() {
 fzkill() {
     ps -u anon h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | xargs -r kill
 }
+fdel() {
+    find "${1:-.}" -xdev -type f | fzf --print0 | xargs -r0 rm -v
+}
