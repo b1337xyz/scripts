@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
-# set -x
+set -e
 declare -a args=()
 for arg in "$@";do
     if [ -S "$arg" ];then sockect=$arg ;else args+=("$arg"); fi
 done
-sockect=${sockect:-/tmp/mpvsocket}
 
 check_status() {
-    echo '{"command":["get_property", "pid"]}' | socat - "$1"
+    echo '{"command":["get_property", "pid"]}' | socat - "$1" >/dev/null 2>&1
 }
-check_status "$sockect" || exit 1
+
+if [ -z "$socket" ];then
+    while read -r socket;do
+        check_status "$socket" && break
+    done < <(find /tmp -type s -name 'mpv*' 2>/dev/null)
+else
+    check_status "$socket" || {
+        echo "ERROR: Connection failed with '$socket'"; exit 1;
+    }
+fi
+echo "socket: ${socket}"
 
 case "${args[0]}" in
     lsp)      cmd='"get_property", "property-list"' ;;
@@ -29,7 +38,8 @@ case "${args[0]}" in
     prevc)    cmd='"add", "chapter", "-1"'  ;;
     show)     cmd='"script-binding", "stats/display-stats"' ;;
     load)     cmd=$(printf '"loadfile", "%s"' "${args[1]}") ;;
-    *) echo "${0##*/} [toggle next prev forward backward mute up down fs loop load] <SOCKET>"; exit 1 ;;
+    *)  echo -e "Usage: ${0##*/} <command> <socket>"
+        grep -oP '^[\t ]+\w+\).*(?= ;;)' "$0"; exit 0 ;;
 esac
 
 echo '{"command": ['"${cmd}"']}' | socat - "$sockect"
