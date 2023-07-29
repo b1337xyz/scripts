@@ -22,7 +22,7 @@ echo "socket: ${socket}"
 
 case "${args[0]}" in
     lsp)      cmd='"get_property", "property-list"' ;;
-    lsc)      cmd='"get_property", "command-list"' ;;
+    lsc)      cmd='"get_property", "command-list"'  ;;
     toggle)   cmd='"cycle", "pause"'        ;;
     prev)     cmd='"playlist-prev"'         ;;
     next)     cmd='"playlist-next"'         ;;
@@ -36,10 +36,11 @@ case "${args[0]}" in
     loop)     cmd='"cycle", "loop-file"'    ;;
     nextc)    cmd='"add", "chapter", "1"'   ;;
     prevc)    cmd='"add", "chapter", "-1"'  ;;
-    show)     cmd='"script-binding", "stats/display-stats"' ;;
+    status)     cmd='"script-binding", "stats/display-stats"' ;;
+    vol)      cmd=$(printf '"set", "volume", "%s"' "${args[1]}") ;;
     load)     cmd=$(printf '"loadfile", "%s"' "${args[1]}") ;;
     *)  echo -e "Usage: ${0##*/} <command> <socket>"
         grep -oP '^[\t ]+\w+\).*(?= ;;)' "$0"; exit 0 ;;
 esac
 
-echo '{"command": ['"${cmd}"']}' | socat - "$socket"
+echo '{"command": ['"${cmd}"']}' | socat - "$socket" >&2

@@ -12,6 +12,8 @@ if xrandr | grep -q 'HDMI1 connected';then
     # xrandr --dpi "${dpi:-96}" --output eDP1 --off \
     #     --output HDMI1 --primary --auto
 
+    xrandr --output HDMI1 --brightness .88
+
     if pgrep -x i3; then
         i3-msg restart 
         [ -x ~/.cache/xwallpaper ] && sleep 1 && ~/.cache/xwallpaper
