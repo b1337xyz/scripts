@@ -68,6 +68,8 @@ def add_torrent(torrent):
         else:
             magnet = get_magnet(torrent)
             add_torrent(magnet)
+
+        shutil.move(torrent, CACHE)
     else:
         aria2.addUri([torrent], options)
 

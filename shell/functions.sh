@@ -32,7 +32,9 @@ grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as simple text (from WANDEX scripts-wndx)
 lowercase() { tr '[:upper:]' '[:lower:]'; }
 uppercase() { tr '[:lower:]' '[:upper:]'; }
-gmd() { grep -ornP '\[[^\]]+\]\(http[^\)]+\)' "${1:-.}"; }
+gmd() {
+    grep -ornP '\[[^\]]+\]\(http[^\)]+\)' "${1:-.}" # | grep -oP 'http[^\)]+'
+}
 # fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
 fext() {
     find . -type f -name '*\.*' | grep -o '[^\.]*$' |
@@ -340,13 +342,13 @@ odr() {
         http*) set -- "$1" ;;
     esac
     wget "$@" -w 3 -r -nc --no-parent --no-check-certificate \
-           -U mozilla -l 200 -e robots=off -R "index.html*" -x
+           -U Mozilla/5.0 -l 200 -e robots=off -R "index.html*" -x
 }
 grabindex() { wget  -e robots=off -r -k -nv -nH -l inf -R --reject-regex '(.*)\?(.*)' --no-parent "$1" ; }
 save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
-        --no-parent --page-requisites -U mozilla "$1" 
+        --no-parent --page-requisites -U Mozilla/5.0 "$1" 
 }
 edalt() {
     # edit the current alacritty theme
@@ -670,4 +672,8 @@ vmrss() {
         ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
         sleep 1
     done
+}
+isup() {
+    # curl -L -s --head --request GET "$1"
+    wget -U Mozilla/5.0 -q --spider --server-response "$1" 2>&1
 }

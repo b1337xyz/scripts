@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-cd ~/Desktop
+cd ~/.local/share/applications/wine/Programs
 grep -rn 'Exec=env WINE' | grep -oP '.*(?=\.desktop:)' | sort -V | dmenu -i -c -l 10 | while read -r file
 do
     file=${file}.desktop
