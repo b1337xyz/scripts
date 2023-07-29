@@ -2,7 +2,7 @@
 set -e
 declare -a args=()
 for arg in "$@";do
-    if [ -S "$arg" ];then sockect=$arg ;else args+=("$arg"); fi
+    if [ -S "$arg" ];then socket=$arg ;else args+=("$arg"); fi
 done
 
 check_status() {
@@ -24,8 +24,8 @@ case "${args[0]}" in
     lsp)      cmd='"get_property", "property-list"' ;;
     lsc)      cmd='"get_property", "command-list"' ;;
     toggle)   cmd='"cycle", "pause"'        ;;
-    next)     cmd='"playlist-next"'         ;;
     prev)     cmd='"playlist-prev"'         ;;
+    next)     cmd='"playlist-next"'         ;;
     replay)   cmd='"seek", "0", "absolute"' ;;
     forward)  cmd='"seek", "50"'            ;;
     backward) cmd='"seek", "-50"'           ;;
@@ -42,4 +42,4 @@ case "${args[0]}" in
         grep -oP '^[\t ]+\w+\).*(?= ;;)' "$0"; exit 0 ;;
 esac
 
-echo '{"command": ['"${cmd}"']}' | socat - "$sockect"
+echo '{"command": ['"${cmd}"']}' | socat - "$socket"
