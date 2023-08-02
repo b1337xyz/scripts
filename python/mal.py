@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from optparse import OptionParser
 from urllib.parse import quote
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from thefuzz import process
 from shutil import copy
 import json
@@ -60,30 +61,37 @@ if opts.score:
 if opts.id:
     url = f'https://api.jikan.moe/v4/anime/{opts.id}'
 
+def get(url):
+    r = urlopen(Request(url), timeout=15)
+    resp = json.load(r)
+
+    if resp.get('error') is not None:
+        print(json.dumps(resp, indent=2))
+        exit(1)
+    return resp.get('data')
+
 
 data = dict()
 if url in cache and not opts.update:
     data = cache[url]
 else:
-    print(url)
-    with urlopen(url, timeout=15) as r:
-        j = json.load(r)['data']
-        for i in [j] if opts.id else j:
-            mal_id = str(i['mal_id'])
-            title = re.sub(r"(?ui)\W", ' ', i['title'])
-            title = title.encode('ascii', 'ignore').decode()
-            title = re.sub(r'\s{2,}', ' ', title).strip()
-            year = i['year']
-            year = i['aired']['prop']['from']['year'] if not year else year
-            rating = i['rating'].split()[0] if i['rating'] else '?'
-            data[mal_id] = {
-                'title':    title,
-                'type':     i['type'] if i['type'] else '?',
-                'episodes': i['episodes'] if i['episodes'] else 0,
-                'rating':   rating,
-                'year':     int(year) if year else '?',
-                'score':    i['score'] if i['score'] else '?'
-            }
+    r = get(url)
+    for i in [r] if opts.id else r:
+        mal_id = str(i['mal_id'])
+        title = re.sub(r"(?ui)\W", ' ', i['title'])
+        title = title.encode('ascii', 'ignore').decode()
+        title = re.sub(r'\s{2,}', ' ', title).strip()
+        year = i['year']
+        year = i['aired']['prop']['from']['year'] if not year else year
+        rating = i['rating'].split()[0] if i['rating'] else '?'
+        data[mal_id] = {
+            'title':    title,
+            'type':     i['type'] if i['type'] else '?',
+            'episodes': i['episodes'] if i['episodes'] else 0,
+            'rating':   rating,
+            'year':     int(year) if year else '?',
+            'score':    i['score'] if i['score'] else '?'
+        }
 
     if not data:
         print('Nothing to do...')
