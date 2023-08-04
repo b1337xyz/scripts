@@ -15,14 +15,23 @@ ffp() {
     find . -maxdepth 1 -type f | fzf --preview-window "right:60%" \
         --preview 'bat --style=numbers --color=always --line-range :100 {}'
 }
-e() {
+_fzfile() {
+    fzf -e --scheme=path --tiebreak=end --layout=reverse --height 20 --no-border --no-scrollbar "$@" \
+        --bind 'ctrl-p:toggle-preview' \
+        --preview 'file -Lbi {} | grep -q ^text && bat --color=always {}' \
+        --preview-window 'hidden,border-none'
+}
+e() { 
+    local file
+    file=$(find "${1:-.}" -xdev -type f | _fzfile)
+    [ -f "$file" ] && vim "$file"
+}
+s() {
     local file
     file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
         -type f -size -100k -regextype posix-extended \
         \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json|json.bak)' \) |
-        awk -v home="$HOME" 'sub(home, "~")' |
-        fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)')
+        _fzfile -d "${HOME}/" --with-nth 2..)
 
     [ -f "$file" ] && vim "$file"
 }
@@ -31,9 +40,7 @@ c() {
     file=$(find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
         \! \( -name '__*__' -o -iregex \
         '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) |
-        awk -v home="$HOME" 'sub(home, "~")' | 
-        fzf -e --layout=reverse --height 20  |
-        awk -v home="$HOME" 'sub("~", home)')
+        _fzfile)
 
     [ -f "$file" ] && vim "$file"
 }
@@ -50,14 +57,6 @@ fztorrent() {
         xargs -0rI{} find ~/.cache/torrents -type f -name '{}'
 }
 cptorrent() { fztorrent | tr \\n \\0 | xargs -0rI{} cp -v '{}' . ;}
-cdanime() {
-    out=$(
-        find ~/Videos/Anime -mindepth 1 -maxdepth 1 \! -xtype l -printf '%f\n' |
-        sort -V | fzf -e --no-sort --preview-window 'bottom:10%' \
-                --preview 'readlink -m ~/Videos/Anime/{}'
-    )
-    cd ~/Videos/Anime/"$out" || return 1
-}
 fzcbt() {
     local cache
     cache=~/.cache/torrents/torrents.txt
