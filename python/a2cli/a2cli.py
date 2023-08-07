@@ -16,7 +16,7 @@ def select(action, downloads):
     if USE_FZF:
         return [
             downloads[int(i.split(':')[0])]
-            for i in fzf(prompt=action, fzf_args=[
+            for i in fzf(prompt=action, args=[
                 f'{i}:{get_name(v)} [{v["status"]}]'
                 for i, v in enumerate(downloads)
             ])
