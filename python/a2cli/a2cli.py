@@ -16,7 +16,7 @@ def select(action, downloads):
     if USE_FZF:
         return [
             downloads[int(i.split(':')[0])]
-            for i in fzf(prompt=action, args=[
+            for i in fzf(prompt=action, fzf_args=[
                 f'{i}:{get_name(v)} [{v["status"]}]'
                 for i, v in enumerate(downloads)
             ])
@@ -184,7 +184,7 @@ def remove(downloads=[]):
 
 
 def remove_all(status=None):
-    if not yes(opts.yes):
+    if not yes(args.yes):
         return
 
     remove([i for i in get_all() if status is None or status == i['status']])
@@ -228,57 +228,57 @@ def move_to_top():
 
 
 if __name__ == '__main__':
-    opts, args = parse_arguments()
+    args = parse_arguments()
 
-    aria2 = ServerProxy(f'http://localhost:{opts.port}/rpc').aria2
+    aria2 = ServerProxy(f'http://localhost:{args.port}/rpc').aria2
 
-    SHOW_GID = opts.show_gid
-    USE_FZF = opts.fzf
+    SHOW_GID = args.show_gid
+    USE_FZF = args.fzf
 
-    if opts.list:
+    if args.list:
         list_all()
-    elif opts.remove:
+    elif args.remove:
         remove()
-    elif opts.remove_all:
-        remove_all(opts.status)
-    elif opts.pause:
+    elif args.remove_all:
+        remove_all(args.status)
+    elif args.pause:
         pause()
-    elif opts.unpause:
+    elif args.unpause:
         unpause()
-    elif opts.pause_all:
+    elif args.pause_all:
         aria2.pauseAll()
-    elif opts.unpause_all:
+    elif args.unpause_all:
         aria2.unpauseAll()
-    elif opts.gid:
-        print(json.dumps(aria2.tellStatus(opts.gid), indent=2))
-    elif opts.remove_metadata:
-        remove_metadata(opts.status)
-    elif opts.top:
+    elif args.gid:
+        print(json.dumps(aria2.tellStatus(args.gid), indent=2))
+    elif args.remove_metadata:
+        remove_metadata(args.status)
+    elif args.top:
         move_to_top()
-    elif opts.purge:
+    elif args.purge:
         purge()
-    elif opts.purge_all:
+    elif args.purge_all:
         print(aria2.purgeDownloadResult())
-    elif opts.seed:
+    elif args.seed:
         print(aria2.changeGlobalOption({'seed-time': '0.0'}))
-    elif opts.max_downloads:
+    elif args.max_downloads:
         print(aria2.changeGlobalOption({
-            'max-concurrent-downloads': str(opts.max_downloads)
+            'max-concurrent-downloads': str(args.max_downloads)
         }))
-    elif opts.download_limit:
+    elif args.download_limit:
         print(aria2.changeGlobalOption({
-            'max-overall-download-limit': opts.download_limit
+            'max-overall-download-limit': args.download_limit
         }))
-    elif opts.upload_limit:
+    elif args.upload_limit:
         print(aria2.changeGlobalOption({
-            'max-overall-upload-limit': opts.download_limit
+            'max-overall-upload-limit': args.download_limit
         }))
-    elif opts.list_gids:
+    elif args.list_gids:
         print('\n'.join([i['gid'] for i in get_all()]))
-    elif opts.files:
+    elif args.files:
         list_files()
-    elif args:
-        for arg in args:
+    elif args.argv:
+        for arg in args.argv:
             if arg.startswith('magnet:?'):
                 add_torrent(arg)
             elif os.path.isfile(arg):
@@ -293,7 +293,7 @@ if __name__ == '__main__':
                 aria2.addUri([arg], {'dir': DL_DIR})
             else:
                 print(f'Unrecognized URI: {arg}')
-    elif opts.watch:
+    elif args.watch:
         try:
             while True:
                 print('\033[2J\033[1;1H')  # clear
