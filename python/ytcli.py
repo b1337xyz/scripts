@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from optparse import OptionParser
+from argparse import ArgumentParser
 from html import unescape
 from random import choice, shuffle
 from time import sleep
@@ -48,20 +48,21 @@ def run(prog: str, args: list, opts: list):
 
 
 def parse_arguments():
-    parser = OptionParser()
-    parser.add_option('--dmenu', action='store_true')
-    parser.add_option('--fzf', action='store_true', default=True)
-    parser.add_option('-r', '--random', action='store_true')
-    parser.add_option('-l', '--history', action='store_true')
-    parser.add_option('-a', '--all', action='store_true')
-    parser.add_option('-s', '--shuffle', action='store_true',
+    parser = ArgumentParser()
+    parser.add_argument('--dmenu', action='store_true')
+    parser.add_argument('--fzf', action='store_true', default=True)
+    parser.add_argument('-r', '--random', action='store_true')
+    parser.add_argument('-l', '--history', action='store_true')
+    parser.add_argument('-a', '--all', action='store_true')
+    parser.add_argument('-s', '--shuffle', action='store_true',
         help='shuffle playlist')
-    parser.add_option('--long', action='store_true',
+    parser.add_argument('--long', action='store_true',
         help='Only include videos longer than 20 minutes.')
-    parser.add_option('--save', action='store_true',
+    parser.add_argument('--save', action='store_true',
         help='save playlist')
-    parser.add_option('--load', action='store_true',
+    parser.add_argument('--load', action='store_true',
         help='load playlist')
+    parser.add_argument('argv', nargs='*')
     return parser.parse_args()
 
 
@@ -79,7 +80,7 @@ def load_history():
 
 
 def main():
-    opts, args = parse_arguments()
+    args = parse_arguments()
     try:
         with open(SAVE, 'r') as fp:
             save = json.load(fp)
@@ -90,16 +91,16 @@ def main():
     hist_len = len(hist)
     height = str(hist_len) if hist_len <= 20 else '20'
 
-    if args:
-        query = ' '.join(args)
-    elif opts.load:
+    if args.argv:
+        query = ' '.join(args.argv)
+    elif argsload:
         keys = list(save.keys())
         query = run('fzf', keys, [
             '--height', height, '--prompt', 'query: ',
             '--print-query'
         ])[-1]
-    elif opts.dmenu:
-        if opts.history and hist:
+    elif argsdmenu:
+        if argshistory and hist:
             query = run('dmenu', hist, [
                 '-i', '-c', '-l', height, '-p', 'YouTube'
             ])[-1]
@@ -117,7 +118,7 @@ def main():
     with open(HIST, 'a') as fp:
         fp.write(query + '\n')
 
-    if not opts.load:
+    if not argsload:
         youtube = googleapiclient.discovery.build(
             'youtube', 'v3', developerKey=API_KEY)
 
@@ -127,7 +128,7 @@ def main():
             type='video,playlist',
             part="id,snippet",
             safeSearch='none',
-            videoDuration='long' if opts.long else 'any',
+            videoDuration='long' if argslong else 'any',
             maxResults=40
         )
         response = request.execute()
@@ -147,22 +148,22 @@ def main():
             videos[title] = _id
         keys = list(videos.keys())
 
-    if opts.load:
+    if argsload:
         videos = save[query]
         output = list(videos.keys())
-    elif opts.shuffle:
+    elif argsshuffle:
         shuffle(keys)
         output = keys
-    elif opts.random:
+    elif argsrandom:
         output = [choice(keys)]
-    elif opts.all:
+    elif argsall:
         output = keys
-    elif opts.dmenu:
+    elif argsdmenu:
         output = run('dmenu', keys, ['-c', '-i', '-l', '25'])
     else:
         output = run('fzf',   keys, ['-m', '--height', '25'])
 
-    if opts.save:
+    if argssave:
         save[query] = dict()
         for k in output:
             save[query][k] = videos[k]

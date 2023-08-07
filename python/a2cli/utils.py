@@ -30,53 +30,55 @@ logging.basicConfig(
 
 
 def parse_arguments():
-    from optparse import OptionParser
-    usage = 'Usage: %prog [options] [FILE | URI]'
-    parser = OptionParser(usage=usage)
-    parser.add_option('-w', '--watch', action='store_true')
-    parser.add_option('--port', type='string', default='6800')
-    parser.add_option('-l', '--list', action='store_true',
+    from argparse import ArgumentParser
+    usage = 'Usage: %(prog)s [options] [FILE | URI]'
+    parser = ArgumentParser(usage=usage)
+    parser.add_argument('-w', '--watch', action='store_true')
+    parser.add_argument('--port', type=str, default='6800')
+    parser.add_argument('-l', '--list', action='store_true',
                       help='list all downloads')
-    parser.add_option('-r', '--remove', action='store_true',
+    parser.add_argument('-r', '--remove', action='store_true',
                       help='remove chosen download')
-    parser.add_option('-p', '--pause', action='store_true',
+    parser.add_argument('-p', '--pause', action='store_true',
                       help='pause chosen download')
-    parser.add_option('-u', '--unpause', action='store_true',
+    parser.add_argument('-u', '--unpause', action='store_true',
                       help='unpause chosen download')
-    parser.add_option('--pause-all', action='store_true',
+    parser.add_argument('--pause-all', action='store_true',
                       help='pause all downloads')
-    parser.add_option('--unpause-all', action='store_true',
+    parser.add_argument('--unpause-all', action='store_true',
                       help='unpause all downloads')
-    parser.add_option('--remove-all', action='store_true',
+    parser.add_argument('--remove-all', action='store_true',
                       help='remove all downloads')
-    parser.add_option('--remove-metadata', action='store_true',
+    parser.add_argument('--remove-metadata', action='store_true',
                       help='remove all METADATA')
-    parser.add_option('--top', action='store_true',
+    parser.add_argument('--top', action='store_true',
                       help='move a download to the top of the queue')
-    parser.add_option('--status', type='string',
+    parser.add_argument('--status', type=str,
                       help='active complete error paused removed waiting')
-    parser.add_option('--gid', type='string',
+    parser.add_argument('--gid', type=str,
                       help='return a JSON of given GID')
-    parser.add_option('--show-gid', action='store_true',
+    parser.add_argument('--show-gid', action='store_true',
                       help='show gid')
-    parser.add_option('--files', action='store_true',
+    parser.add_argument('--files', action='store_true',
                       help='list downloaded files from selected download')
-    parser.add_option('--seed', action='store_true',
+    parser.add_argument('--seed', action='store_true',
                       help='sets seed-time=0.0')
-    parser.add_option('-m', '--max-downloads', type='int', metavar='[0-9]+',
+    parser.add_argument('-m', '--max-downloads', type=int, metavar='[0-9]+',
                       help='max concurrent downloads')
-    parser.add_option('--download-limit', type='string', metavar='<SPEED>',
+    parser.add_argument('--download-limit', type=str, metavar='<SPEED>',
                       help='overall download speed limit')
-    parser.add_option('--upload-limit', type='string', metavar='<SPEED>',
+    parser.add_argument('--upload-limit', type=str, metavar='<SPEED>',
                       help='overall upload speed limit')
-    parser.add_option('-y', '--yes', action='store_false',
+    parser.add_argument('-y', '--yes', action='store_false',
                       help='don\'t ask')
-    parser.add_option('-s', '--save', action='store_true',
+    parser.add_argument('-s', '--save', action='store_true',
                       help='save torrent')
-    parser.add_option('--fzf', action='store_true', help='use fzf')
-    parser.add_option('--list-gids', action='store_true')
-    parser.add_option('--purge', action='store_true')
-    parser.add_option('--purge-all', action='store_true')
+    parser.add_argument('--fzf', action='store_true', help='use fzf')
+    parser.add_argument('--list-gids', action='store_true')
+    parser.add_argument('--purge', action='store_true')
+    parser.add_argument('--purge-all', action='store_true')
+    parser.add_argument('argv', type=str, nargs='*',
+                        help='[URI | MAGNET | TORRENT_FILE]')
 
     return parser.parse_args()
 

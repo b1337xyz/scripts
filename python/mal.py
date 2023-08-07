@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from optparse import OptionParser
+from argparse import ArgumentParser
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -20,46 +20,48 @@ except FileNotFoundError:
     cache = dict()
 copy(CACHE, f'{CACHE}.bak')
 
-parser = OptionParser()
-parser.add_option('--tolerance', type='int', default=10)
-parser.add_option('-u', '--update', action='store_true', help='update cache')
-parser.add_option('-l', '--limit', type='int', default=25)
-parser.add_option('--id', type='int')
-parser.add_option('--show-malid', action='store_true')
-parser.add_option('-s', '--score', type='float')
-parser.add_option('-m', '--max', help='max printed results',
-                  type='int', default=10)
-parser.add_option('-t', '--type', type='string',
+parser = ArgumentParser(usage='%(prog)s [options] <search>')
+parser.add_argument('--tolerance', type=int, default=10)
+parser.add_argument('-u', '--update', action='store_true', help='update cache')
+parser.add_argument('-l', '--limit', type=int, default=25)
+parser.add_argument('--id', type=int)
+parser.add_argument('--show-malid', action='store_true')
+parser.add_argument('-s', '--score', type=float)
+parser.add_argument('-m', '--max', help='max printed results',
+                  type=int, default=10)
+parser.add_argument('-t', '--type', type=str,
                   help='tv, movie, ova, special, ona, music')
-parser.add_option('-r', '--rating', type='string',
+parser.add_argument('-r', '--rating', type=str,
                   help='g, pg, pg13, r17, r, rx')
-parser.add_option('-o', '--order-by', type='string', default='',
+parser.add_argument('-o', '--order-by', type=str, default='',
                   help='mal_id, title, type, rating, start_date, end_date,\
                   episodes, score, scored_by, rank, popularity')
-parser.add_option('--start-date', type='string', metavar='YYYY-MM-DD',
+parser.add_argument('--start-date', type=str, metavar='YYYY-MM-DD',
                   default='', help='e.g 2022, 2005-05, 2005-01-01')
-parser.add_option('--end-date', type='string', metavar='YYYY-MM-DD',
+parser.add_argument('--end-date', type=str, metavar='YYYY-MM-DD',
                   default='', help='e.g 2022, 2005-05, 2005-01-01')
-parser.add_option('--sort-by-year', action='store_true')
-# parser.add_option('--nsfw', action='store_false', default=True)
+parser.add_argument('--sort-by-year', action='store_true')
+parser.add_argument('search', metavar='search', type=str, nargs='+',
+                    help='Search title')
+# parser.add_argument('--nsfw', action='store_false', default=True)
 
-opts, args = parser.parse_args()
-query = ' '.join(args).lower()
-url = API_URL.format(quote(query), opts.limit)
-if opts.order_by:
-    url += f'&order_by={opts.order_by}'
-if opts.start_date:
-    url += f'&start_date={opts.start_date}'
-if opts.end_date:
-    url += f'&end_date={opts.end_date}'
-if opts.type:
-    url += f'&type={opts.type}'
-if opts.rating:
-    url += f'&rating={opts.rating}'
-if opts.score:
-    url += f'&score={opts.score}'
-if opts.id:
-    url = f'https://api.jikan.moe/v4/anime/{opts.id}'
+args = parser.parse_args()
+query = ' '.join(args.search).lower()
+url = API_URL.format(quote(query), args.limit)
+if args.order_by:
+    url += f'&order_by={args.order_by}'
+if args.start_date:
+    url += f'&start_date={args.start_date}'
+if args.end_date:
+    url += f'&end_date={args.end_date}'
+if args.type:
+    url += f'&type={args.type}'
+if args.rating:
+    url += f'&rating={args.rating}'
+if args.score:
+    url += f'&score={args.score}'
+if args.id:
+    url = f'https://api.jikan.moe/v4/anime/{args.id}'
 
 def get(url):
     r = urlopen(Request(url), timeout=15)
@@ -72,11 +74,11 @@ def get(url):
 
 
 data = dict()
-if url in cache and not opts.update:
+if url in cache and not args.update:
     data = cache[url]
 else:
     r = get(url)
-    for i in [r] if opts.id else r:
+    for i in [r] if args.id else r:
         mal_id = str(i['mal_id'])
         title = re.sub(r"(?ui)\W", ' ', i['title'])
         title = title.encode('ascii', 'ignore').decode()
@@ -107,22 +109,22 @@ if args:
             query,
             {k: v['title'] for k, v in data.items()},
             limit=len(data)
-        ) if i[1] > opts.tolerance
+        ) if i[1] > args.tolerance
     ]
 else:
     titles = list(data.keys())
 
 max_len = max(len(i['title']) for i in data.values()) + 7
-if opts.sort_by_year:
+if args.sort_by_year:
     titles = sorted(
         [k for k in data if data[k]['year'] != '?'],
         key=lambda k: int(data[k]['year'])
     )
-for k in titles[:opts.max]:
+for k in titles[:args.max]:
     obj = data[k]
     title = obj['title']
     title += ' ({})'.format(obj["year"])
     print('{0:{1}} | {2:8} | {3:<4} | {4:<4} | {5}'.format(
         title, max_len, obj['type'],
         obj['episodes'], obj['score'], obj['rating']
-    ), end=f' | {k}\n' if opts.show_malid else '\n')
+    ), end=f' | {k}\n' if args.show_malid else '\n')

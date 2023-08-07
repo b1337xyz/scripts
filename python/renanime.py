@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from optparse import OptionParser
+from argparse import ArgumentParser
 from urllib.parse import quote
 from thefuzz import process
 from time import sleep
@@ -10,33 +10,35 @@ import subprocess as sp
 import re
 import os
 
-parser = OptionParser()
-parser.add_option('-a', '--use-anilist', action='store_true',
+parser = ArgumentParser()
+parser.add_argument('-a', '--use-anilist', action='store_true',
                   help='use anilist api')
-parser.add_option('-y', '--dont-ask', action='store_true',
+parser.add_argument('-y', '--dont-ask', action='store_true',
                   help='don\'t ask')
-parser.add_option('-l', '--link', action='store_true',
+parser.add_argument('-l', '--link', action='store_true',
                   help='make a symbolic link')
-parser.add_option('-p', '--path', type='string', default='.',
+parser.add_argument('-p', '--path', type=str, default='.',
                   help='path to folder (default: current directory)')
-parser.add_option('-r', '--rename', action='store_true',
+parser.add_argument('-r', '--rename', action='store_true',
                   help='rename/link file itself instead of moving to a folder')
-parser.add_option('-f', '--files-only', action='store_true')
-parser.add_option('--fzf', action='store_true')
-parser.add_option('--year', type='int')
-opts, args = parser.parse_args()
+parser.add_argument('-f', '--files-only', action='store_true')
+parser.add_argument('--fzf', action='store_true')
+parser.add_argument('--year', type=int)
+parser.add_argument('argv', nargs='*')
+args = parser.parse_args()
+argv = args.argv
 
-assert os.path.isdir(opts.path)
-if opts.rename:
+assert os.path.isdir(args.path)
+if args.rename:
     assert len(args) > 0
     assert all([os.path.isdir(i) for i in args]), \
         "All arguments must be a directory."
-if opts.fzf:
+if args.fzf:
     assert which('fzf')
 
 YEAR_NOW = datetime.now().year
-YEAR = opts.year
-USE_ANILIST = opts.use_anilist
+YEAR = args.year
+USE_ANILIST = args.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
 RE_EXT = re.compile(r'\.(?:mkv|avi|rmvb|mp4|webm|m4v|ogm)$')
@@ -171,18 +173,18 @@ def fuzzy_sort(query: str, data: list) -> list:
 
 
 def ask(question: str) -> bool:
-    if opts.dont_ask:
+    if args.dont_ask:
         return True
     return input(question + ' [y/N] ').lower().strip() == 'y'
 
 
 def move_to(files: list, folder: str):
-    if opts.rename and len(files) > 1:
+    if args.rename and len(files) > 1:
         for i in files:
             move_to([i], folder)
         return
 
-    folder = os.path.join(opts.path, folder)
+    folder = os.path.join(args.path, folder)
     if os.path.exists(folder):
         if not (os.path.isdir(folder) and ask(f'{folder} exists, move files to it?')):  # noqa: E501
             c = 0
@@ -191,10 +193,10 @@ def move_to(files: list, folder: str):
                 folder = f'{_copy} ({c})'
 
     print(f'{files[0]}... ({len(files)}) ->\n\t{BLU}{folder}{END}')
-    if not opts.rename and not os.path.exists(folder):
+    if not args.rename and not os.path.exists(folder):
         os.mkdir(folder)
 
-    cmd = ['ln', '-rvs'] if opts.link else ['mv', '-vn']
+    cmd = ['ln', '-rvs'] if args.link else ['mv', '-vn']
     sp.run(cmd + files + [folder])
 
 
@@ -216,8 +218,8 @@ def fzf(args: list, prompt: str) -> str:
 
 def main():
     uniq = dict()
-    for f in os.listdir() if not args else args:
-        if f.startswith('.') or (opts.files_only and not os.path.isfile(f)):
+    for f in os.listdir() if not argv else argv:
+        if f.startswith('.') or (args.files_only and not os.path.isfile(f)):
             continue
 
         string = cleanup_filename(f)
@@ -252,7 +254,7 @@ def main():
             print(f'nothing to do: "{query}"')
             continue
 
-        if opts.fzf and len(data) > 1:
+        if args.fzf and len(data) > 1:
             out = fzf([
                 f'{title} ({year})' for _, title, year, _ in data
             ], prompt=f'Query: {query}> ')

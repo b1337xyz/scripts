@@ -17,7 +17,7 @@ ffp() {
 }
 _fzfile() {
     fzf -e --scheme=path --tiebreak=end --layout=reverse --height 20 --no-border --no-scrollbar "$@" \
-        --bind 'ctrl-p:toggle-preview' \
+        --bind 'ctrl-t:toggle-preview' \
         --preview 'file -Lbi {} | grep -q ^text && bat --color=always {}' \
         --preview-window 'hidden,border-none'
 }
