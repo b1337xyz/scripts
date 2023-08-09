@@ -6,6 +6,7 @@ declare -r -x TRASH_DIR=~/.local/share/mytrash
 [ -d "$TRASH_DIR" ] || mkdir -vp "$TRASH_DIR"
 
 preview() {
+    du -sh "${1%/*}" | awk '{print "Size:", $1}'
     cat "${1%/*}.info"; printf -- '----\n'
     if [ -d "$1" ];then
         tree -C "$1"
