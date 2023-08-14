@@ -23,14 +23,14 @@ _fzfile() {
 }
 e() { 
     local file
-    file=$(find "${1:-.}" -xdev -type f | _fzfile)
+    file=$(find "${1:-.}" -xdev -type f 2>/dev/null | _fzfile)
     [ -f "$file" ] && vim "$file"
 }
 s() {
     local file
     file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
         -type f -size -100k -regextype posix-extended \
-        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json|json.bak)' \) |
+        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json|json.bak)' \) 2>/dev/null |
         _fzfile -d "${HOME}/" --with-nth 2..)
 
     [ -f "$file" ] && vim "$file"
@@ -38,9 +38,8 @@ s() {
 c() { 
     local file
     file=$(find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
-        \! \( -name '__*__' -o -iregex \
-        '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) |
-        _fzfile)
+        \! \( -name '__*__' -o -iregex '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) 2>/dev/null |
+        _fzfile -d "${HOME}/" --with-nth 2..)
 
     [ -f "$file" ] && vim "$file"
 }

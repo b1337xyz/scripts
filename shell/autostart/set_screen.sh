@@ -1,4 +1,5 @@
 #!/bin/sh
+
 if xrandr | grep -q 'HDMI1 connected';then
     # xrandr --set audio force-dvi ... # to fix overscan ¯\_(ツ)_/¯
     
@@ -11,8 +12,6 @@ if xrandr | grep -q 'HDMI1 connected';then
     # HDMI1 only
     # xrandr --dpi "${dpi:-96}" --output eDP1 --off \
     #     --output HDMI1 --primary --auto
-
-    xrandr --output HDMI1 --brightness .78
 
     if pgrep -x i3; then
         i3-msg restart 

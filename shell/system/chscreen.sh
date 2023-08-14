@@ -12,6 +12,7 @@ EOF
 )
 [ -z "$mode" ] && exit 1
 dpi=$(xrdb -query | awk '/Xft.dpi:/{print $2}')
+dpi=${dpi:-96}
 
 case "$mode" in
     1) xrandr --dpi "$dpi" --output "$scr0" --primary --auto --output "$scr1" --left-of "$scr0" --auto ;;
