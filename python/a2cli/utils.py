@@ -36,43 +36,43 @@ def parse_arguments():
     parser.add_argument('-w', '--watch', action='store_true')
     parser.add_argument('--port', type=str, default='6800')
     parser.add_argument('-l', '--list', action='store_true',
-                      help='list all downloads')
+                        help='list all downloads')
     parser.add_argument('-r', '--remove', action='store_true',
-                      help='remove chosen download')
+                        help='remove chosen download')
     parser.add_argument('-p', '--pause', action='store_true',
-                      help='pause chosen download')
+                        help='pause chosen download')
     parser.add_argument('-u', '--unpause', action='store_true',
-                      help='unpause chosen download')
+                        help='unpause chosen download')
     parser.add_argument('--pause-all', action='store_true',
-                      help='pause all downloads')
+                        help='pause all downloads')
     parser.add_argument('--unpause-all', action='store_true',
-                      help='unpause all downloads')
+                        help='unpause all downloads')
     parser.add_argument('--remove-all', action='store_true',
-                      help='remove all downloads')
+                        help='remove all downloads')
     parser.add_argument('--remove-metadata', action='store_true',
-                      help='remove all METADATA')
+                        help='remove all METADATA')
     parser.add_argument('--top', action='store_true',
-                      help='move a download to the top of the queue')
+                        help='move a download to the top of the queue')
     parser.add_argument('--status', type=str,
-                      help='active complete error paused removed waiting')
+                        help='active complete error paused removed waiting')
     parser.add_argument('--gid', type=str,
-                      help='return a JSON of given GID')
+                        help='return a JSON of given GID')
     parser.add_argument('--show-gid', action='store_true',
-                      help='show gid')
+                        help='show gid')
     parser.add_argument('--files', action='store_true',
-                      help='list downloaded files from selected download')
+                        help='list downloaded files from selected download')
     parser.add_argument('--seed', action='store_true',
-                      help='sets seed-time=0.0')
+                        help='sets seed-time=0.0')
     parser.add_argument('-m', '--max-downloads', type=int, metavar='[0-9]+',
-                      help='max concurrent downloads')
+                        help='max concurrent downloads')
     parser.add_argument('--download-limit', type=str, metavar='<SPEED>',
-                      help='overall download speed limit')
+                        help='overall download speed limit')
     parser.add_argument('--upload-limit', type=str, metavar='<SPEED>',
-                      help='overall upload speed limit')
+                        help='overall upload speed limit')
     parser.add_argument('-y', '--yes', action='store_false',
-                      help='don\'t ask')
+                        help='don\'t ask')
     parser.add_argument('-s', '--save', action='store_true',
-                      help='save torrent')
+                        help='save torrent')
     parser.add_argument('--fzf', action='store_true', help='use fzf')
     parser.add_argument('--list-gids', action='store_true')
     parser.add_argument('--purge', action='store_true')

@@ -27,11 +27,12 @@ stdbuf -oL -- udevadm monitor --udev -s block | while read -r -- _ _ event devpa
         read -r label uuid < <(get_label "$devname")
         label=${label:-$uuid}
         [ -z "$label" ] && continue
+        [[ "$label" =~ ^ARCH ]] && continue 
 
         mp="${MP}/$label"
         [ -d "$mp" ] || mkdir -vp "$mp"
+        [ -d ~/mnt ] && ln -vsf "$mp" ~/mnt/
         sudo mount "$devname" "$mp" -o noatime
-        ln -vsf "$mp" ~/mnt
 
         notify-send -i drive-harddisk "$label mounted" "$mp" 2>/dev/null || true
         # udisksctl mount --no-user-interaction -b "$devname" -o noatime
