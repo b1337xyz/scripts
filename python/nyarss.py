@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 import os
-# import re
 import sys
 import json
-import atexit
 import logging
 from time import sleep
 from urllib.request import Request, urlopen
-# from html import unescape
 from shutil import copy
 from argparse import ArgumentParser
 import xml.etree.ElementTree as ET
@@ -17,33 +14,6 @@ CONFIG = os.path.expanduser('~/.config/nyarss.json')
 HOST = 'http://localhost:6800/jsonrpc'
 INTERVAL = 60 * 30
 LOCK = '/tmp/.nyarss'
-
-
-# TODO {{{
-class Daemon:
-    # Resources:
-    #   https://gist.github.com/slor/5946334
-    #   https://code.activestate.com/recipes/278731/
-    #   https://pagure.io/python-daemon/blob/main/f/daemon/daemon.py
-    def __init__(self, pid_file):
-        self.pid_file = pid_file
-        self.pid = None
-
-    def start(self):
-        if os.path.exists(self.pid_file):
-            sys.exit(1)
-        os.fork()
-        os.setsid()
-        os.fork()
-        pid = os.getpid()
-        with open(self.pid_file, 'w') as f:
-            f.write(str(pid))
-        atexit.register(self.exit)
-
-    def exit(self):
-        os.remove(self.pid_file)
-        sys.exit(0)
-# }}}
 
 
 def load_config(file=CONFIG):
@@ -81,15 +51,13 @@ def parse_feed(url: str):
         links.append((title, link))
     return feed_title, links
 
-    # title = unescape(re.search(r'<title>([^<]+)', rss).group(1))
-    # return title, re.findall(r'<link>([^<]+\.torrent)', rss)
-
 
 def add_uri(uri: str, dl_dir: str):
     options = {
         'dir': dl_dir,
         'force-save': 'false',
         'bt-save-metadata': 'false',
+        'seed-ratio': 1.1,
         'check-integrity': 'true'
     }
     jsonreq = json.dumps({
@@ -100,12 +68,14 @@ def add_uri(uri: str, dl_dir: str):
     }).encode('utf-8')
     req = Request(HOST)
     req.add_header('Content-Type', 'application/json; charset=utf-8')
-    with urlopen(req, jsonreq):
-        # print(res.read().decode('utf-8'))
-        pass
+    urlopen(req, jsonreq)
 
 
 def update(url: str, download: bool = False, dl_dir: str = None):
+    if not (url.startswith('https://nyaa') and 'page=rss' in url):
+        logging.error(f'Invalid url: "{url}"')
+        return
+
     config = load_config()
     key, rss_links = parse_feed(url)
     if key not in config:
@@ -196,8 +166,7 @@ def parse_aguments():
                         help='show entries')
     parser.add_argument('--update', action='store_true',
                         help='update all entries')
-    parser.add_argument('--quiet', action='store_true',
-                        help='be quiet')
+    parser.add_argument('-q', '--quiet', action='store_true', help='be quiet')
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
     return parser.parse_args()
 
@@ -212,13 +181,12 @@ def setup_logging(quiet=False):
 
 def main():
     args = parse_aguments()
-    argv = sys.argv[1:]
     assert os.path.isdir(args.dir)
     dl_dir = os.path.realpath(args.dir)
     setup_logging(args.quiet)
-    if args.delete or 'delete' in argv:
+    if args.delete:
         delete()
-    elif args.show or 'show' in argv:
+    elif args.show:
         show()
     elif args.update:
         update_all(download=False)
@@ -229,8 +197,7 @@ def main():
             for line in f:
                 update(url=line, download=args.download, dl_dir=dl_dir)
     else:
-        # TODO: fork this (daemon)?
-        monitor()
+        monitor()  # TODO: fork this (daemon)?
 
 
 if __name__ == '__main__':
