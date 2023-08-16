@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 import os
-import re
+# import re
 import sys
 import json
 import atexit
+import logging
 from time import sleep
 from urllib.request import Request, urlopen
-from html import unescape
+# from html import unescape
 from shutil import copy
 from argparse import ArgumentParser
-
-# TODO: logging
+import xml.etree.ElementTree as ET
 
 DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
@@ -70,9 +70,19 @@ def save_config(config: str, update: bool = True):
 def parse_feed(url: str):
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urlopen(req) as res:
-        rss = res.read().decode()
-    title = unescape(re.search(r'<title>([^<]+)', rss).group(1))
-    return title, re.findall(r'<link>([^<]+\.torrent)', rss)
+        xml = res.read().decode()
+
+    root = ET.fromstring(xml)
+    feed_title = root.find('channel').find('title').text
+    links = list()
+    for item in root.find('channel').findall('item'):
+        title = item.find('title').text
+        link = item.find('link').text
+        links.append((title, link))
+    return feed_title, links
+
+    # title = unescape(re.search(r'<title>([^<]+)', rss).group(1))
+    # return title, re.findall(r'<link>([^<]+\.torrent)', rss)
 
 
 def add_uri(uri: str, dl_dir: str):
@@ -95,30 +105,28 @@ def add_uri(uri: str, dl_dir: str):
         pass
 
 
-def update(url: str,
-           download: bool = False,
-           dl_dir: str = None):
-
+def update(url: str, download: bool = False, dl_dir: str = None):
     config = load_config()
-    title, rss_links = parse_feed(url)
-    if title not in config:
-        config[title] = {'url': url, 'links': []}
+    key, rss_links = parse_feed(url)
+    if key not in config:
+        config[key] = {'url': url, 'links': []}
 
     if dl_dir is None:
-        dl_dir = config[title].get('dir', DEFAULT_DL_DIR)
+        dl_dir = config[key].get('dir', DEFAULT_DL_DIR)
     else:
-        config[title]['dir'] = dl_dir
+        config[key]['dir'] = dl_dir
 
-    links = config[title]['links']
-    for uri in rss_links:
+    links = config[key]['links']
+    for title, uri in rss_links:
         if uri not in links:
+            logging.info(f'{title} NEW!')
             links.append(uri)
             if download:
                 add_uri(uri, dl_dir)
 
-    config[title]['links'][-100::]
+    config[key]['links'][-100::]
     save_config(config)
-    print(f'{title} updated')
+    logging.info(f'{key} updated')
 
 
 def update_all(download=True):
@@ -128,6 +136,7 @@ def update_all(download=True):
 
 def monitor():
     if os.path.exists(LOCK):
+        logging.error(f'file {LOCK} exists, already running?')
         sys.exit(1)
 
     open(LOCK, 'w').close()
@@ -187,8 +196,18 @@ def parse_aguments():
                         help='show entries')
     parser.add_argument('--update', action='store_true',
                         help='update all entries')
+    parser.add_argument('--quiet', action='store_true',
+                        help='be quiet')
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
     return parser.parse_args()
+
+
+def setup_logging(quiet=False):
+    logging.basicConfig(
+            level=logging.INFO if not quiet else logging.CRITICAL,
+            handlers=[logging.StreamHandler(sys.stdout)],
+            format='%(asctime)s:%(levelname)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def main():
@@ -196,6 +215,7 @@ def main():
     argv = sys.argv[1:]
     assert os.path.isdir(args.dir)
     dl_dir = os.path.realpath(args.dir)
+    setup_logging(args.quiet)
     if args.delete or 'delete' in argv:
         delete()
     elif args.show or 'show' in argv:
