@@ -14,7 +14,7 @@ DIR=~/Pictures/screenshots
 cmd='notify "$f" "$n" "$wx$h"'
 copy='xclip -sel clip -t image/png -i $f; notify "$f" "$n" "$wx$h"'
 image="${DIR}/scr_%Y.%m.%d_%H%M%S.png"
-tmpimg="/tmp/scr_%Y%m%d%H%M%S.png"
+tmpimg=/tmp/scr_$(date +%Y%m%d%H%M%S).png
 
 sleep .2
 case "$1" in
