@@ -15,13 +15,12 @@ from argparse import ArgumentParser
 DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
 HOST = 'http://localhost:6800/jsonrpc'
-MAX = 30  # max entries
 INTERVAL = 60 * 30
 LOCK = '/tmp/.nyarss'
 
+
 # TODO {{{
 class Daemon:
-    # TODO
     # Resources:
     #   https://gist.github.com/slor/5946334
     #   https://code.activestate.com/recipes/278731/
@@ -81,7 +80,7 @@ def add_uri(uri: str, dl_dir: str):
         'dir': dl_dir,
         'force-save': 'false',
         'bt-save-metadata': 'false',
-        'check-integrity': 'false'
+        'check-integrity': 'true'
     }
     jsonreq = json.dumps({
         'jsonrpc': '2.0',
@@ -97,33 +96,34 @@ def add_uri(uri: str, dl_dir: str):
 
 
 def update(url: str,
-           name: str = None,
            download: bool = False,
            dl_dir: str = None):
 
     config = load_config()
-    for v in config.values():
-        if v['url'] == url:
-            return
-
     title, rss_links = parse_feed(url)
-    title = title if name is None else name
     if title not in config:
         config[title] = {'url': url, 'links': []}
-    links = config[title]['links']
+
     if dl_dir is None:
-        dl_dir = config[title]['dir']
+        dl_dir = config[title].get('dir', DEFAULT_DL_DIR)
     else:
         config[title]['dir'] = dl_dir
 
+    links = config[title]['links']
     for uri in rss_links:
         if uri not in links:
             links.append(uri)
-        if download:
-            add_uri(uri, dl_dir)
-    config[title]['links'] = links[-MAX::]
+            if download:
+                add_uri(uri, dl_dir)
+
+    config[title]['links'][-100::]
     save_config(config)
     print(f'{title} updated')
+
+
+def update_all(download=True):
+    for v in load_config().values():
+        update(v['url'], download)
 
 
 def monitor():
@@ -133,9 +133,10 @@ def monitor():
     open(LOCK, 'w').close()
     try:
         while True:
-            for url in load_config():
-                update(url, download=True)
+            update_all()
             sleep(INTERVAL)
+    except KeyboardInterrupt:
+        pass
     finally:
         os.remove(LOCK)
 
@@ -156,18 +157,6 @@ def select(keys):
             sys.exit(0)
         except Exception as err:
             print(err)
-
-
-def rename():
-    config = load_config()
-    k = select(list(config))
-    try:
-        new_name = input('New name: ').strip()
-    except KeyboardInterrupt:
-        return
-    config[new_name] = config[k].copy()
-    del config[k]
-    save_config(config, False)
 
 
 def delete():
@@ -192,14 +181,12 @@ def parse_aguments():
                         help='add rss feeds from file')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
-    parser.add_argument('--name', type=str, nargs=1, default=None,
-                        help='identifier name')
-    parser.add_argument('--rename', action='store_true',
-                        help='rename identifier')
     parser.add_argument('--delete', action='store_true',
                         help='delete entry')
     parser.add_argument('--show', action='store_true',
                         help='show entries')
+    parser.add_argument('--update', action='store_true',
+                        help='update all entries')
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
     return parser.parse_args()
 
@@ -209,15 +196,14 @@ def main():
     argv = sys.argv[1:]
     assert os.path.isdir(args.dir)
     dl_dir = os.path.realpath(args.dir)
-    if args.rename or 'rename' in argv:
-        rename()
-    elif args.delete or 'delete' in argv:
+    if args.delete or 'delete' in argv:
         delete()
     elif args.show or 'show' in argv:
         show()
+    elif args.update:
+        update_all(download=False)
     elif args.uri:
-        update(url=args.uri, name=args.name,
-               download=args.download, dl_dir=dl_dir)
+        update(url=args.uri, download=args.download, dl_dir=dl_dir)
     elif args.file:
         with open(args.file, 'r') as f:
             for line in f:

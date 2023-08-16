@@ -16,7 +16,7 @@ MAX = 999
 MAX_SIZE = 2000 * 1000  # 2 MB
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
-    '--height', '20'
+    '--bind', 'ctrl-a:toggle-all',
 ]
 
 logging.basicConfig(
