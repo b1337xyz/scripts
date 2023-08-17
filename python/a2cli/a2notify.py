@@ -90,6 +90,9 @@ def on_complete():
         if os.path.exists(path) and _dir == TEMP_DIR:
             mv(path, DL_DIR)
 
+    if 'Downloads/jackett/index.html' in path:
+        os.remove(path)
+
 
 if __name__ == '__main__':
     sleep(1)

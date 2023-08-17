@@ -286,9 +286,10 @@ if __name__ == '__main__':
                 if is_torrent(file):
                     add_torrent(file)
                 elif file.endswith('.magnet'):
-                    with open(arg, 'r') as fp:
+                    with open(file, 'r') as fp:
                         magnet = fp.readline().strip()
                     add_torrent(magnet)
+                    os.remove(file)
             elif is_uri(arg):
                 aria2.addUri([arg], {'dir': DL_DIR})
             else:
