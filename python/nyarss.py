@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
 import json
 import logging
+import atexit
 from time import sleep
 from urllib.request import Request, urlopen
 from shutil import copy
@@ -72,7 +74,7 @@ def add_uri(uri: str, dl_dir: str):
 
 
 def update(url: str, download: bool = False, dl_dir: str = None):
-    if not (url.startswith('https://nyaa') and 'page=rss' in url):
+    if not re.search(r'https://(sukebei\.)?nyaa.*[\?&]page=rss.*', url):
         logging.error(f'Invalid url: "{url}"')
         return
 
@@ -104,20 +106,22 @@ def update_all(download=True):
         update(v['url'], download)
 
 
-def monitor():
+def monitor(seconds=INTERVAL):
+    assert seconds > 300
+
     if os.path.exists(LOCK):
         logging.error(f'file {LOCK} exists, already running?')
         sys.exit(1)
 
+    @atexit.register
+    def cleanup():
+        if os.path.isfile(LOCK):
+            os.remove(LOCK)
+
     open(LOCK, 'w').close()
-    try:
-        while True:
-            update_all()
-            sleep(INTERVAL)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        os.remove(LOCK)
+    while True:
+        update_all()
+        sleep(seconds)
 
 
 def select(keys):
@@ -154,20 +158,21 @@ def show():
 
 def parse_aguments():
     parser = ArgumentParser()
+    parser.add_argument('-q', '--quiet', action='store_true', help='be quiet')
     parser.add_argument('-d', '--dir', type=str, default=DEFAULT_DL_DIR,
                         help='where to download files (default: %(default)s)')
     parser.add_argument('-f', '--file', type=str,
                         help='add rss feeds from file')
+    parser.add_argument('-s', '--seconds', default=INTERVAL, type=int,
+                        metavar='N', help='default: %(default)s')
+    parser.add_argument('--loop', action='store_true',
+                        help='update and download every N seconds')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
-    parser.add_argument('--delete', action='store_true',
-                        help='delete entry')
-    parser.add_argument('--show', action='store_true',
-                        help='show entries')
-    parser.add_argument('--update', action='store_true',
-                        help='update all entries')
-    parser.add_argument('-q', '--quiet', action='store_true', help='be quiet')
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
+    parser.add_argument('delete', help='delete entry', nargs='?')
+    parser.add_argument('show', help='show entries', nargs='?')
+    parser.add_argument('update', help='update all entries', nargs='?')
     return parser.parse_args()
 
 
@@ -181,14 +186,17 @@ def setup_logging(quiet=False):
 
 def main():
     args = parse_aguments()
+    argv = sys.argv[1:]
     assert os.path.isdir(args.dir)
     dl_dir = os.path.realpath(args.dir)
+
     setup_logging(args.quiet)
-    if args.delete:
-        delete()
-    elif args.show:
+
+    if 'show' in argv:
         show()
-    elif args.update:
+    elif 'delete' in argv:
+        delete()
+    elif 'update' in argv:
         update_all(download=False)
     elif args.uri:
         update(url=args.uri, download=args.download, dl_dir=dl_dir)
@@ -196,8 +204,8 @@ def main():
         with open(args.file, 'r') as f:
             for line in f:
                 update(url=line, download=args.download, dl_dir=dl_dir)
-    else:
-        monitor()  # TODO: fork this (daemon)?
+    elif args.loop:
+        monitor(args.seconds)  # TODO: fork this (daemon)?
 
 
 if __name__ == '__main__':
