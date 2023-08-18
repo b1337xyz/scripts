@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from utils import *
 from time import sleep
+from xmlrpc.client import ServerProxy, Binary, MultiCall
 import json
-import sys
-from xmlrpc.client import ServerProxy, Binary
 
 
 def select(action, downloads):
@@ -40,15 +39,16 @@ def select(action, downloads):
         except Exception as err:
             print(err)
         except KeyboardInterrupt:
-            sys.exit(130)
+            exit(130)
     return selected
 
 
 def get_all():
-    waiting = aria2.tellWaiting(0, MAX)
-    stopped = aria2.tellStopped(0, MAX)
-    active = aria2.tellActive()
-    return active + waiting + stopped
+    mc = MultiCall(server)
+    mc.aria2.tellWaiting(0, MAX)
+    mc.aria2.tellStopped(0, MAX)
+    mc.aria2.tellActive()
+    return [j for sub in mc() for j in sub]
 
 
 def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
@@ -77,10 +77,13 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
         aria2.addUri([torrent], options)
 
 
-def list_all():
+def list_all(clear_screen=False):
     downloads = get_all()
     if not downloads:
         return
+
+    if clear_screen:
+        print('\033[2J\033[1;1H')  # clear
 
     counter = dict()
     lines = os.get_terminal_size().lines
@@ -233,7 +236,8 @@ def move_to_top():
 if __name__ == '__main__':
     args = parse_arguments()
 
-    aria2 = ServerProxy(f'http://127.0.0.1:{args.port}/rpc').aria2
+    server = ServerProxy(f'http://127.0.0.1:{args.port}/rpc')
+    aria2 = server.aria2
 
     SHOW_GID = args.show_gid
     USE_FZF = args.fzf
@@ -300,8 +304,7 @@ if __name__ == '__main__':
     elif args.watch:
         try:
             while True:
-                print('\033[2J\033[1;1H')  # clear
-                list_all()
+                list_all(True)
                 sleep(5)
         except KeyboardInterrupt:
             pass

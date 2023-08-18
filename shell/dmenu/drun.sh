@@ -3,7 +3,7 @@
 # shellcheck disable=SC2068
 set -e
 
-programs=~/.cache/programs
+progs=~/.cache/programs
 tmpfile=$(mktemp)
 trap 'rm "$tmpfile"' EXIT
 
@@ -15,14 +15,15 @@ run() {
 }
 
 # clean up
-cp "$programs" "$tmpfile"
+cp "$progs" "$tmpfile"
 while read -r i;do
     command -v "$i" >/dev/null 2>&1 ||
-        sed -i "/${i}/d" "$programs"
+        sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
-cmd=$(sort -u "$programs" | dmenu -p 'run:' -i -c -l 10)
+cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
 [ -z "$cmd" ] && exit 1
+grep -q "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
     pulsemixer|top) run ts -n floating_terminal -- "$cmd" ;;
     sxcs)           run 'sxcs | xclip -sel c' ;;

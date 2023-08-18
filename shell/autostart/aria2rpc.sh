@@ -9,10 +9,8 @@ set -- -D --enable-rpc --continue \
     --on-download-error="${script}" \
     --on-download-start="${script}" \
     --save-session="$session" \
-    --save-session-interval=60
+    --save-session-interval=60 \
+    --log "${HOME}/.cache/aria2/aria2.log.$(date +%Y%m%d)"
 
-if [ -f "$session" ];then
-    aria2c "$@" --input-file="$session"
-else
-    aria2c "$@" 
-fi
+[ -f "$session" ] || :>"$session"
+aria2c "$@" --input-file="$session"

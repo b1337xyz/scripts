@@ -2,31 +2,18 @@
 from urllib.parse import unquote
 import subprocess as sp
 import shutil
-import logging
 import os
 import re
 
-HOME = os.getenv('HOME')
-DL_DIR = os.path.join(HOME, 'Downloads')
+DL_DIR = os.path.expanduser('~/Downloads')
+CACHE = os.path.expanduser('~/.cache/torrents')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
-CACHE = os.path.join(HOME, '.cache/torrents')
-ROOT = os.path.dirname(os.path.realpath(__file__))
-LOG = os.path.join(ROOT, 'log')
 MAX = 999
-MAX_SIZE = 2000 * 1000  # 2 MB
+MAX_SIZE = 2000000  # 2 MB
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
     '--bind', 'ctrl-a:toggle-all',
 ]
-
-logging.basicConfig(
-    filename=LOG,
-    encoding='utf-8',
-    filemode='a',
-    level=logging.INFO,
-    format='%(asctime)s:%(levelname)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-)
 
 
 def parse_arguments():
@@ -95,11 +82,10 @@ def yes(ask=True):
 
 
 def mv(src, dst):
-    logging.info(f"mv '{src}' > '{dst}'")
     try:
         shutil.move(src, dst)
-    except Exception as err:
-        logging.error(err)
+    except shutil.Error:
+        pass
 
 
 def notify(title, msg, icon='emblem-downloads'):

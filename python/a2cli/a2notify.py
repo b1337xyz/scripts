@@ -90,7 +90,7 @@ def on_complete():
         if os.path.exists(path) and _dir == TEMP_DIR:
             mv(path, DL_DIR)
 
-    if 'Downloads/jackett/index.html' in path:
+    if 'Downloads/jackett/index.' in path:
         os.remove(path)
 
 
