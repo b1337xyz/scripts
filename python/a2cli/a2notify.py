@@ -8,7 +8,7 @@ import subprocess as sp
 import json
 import os
 
-HOST = 'http://localhost:6800/jsonrpc'
+HOST = 'http://127.0.0.1:6800/jsonrpc'
 HOME = os.getenv('HOME')
 DL_DIR = os.path.join(HOME, 'Downloads')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')

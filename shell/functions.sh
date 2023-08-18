@@ -1,7 +1,7 @@
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
 #
-# Resources:
+# Reference:
 #   https://tldp.org/LDP/abs/html/sample-bashrc.html
 #   https://github.com/WANDEX/scripts-wndx
 #   https://gitlab.com/TheOuterLinux/Command-Line/-/blob/master/System/Terminals%20and%20Muxinators/bashrc/bashrc%20-%20Basic.txt

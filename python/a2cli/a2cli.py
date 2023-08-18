@@ -51,12 +51,12 @@ def get_all():
     return active + waiting + stopped
 
 
-def add_torrent(torrent):
+def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
     options = {
-        'dir': TEMP_DIR,
+        'dir': _dir,
         'force-save': 'false',
         'bt-save-metadata': 'true',
-        'check-integrity': 'false'
+        'check-integrity': str(verify).lower()
     }
     if os.path.isfile(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
@@ -69,7 +69,10 @@ def add_torrent(torrent):
             magnet = get_magnet(torrent)
             add_torrent(magnet)
 
-        shutil.move(torrent, CACHE)
+        try:
+            shutil.move(torrent, CACHE)
+        except shutil.Error:
+            pass
     else:
         aria2.addUri([torrent], options)
 
@@ -230,7 +233,7 @@ def move_to_top():
 if __name__ == '__main__':
     args = parse_arguments()
 
-    aria2 = ServerProxy(f'http://localhost:{args.port}/rpc').aria2
+    aria2 = ServerProxy(f'http://127.0.0.1:{args.port}/rpc').aria2
 
     SHOW_GID = args.show_gid
     USE_FZF = args.fzf
@@ -280,15 +283,15 @@ if __name__ == '__main__':
     elif args.argv:
         for arg in args.argv:
             if arg.startswith('magnet:?'):
-                add_torrent(arg)
+                add_torrent(arg, args.dir, args.check)
             elif os.path.isfile(arg):
                 file = os.path.realpath(arg)
                 if is_torrent(file):
-                    add_torrent(file)
+                    add_torrent(file, args.dir, args.check)
                 elif file.endswith('.magnet'):
                     with open(file, 'r') as fp:
                         magnet = fp.readline().strip()
-                    add_torrent(magnet)
+                    add_torrent(magnet, args.dir, args.check)
                     os.remove(file)
             elif is_uri(arg):
                 aria2.addUri([arg], {'dir': DL_DIR})

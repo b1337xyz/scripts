@@ -51,7 +51,7 @@ class Downloader:
             'dir': str(home / dl_dir / 'nhentai'),
             'cookie_file': opts.cookie_file,
             'cookie': opts.cookie,
-            'rpc_host': 'http://localhost',
+            'rpc_host': 'http://127.0.0.1',
             'rpc_port': 6800,
             # MAKE SURE YOU USE THE SAME USERAGENT
             # AS WHEN YOU GOT YOUR COOKIE!

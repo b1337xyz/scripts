@@ -5,6 +5,7 @@ import sys
 import json
 import logging
 import atexit
+import signal
 from time import sleep
 from urllib.request import Request, urlopen
 from shutil import copy
@@ -13,7 +14,7 @@ import xml.etree.ElementTree as ET
 
 DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
-HOST = 'http://localhost:6800/jsonrpc'
+HOST = 'http://127.0.0.1:6800/jsonrpc'
 INTERVAL = 60 * 30
 LOCK = '/tmp/.nyarss'
 
@@ -98,7 +99,7 @@ def update(url: str, download: bool = False, dl_dir: str = None):
 
     config[key]['links'][-100::]
     save_config(config)
-    logging.info(f'{key} updated')
+    # logging.info(f'{key} updated')
 
 
 def update_all(download=True):
@@ -110,15 +111,17 @@ def monitor(seconds=INTERVAL):
     assert seconds > 300
 
     if os.path.exists(LOCK):
-        logging.error(f'file {LOCK} exists, already running?')
+        logging.error(f'lock file {LOCK} exists, already running?')
         sys.exit(1)
 
+    open(LOCK, 'w').close()
+
     @atexit.register
-    def cleanup():
+    def cleanup(code=None, frame=None):
         if os.path.isfile(LOCK):
             os.remove(LOCK)
 
-    open(LOCK, 'w').close()
+    signal.signal(signal.SIGTERM, cleanup)
     while True:
         update_all()
         sleep(seconds)
@@ -157,6 +160,7 @@ def show():
 
 
 def parse_aguments():
+    global parser
     parser = ArgumentParser()
     parser.add_argument('-q', '--quiet', action='store_true', help='be quiet')
     parser.add_argument('-d', '--dir', type=str, default=DEFAULT_DL_DIR,
@@ -206,6 +210,8 @@ def main():
                 update(url=line, download=args.download, dl_dir=dl_dir)
     elif args.loop:
         monitor(args.seconds)  # TODO: fork this (daemon)?
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

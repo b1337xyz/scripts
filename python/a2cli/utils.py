@@ -35,6 +35,11 @@ def parse_arguments():
     parser = ArgumentParser(usage=usage)
     parser.add_argument('-w', '--watch', action='store_true')
     parser.add_argument('--port', type=str, default='6800')
+    parser.add_argument('-V', '--check-integrity', action='store_true',
+                        dest='check', help='Check file integrity')
+    parser.add_argument('-d', '--dir', type=str, default=TEMP_DIR,
+                        help='directory to store the downloaded file \
+                                (default: %(default)s)')
     parser.add_argument('-l', '--list', action='store_true',
                         help='list all downloads')
     parser.add_argument('-r', '--remove', action='store_true',
