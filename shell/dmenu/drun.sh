@@ -27,7 +27,7 @@ grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
     pulsemixer|top) run ts -n floating_terminal -- "$cmd" ;;
     sxcs)           run 'sxcs | xclip -sel c' ;;
-    cmus)           run ts -t cmus -- tmux attach -t cmus ;; 
+    cmus)           run tmux new-session -d -s cmus cmus ;; 
     ncmpcpp)        run ts -t ncmpcpp -- ncmpcpp ;; 
     newsboat)       run ts -n newsboat -t newsboat -- newsboat ;;
     spotify)        run spotify -no-zygote ;;
