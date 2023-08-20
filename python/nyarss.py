@@ -17,6 +17,7 @@ CONFIG = os.path.expanduser('~/.config/nyarss.json')
 HOST = 'http://127.0.0.1:6800/jsonrpc'
 INTERVAL = 60 * 30
 LOCK = '/tmp/.nyarss'
+RE_NYAA = re.compile(r'^https://(?:sukebei\.)?nyaa.*[\?&]page=rss.*')
 
 
 def load_config(file=CONFIG):
@@ -75,7 +76,7 @@ def add_uri(uri: str, dl_dir: str):
 
 
 def update(url: str, download: bool = False, dl_dir: str = None):
-    if not re.search(r'https://(sukebei\.)?nyaa.*[\?&]page=rss.*', url):
+    if not RE_NYAA.match(url):
         logging.error(f'Invalid url: "{url}"')
         return
 
@@ -114,13 +115,16 @@ def monitor(seconds=INTERVAL):
         logging.error(f'lock file {LOCK} exists, already running?')
         sys.exit(1)
 
-    open(LOCK, 'w').close()
-
     @atexit.register
     def cleanup(code=None, frame=None):
+        """ Cleanup at exit and by SIGTERM """
         if os.path.isfile(LOCK):
             os.remove(LOCK)
 
+        if code is not None:  # if SIGTERM
+            sys.exit(0)       # will run again by atexit
+
+    open(LOCK, 'w').close()
     signal.signal(signal.SIGTERM, cleanup)
     while True:
         update_all()

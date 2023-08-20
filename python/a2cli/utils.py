@@ -96,7 +96,7 @@ def notify(title, msg, icon='emblem-downloads'):
 
 
 def is_uri(string: str) -> bool:
-    return isinstance(re.match(r'\w+:(:?\/?\/?)[^\s]+', string), re.Match)
+    return isinstance(re.match(r'\w+:(?:\/?\/?)[^\s]+', string), re.Match)
 
 
 def is_torrent(file):

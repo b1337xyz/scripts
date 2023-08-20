@@ -23,7 +23,7 @@ _fzfile() {
 }
 e() { 
     local file
-    file=$(find "${1:-.}" -xdev -type f 2>/dev/null | _fzfile)
+    file=$(find "${1:-.}" -xdev -type f \! -path '*/node_modules*' 2>/dev/null | _fzfile)
     [ -f "$file" ] && vim "$file"
 }
 s() {

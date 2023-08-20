@@ -203,9 +203,8 @@ def purge():
     # 11     If aria2 was downloading same file at that moment.
     # 13     If file already existed.
     for i in get_all():
-        if i['status'] in 'error':
-            if i['errorCode'] in ['11', '13']:
-                remove([i])
+        if i['status'] == 'error' and i.get('errorCode') in ['11', '13']:
+            remove([i])
         elif i['status'] in ['complete', 'removed']:
             remove([i])
 

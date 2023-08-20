@@ -23,7 +23,7 @@ done < "$tmpfile"
 
 cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
 [ -z "$cmd" ] && exit 1
-grep -q "$cmd" "$progs" || echo "$cmd" >> "$progs"
+grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
     pulsemixer|top) run ts -n floating_terminal -- "$cmd" ;;
     sxcs)           run 'sxcs | xclip -sel c' ;;
@@ -34,5 +34,9 @@ case "$cmd" in
     conky)          runconky.sh ;;
     fzfanime.sh)    run ts -- fzfanime.sh ;;
     cava)           run st -n Cava -g 40x10+15-15 cava ;;
+    dhewm3) 
+        # shellcheck disable=SC2016
+        run 'dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"'
+        ;;
     *) run "$cmd" ;;
 esac

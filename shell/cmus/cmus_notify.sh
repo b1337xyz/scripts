@@ -3,7 +3,7 @@ COVER=~/.cache/thumbnails/albums
 DEFAULT_ICON=media-optical-audio
 
 [ -d "$COVER" ] || mkdir -p "$COVER"
-[ "$2" = exiting ] && { :>/tmp/.cmus-status; pkill -SIGRTMIN+20 i3blocks; }
+[[ "$2" =~ exiting|stopped ]] && { :>/tmp/.cmus-status; pkill -SIGRTMIN+20 i3blocks; }
 
 while [ -n "$1" ];do
     case "$1" in
