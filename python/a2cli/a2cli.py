@@ -77,12 +77,24 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
         aria2.addUri([torrent], options)
 
 
-def list_all(clear_screen=False, sort_by=None):
+def get_perc(x):
+    return int(x['completedLength']) / (int(x['totalLength']) + .01)
+
+
+def get_ratio(x):
+    return int(x['uploadLength']) / (int(x['completedLength']) + .01)
+
+
+def list_all(clear_screen=False, sort_by=None, reverse=False):
     downloads = get_all()
     if not downloads:
         return
 
-    if sort_by is not None:
+    if sort_by == 'downloaded':
+        downloads = sorted(downloads, key=get_perc, reverse=reverse)
+    elif sort_by == 'ratio':
+        downloads = sorted(downloads, key=get_ratio, reverse=reverse)
+    elif sort_by is not None:
         downloads = sorted(downloads, key=lambda x: x.get(sort_by))
 
     counter = dict()
@@ -103,6 +115,7 @@ def list_all(clear_screen=False, sort_by=None):
 
         size = int(i["totalLength"])
         completed_length = int(i["completedLength"])
+        # ratio = round(get_ratio(i), 1)
         p = 0 if size == 0 else completed_length * 100 // size
         psize = get_psize(size)
         # plen = get_psize(completed_length)
@@ -121,6 +134,7 @@ def list_all(clear_screen=False, sort_by=None):
         blocks = p * bar_size // 100
         blank = bar_size - blocks
         bar = f'{blocks * "#"}{blank * " "}'
+
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             # upspeed = get_psize(int(i['uploadSpeed']))
@@ -239,7 +253,7 @@ def move_to_top():
 
 if __name__ == '__main__':
     args = parse_arguments()
-
+    assert args.sort_by is None or args.sort_by in SORTING_KEYS
     server = ServerProxy(f'http://127.0.0.1:{args.port}/rpc')
     aria2 = server.aria2
 
@@ -247,7 +261,7 @@ if __name__ == '__main__':
     USE_FZF = args.fzf
 
     if args.list:
-        list_all(False, args.sort_by)
+        list_all(False, args.sort_by, args.reverse)
     elif args.remove:
         remove()
     elif args.remove_all:
@@ -308,12 +322,12 @@ if __name__ == '__main__':
     elif args.watch:
         try:
             while True:
-                list_all(True, args.sort_by)
+                list_all(True, args.sort_by, args.reverse)
                 sleep(3)
         except KeyboardInterrupt:
             pass
     else:
         try:
-            list_all(False, args.sort_by)
+            list_all(False, args.sort_by, args.reverse)
         except Exception as err:
             print(err)

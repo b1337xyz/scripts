@@ -14,16 +14,29 @@ FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2',
     '--bind', 'ctrl-a:toggle-all',
 ]
+SORTING_KEYS = [
+    'completedLength',
+    'dir',
+    'downloadSpeed',
+    'numPieces',
+    'numSeeders',
+    'pieceLength',
+    'status',
+    'totalLength',
+    'uploadLength',
+    'uploadSpeed',
+    'downloaded',
+    'ratio'
+]
 
 
 def parse_arguments():
     from argparse import ArgumentParser
     usage = 'Usage: %(prog)s [options] [FILE | URI]'
     parser = ArgumentParser(usage=usage)
+    parser.add_argument('--reverse', action='store_true')
     parser.add_argument('-o', '--sort-by', type=str, metavar='',
-                        help='completedLength, dir, downloadSpeed, files,\
-                              numPieces, numSeeders, pieceLength, seeder,\
-                              status, totalLength, uploadLength, uploadSpeed')
+                        help=', '.join(SORTING_KEYS))
     parser.add_argument('-w', '--watch', action='store_true')
     parser.add_argument('--port', type=str, default='6800')
     parser.add_argument('-V', '--check-integrity', action='store_true',
@@ -77,6 +90,7 @@ def parse_arguments():
                         help='[URI | MAGNET | TORRENT_FILE]')
 
     return parser.parse_args()
+
 
 
 def yes(ask=True):
