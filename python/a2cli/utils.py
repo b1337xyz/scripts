@@ -20,6 +20,10 @@ def parse_arguments():
     from argparse import ArgumentParser
     usage = 'Usage: %(prog)s [options] [FILE | URI]'
     parser = ArgumentParser(usage=usage)
+    parser.add_argument('-o', '--sort-by', type=str, metavar='',
+                        help='completedLength, dir, downloadSpeed, files,\
+                              numPieces, numSeeders, pieceLength, seeder,\
+                              status, totalLength, uploadLength, uploadSpeed')
     parser.add_argument('-w', '--watch', action='store_true')
     parser.add_argument('--port', type=str, default='6800')
     parser.add_argument('-V', '--check-integrity', action='store_true',

@@ -77,10 +77,13 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
         aria2.addUri([torrent], options)
 
 
-def list_all(clear_screen=False):
+def list_all(clear_screen=False, sort_by=None):
     downloads = get_all()
     if not downloads:
         return
+
+    if sort_by is not None:
+        downloads = sorted(downloads, key=lambda x: x.get(sort_by))
 
     counter = dict()
     cols, lines = os.get_terminal_size()
@@ -114,7 +117,7 @@ def list_all(clear_screen=False):
             'removed': '\033[1;35mR \033[m',
         }[status]
 
-        bar_size = 10
+        bar_size = 12
         blocks = p * bar_size // 100
         blank = bar_size - blocks
         bar = f'{blocks * "#"}{blank * " "}'
@@ -244,7 +247,7 @@ if __name__ == '__main__':
     USE_FZF = args.fzf
 
     if args.list:
-        list_all()
+        list_all(False, args.sort_by)
     elif args.remove:
         remove()
     elif args.remove_all:
@@ -305,12 +308,12 @@ if __name__ == '__main__':
     elif args.watch:
         try:
             while True:
-                list_all(True)
-                sleep(5)
+                list_all(True, args.sort_by)
+                sleep(3)
         except KeyboardInterrupt:
             pass
     else:
         try:
-            list_all()
+            list_all(False, args.sort_by)
         except Exception as err:
             print(err)
