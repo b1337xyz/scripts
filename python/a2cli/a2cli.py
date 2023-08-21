@@ -55,7 +55,7 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
     options = {
         'dir': _dir,
         'force-save': 'false',
-        'bt-save-metadata': 'true',
+        'bt-save-metadata': 'false',
         'check-integrity': str(verify).lower()
     }
     if os.path.isfile(torrent):
@@ -74,6 +74,7 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
         except shutil.Error:
             pass
     else:
+        options.update({'bt-save-metadata': 'true'})
         aria2.addUri([torrent], options)
 
 

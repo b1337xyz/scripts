@@ -544,7 +544,7 @@ todo() {
             if [ -s "$TODOFILE" ]; then
                 nl "$TODOFILE"
                 read -r -p "1,2...: " n
-                [[ "$n" =~ ^[0-9]+,?[0-9]+$ ]] && sed -i "${n}d" "$TODOFILE"
+                [[ "$n" =~ ^[0-9,]+$ ]] && sed -i "${n}d" "$TODOFILE"
             fi
         ;;
         a*)
