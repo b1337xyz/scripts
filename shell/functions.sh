@@ -539,7 +539,7 @@ todo() {
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
         e*) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
-        l*) [ -s "$TODOFILE" ] && { printf '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
+        l*) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
         r*)
             if [ -s "$TODOFILE" ]; then
                 nl "$TODOFILE"

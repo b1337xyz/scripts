@@ -82,12 +82,11 @@ def list_all(clear_screen=False):
     if not downloads:
         return
 
-    if clear_screen:
-        print('\033[2J\033[1;1H')  # clear
-
     counter = dict()
-    lines = os.get_terminal_size().lines
+    cols, lines = os.get_terminal_size()
+    cols += 7
     curr_line = 1
+    output = []
     for i in downloads:
         status = i['status']
         if status not in counter:
@@ -105,10 +104,6 @@ def list_all(clear_screen=False):
         psize = get_psize(size)
         # plen = get_psize(completed_length)
         name = get_name(i)
-        max_len = 60
-        if len(name) > max_len:
-            name = name[:max_len - 3] + '...'
-
         error_code = '' if status != 'error' else i["errorCode"]
         icon = {
             'active': '\033[1;32mA \033[m',
@@ -119,24 +114,31 @@ def list_all(clear_screen=False):
             'removed': '\033[1;35mR \033[m',
         }[status]
 
-        if SHOW_GID:
-            print(i['gid'], end=' ')
-
-        bar_size = 12
+        bar_size = 10
         blocks = p * bar_size // 100
         blank = bar_size - blocks
         bar = f'{blocks * "#"}{blank * " "}'
         if status == 'active':
             dlspeed = get_psize(int(i['downloadSpeed']))
             # upspeed = get_psize(int(i['uploadSpeed']))
-            print('{}[{} {:>3}%] {:>10}/s {:>10} - {}'.format(
+            output.append('{}[{} {:>3}%] {:>10}/s {:>10} {}'.format(
                 icon, bar, p, dlspeed, psize, name))
         else:
-            print('{}[{} {:>3}%] {:>10} - {}'.format(
+            output.append('{}[{} {:>3}%] {:>10} {}'.format(
                 icon, bar, p, psize, name))
 
+        if SHOW_GID:
+            output[-1] = f'{i["gid"]}: ' + output[-1]
+
+        if len(output[-1]) > cols:
+            output[-1] = output[-1][:cols] + '...'
+
     total = sum([counter[k] for k in counter])
-    print(f'total: {total}', ' '.join([f'{k}: {counter[k]}' for k in counter]))
+    output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
+                                                for k in counter]))
+    if clear_screen:
+        print('\033[2J\033[1;1H')  # clear
+    print('\n'.join(output))
 
 
 def pause():
