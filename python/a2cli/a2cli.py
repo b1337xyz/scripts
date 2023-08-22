@@ -2,45 +2,31 @@
 from utils import *
 from time import sleep
 from xmlrpc.client import ServerProxy, Binary, MultiCall
+from collections import defaultdict
 import json
 
 
 def select(action, downloads):
-    if not downloads:
-        return []
-
-    if len(downloads) == 1:
+    if len(downloads) < 2:
         return downloads
 
     if USE_FZF:
-        return [
-            downloads[int(i.split(':')[0])]
-            for i in fzf(prompt=action, args=[
-                f'{i}:{get_name(v)} [{v["status"]}]'
-                for i, v in enumerate(downloads)
-            ])
-        ]
+        return [downloads[int(i.split(':')[0])]
+                for i in fzf(prompt=action, args=[
+                    f'{i}:{get_name(v)} [{v["status"]}]'
+                    for i, v in enumerate(downloads)
+                ])]
 
-    for i, v in enumerate(downloads):
-        name = get_name(v)
-        max_len = 70
-        if len(name) > max_len:
-            name = name[:max_len - 3] + '...'
-        size = get_psize(int(v['totalLength']))
-        print(f'{i:3}: [{v["status"]}] {name} {size:10}')
-
+    list_all(numbered=True)
     while True:
         try:
-            selected = [
-                downloads[int(i.strip())]
-                for i in input(f'{action}: ').split()
-            ]
-            break
+            print('1 2 3...')
+            return [downloads[int(i.strip())]
+                    for i in input(f'{action}: ').split()]
         except Exception as err:
             print(err)
         except KeyboardInterrupt:
             exit(130)
-    return selected
 
 
 def get_all():
@@ -79,14 +65,14 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
 
 
 def get_perc(x):
-    return int(x['completedLength']) / (int(x['totalLength']) + .01)
+    return x['completedLength'] // (x['totalLength'] + .01)
 
 
 def get_ratio(x):
-    return int(x['uploadLength']) / (int(x['completedLength']) + .01)
+    return x['uploadLength'] // (x['completedLength'] + .01)
 
 
-def list_all(clear_screen=False, sort_by=None, reverse=False):
+def list_all(clear_screen=False, sort_by=None, reverse=False, numbered=False):
     downloads = get_all()
     if not downloads:
         return
@@ -98,30 +84,28 @@ def list_all(clear_screen=False, sort_by=None, reverse=False):
     elif sort_by is not None:
         downloads = sorted(downloads, key=lambda x: x.get(sort_by))
 
-    counter = dict()
+    counter = defaultdict(int)
     cols, lines = os.get_terminal_size()
     cols += 7
     curr_line = 1
     output = []
-    for i in downloads:
-        status = i['status']
-        if status not in counter:
-            counter[status] = 1
-        else:
-            counter[status] += 1
+    for i, dl in enumerate(downloads, start=1):
+        status = dl['status']
+        counter[status] += 1
 
         if curr_line >= lines:  # stop printing
             continue
         curr_line += 1
 
-        size = int(i["totalLength"])
-        completed_length = int(i["completedLength"])
-        # ratio = round(get_ratio(i), 1)
-        p = 0 if size == 0 else completed_length * 100 // size
+        size = int(dl["totalLength"])
+        completed_length = int(dl["completedLength"])
+        # ratio = round(get_ratio(dl), 1)
         psize = get_psize(size)
         # plen = get_psize(completed_length)
-        name = get_name(i)
-        error_code = '' if status != 'error' else i["errorCode"]
+        dlspeed = get_psize(int(dl['downloadSpeed']))
+        # upspeed = get_psize(int(dl['uploadSpeed']))
+        name = get_name(dl)
+        error_code = '' if status != 'error' else dl["errorCode"]
         icon = {
             'active': '\033[1;32mA \033[m',
             'error': f'\033[1;31m{error_code} \033[m',
@@ -132,24 +116,21 @@ def list_all(clear_screen=False, sort_by=None, reverse=False):
         }[status]
 
         bar_size = 12
+        p = int(completed_length * 100 // (size + .01))
         blocks = p * bar_size // 100
         blank = bar_size - blocks
-        bar = f'{blocks * "#"}{blank * " "}'
+        bar = f'[{blocks * "#"}{blank * " "} {p:>3}%]'
 
-        if status == 'active':
-            dlspeed = get_psize(int(i['downloadSpeed']))
-            # upspeed = get_psize(int(i['uploadSpeed']))
-            output.append('{}[{} {:>3}%] {:>10}/s {:>10} {}'.format(
-                icon, bar, p, dlspeed, psize, name))
-        else:
-            output.append('{}[{} {:>3}%] {:>10} {}'.format(
-                icon, bar, p, psize, name))
+        out = '{}{}{}{} {} {:>8} {}'.format(
+            f'{i}) ' if numbered else '',
+            f"{dl['gid']}: " if SHOW_GID else '',
+            icon, bar,
+            f'{dlspeed:>8}/s' if status == 'active' else ' ',
+            psize, name)
 
-        if SHOW_GID:
-            output[-1] = f'{i["gid"]}: ' + output[-1]
-
-        if len(output[-1]) > cols:
-            output[-1] = output[-1][:cols] + '...'
+        if len(out) > cols:
+            out = out[:cols] + '...'
+        output.append(out)
 
     total = sum([counter[k] for k in counter])
     output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
@@ -220,10 +201,11 @@ def purge():
     if not yes(False):
         return
 
-    # 11     If aria2 was downloading same file at that moment.
-    # 13     If file already existed.
+    # 11  If aria2 was downloading same file at that moment.
+    # 12  If aria2 was downloading same info hash torrent at that moment.
+    # 13  If file already existed.
     for i in get_all():
-        if i['status'] == 'error' and i.get('errorCode') in ['11', '13']:
+        if i['status'] == 'error' and i.get('errorCode') in ['11', '13', '12']:
             remove([i])
         elif i['status'] in ['complete', 'removed']:
             remove([i])

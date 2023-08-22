@@ -61,7 +61,6 @@ def add_uri(uri: str, dl_dir: str):
         'dir': dl_dir,
         'force-save': 'false',
         'bt-save-metadata': 'false',
-        'seed-ratio': 1.1,
         'check-integrity': 'true'
     }
     jsonreq = json.dumps({
@@ -131,17 +130,19 @@ def monitor(seconds=INTERVAL):
         sleep(seconds)
 
 
-def select(keys):
-    while len(keys) > 0:
+def select():
+    keys = list(load_config().keys())
+    len_ = len(keys)
+    while len_ > 0:
         print('Ctrl+c to quit')
         for i, k in enumerate(keys):
-            print(f'{i}: {k}')
+            print(f'\033[1;34m{i}\033[m) {k}')
 
-        if len(keys) == 1:
+        if len_ == 1:
             return keys[0]
 
         try:
-            n = 0 if len(keys) == 1 else int(input(': '))
+            n = int(input(': '))
             return keys[n]
         except KeyboardInterrupt:
             sys.exit(0)
@@ -149,11 +150,18 @@ def select(keys):
             print(err)
 
 
+def chdir(new_dir):
+    assert os.path.isdir(new_dir)
+    k = select()
+    config[k]['dir'] = os.path.realpath(new_dir)
+    save_config(config)
+
+
 def delete():
+    k = select()
     config = load_config()
-    k = select(list(config))
     del config[k]
-    save_config(config, False)
+    save_config(config, update=False)
 
 
 def show():
@@ -177,10 +185,8 @@ def parse_aguments():
                         help='update and download every N seconds')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
+    parser.add_argument('-c', '--change-dir', type=str)
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
-    parser.add_argument('delete', help='delete entry', nargs='?')
-    parser.add_argument('show', help='show entries', nargs='?')
-    parser.add_argument('update', help='update all entries', nargs='?')
     return parser.parse_args()
 
 
@@ -214,7 +220,10 @@ def main():
                 update(url=line, download=args.download, dl_dir=dl_dir)
     elif args.loop:
         monitor(args.seconds)  # TODO: fork this (daemon)?
+    elif args.change_dir:
+        chdir(args.change_dir)
     else:
+        print('Nothing to do')
         parser.print_help()
 
 
