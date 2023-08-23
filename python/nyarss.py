@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
+LOG = os.path.expanduser('~/.cache/nyarss.log')
 HOST = 'http://127.0.0.1:6800/jsonrpc'
 INTERVAL = 60 * 30
 LOCK = '/tmp/.nyarss'
@@ -192,8 +193,11 @@ def parse_aguments():
 
 def setup_logging(quiet=False):
     logging.basicConfig(
-            level=logging.INFO if not quiet else logging.CRITICAL,
-            handlers=[logging.StreamHandler(sys.stdout)],
+            level=logging.CRITICAL if quiet else logging.INFO,
+            handlers=[
+                logging.FileHandler(LOG, mode='a'),
+                logging.StreamHandler(sys.stdout)
+            ],
             format='%(asctime)s:%(levelname)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
