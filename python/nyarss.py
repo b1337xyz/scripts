@@ -154,6 +154,7 @@ def select():
 def chdir(new_dir):
     assert os.path.isdir(new_dir)
     k = select()
+    config = load_config()
     config[k]['dir'] = os.path.realpath(new_dir)
     save_config(config)
 
