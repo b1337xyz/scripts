@@ -483,7 +483,7 @@ lifetime() {
         printf("%s: %.0f days, %.0f hours\n", dev, d, h)
     }' 
 }
-quote() {
+pyquote() {  # `quote/dequote` is already used by bash-completion :/
     python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'
 }
 unquote() {

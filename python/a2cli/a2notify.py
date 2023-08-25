@@ -23,9 +23,9 @@ def request(method, params):
         'params': [params]
     }).encode('utf-8')
     r = Request(HOST)
-    # r.add_header('Content-Length', len(jsonreq))
-    # r.add_header('Content-Type', 'application/json; charset=utf-8')
-    # r.add_header('Accept', 'application/json')
+    r.add_header('Content-Length', len(jsonreq))
+    r.add_header('Content-Type', 'application/json; charset=utf-8')
+    r.add_header('Accept', 'application/json')
     with urlopen(r, jsonreq) as data:
         return json.loads(data.read().decode('utf-8'))["result"]
 
@@ -90,9 +90,9 @@ def on_complete():
         if os.path.exists(path) and _dir == TEMP_DIR:
             mv(path, DL_DIR)
 
-        torrent_file = os.path.join(_dir, f'{name}.torrent')
-        if os.path.exists(torrent_file):
-            mv(torrent_file, CACHE)
+        file = f'{path}.torrent'
+        if os.path.exists(file):
+            mv(file, CACHE)
 
     if 'Downloads/jackett/index.' in path:
         os.remove(path)
