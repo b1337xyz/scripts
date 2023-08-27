@@ -113,7 +113,7 @@ dlbkp() {
     export -f dl
     while read -r i;do
         [ -n "$i" ] && dl "$i" 
-    done < <(fzf --height 20 -e -m --bind 'ctrl-d:execute(dl {+})' < "$cache")
+    done < <(fzf --tac --height 20 -e -m --bind 'ctrl-d:execute(dl {+})' < "$cache")
     unset dl
 }
 fzopen() {

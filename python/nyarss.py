@@ -43,6 +43,7 @@ def save_config(config: str, update: bool = True):
 
 
 def parse_feed(url: str):
+    print(f'Requesting {url}')
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urlopen(req) as res:
         xml = res.read().decode()

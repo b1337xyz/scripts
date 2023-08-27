@@ -32,6 +32,7 @@ grep_archive() { grep --color=never -i "$ArchivePattern" "$1"; }
 curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as simple text (from WANDEX scripts-wndx)
 lowercase() { tr '[:upper:]' '[:lower:]'; }
 uppercase() { tr '[:lower:]' '[:upper:]'; }
+first() { awk '{print $1}'; }
 gmd() {
     grep -ornP '\[[^\]]+\]\(http[^\)]+\)' "${1:-.}" # | grep -oP 'http[^\)]+'
 }

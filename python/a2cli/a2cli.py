@@ -72,9 +72,11 @@ def get_ratio(x):
     return x['uploadLength'] // (x['completedLength'] + .01)
 
 
-def list_all(clear_screen=False, sort_by=None, reverse=False, numbered=False):
+def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     downloads = get_all()
     if not downloads:
+        if clear:
+            print('\033[2J\033[1;1H')  # clear
         return
 
     if sort_by == 'downloaded':
@@ -135,7 +137,7 @@ def list_all(clear_screen=False, sort_by=None, reverse=False, numbered=False):
     total = sum([counter[k] for k in counter])
     output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                                 for k in counter]))
-    if clear_screen:
+    if clear:
         print('\033[2J\033[1;1H')  # clear
     print('\n'.join(output))
 
