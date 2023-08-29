@@ -539,20 +539,20 @@ todo() {
     TODOFILE=${TODOFILE:-${HOME}/.todo}
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
-        e*) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
-        l*) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
-        r*)
+        ed) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
+        ls) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
+        rm)
             if [ -s "$TODOFILE" ]; then
                 nl "$TODOFILE"
                 read -r -p "1,2...: " n
                 [[ "$n" =~ ^[0-9,]+$ ]] && sed -i "${n}d" "$TODOFILE"
             fi
         ;;
-        a*)
+        help|-h|--help) echo 'usage: todo [ed ls rm] <TODO>' ;;
+        *)
             shift
             [ -n "$1" ] && printf '%s: %s\n' "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
         ;;
-        *) echo 'usage: todo [ed ls rm add] <TODO>' ;;
     esac
 }
 ftext() {
@@ -603,8 +603,11 @@ ordinal() {
     curl -s "https://conversor-de-medidas.com/mis/numero-ordinal/_$1_" | tr -d \\n |
         grep -oP "(?<=>)[^<]* \($1.\)"
 }
-enable_conservation_mode() {
-    echo "${1:-1}" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
+toggle_conservation_mode() {
+    local v
+    v=$(</sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode)
+    [ $v -eq 0 ] && v=1 || v=0
+    echo "$v" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
 }
 maldir() {
     out=/tmp/.mal.$$
@@ -678,4 +681,12 @@ vmrss() {
 isup() {
     # curl -L -s --head --request GET "$1"
     wget -U Mozilla/5.0 -q --spider --server-response "$1" 2>&1
+}
+tsxiv() {
+    find . -maxdepth 3 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' -printf '%C@ %p\n' |
+        sort -n | cut -d' ' -f2- | sxiv -qi
+}
+tmpv() {
+    find . -maxdepth 3 -type f -iregex '.*\.\(mkv\|mp4\|webm\|avi\|m4v\|gif\)' -printf '%C@ %p\n' |
+        sort -rn | cut -d' ' -f2- | mpv --playlist=-
 }

@@ -12,15 +12,15 @@ import os
 
 parser = ArgumentParser()
 parser.add_argument('-a', '--use-anilist', action='store_true',
-                  help='use anilist api')
+                    help='use anilist api')
 parser.add_argument('-y', '--dont-ask', action='store_true',
-                  help='don\'t ask')
+                    help='don\'t ask')
 parser.add_argument('-l', '--link', action='store_true',
-                  help='make a symbolic link')
+                    help='make a symbolic link')
 parser.add_argument('-p', '--path', type=str, default='.',
-                  help='path to folder (default: current directory)')
+                    help='path to folder (default: current directory)')
 parser.add_argument('-r', '--rename', action='store_true',
-                  help='rename/link file itself instead of moving to a folder')
+                    help='rename/link file itself')
 parser.add_argument('-f', '--files-only', action='store_true')
 parser.add_argument('--fzf', action='store_true')
 parser.add_argument('--year', type=int)
@@ -30,8 +30,8 @@ argv = args.argv
 
 assert os.path.isdir(args.path)
 if args.rename:
-    assert len(args) > 0
-    assert all([os.path.isdir(i) for i in args]), \
+    assert len(args.argv) > 0
+    assert all([os.path.isdir(i) for i in args.argv]), \
         "All arguments must be a directory."
 if args.fzf:
     assert which('fzf')
@@ -122,7 +122,7 @@ def request_anilist(query: str) -> dict:
     variables = {
         'search': query,
         'page': 1,
-        'perPage': 20,
+        'perPage': 20
     }
     r = requests.post(ANILIST_URL, json={
         'query': api_query, 'variables': variables
@@ -130,9 +130,12 @@ def request_anilist(query: str) -> dict:
     return r.json()['data']['Page']['media']
 
 
-def parse_data(data: dict, file_count: int) -> list:
-    parsed_data = list()
-    for i in data:
+def parse_data(data: list, file_count: int) -> dict:
+    parsed_data = dict()
+    for i in sorted(data,
+                    key=lambda x: file_count >= x.get('espisodes', 0),
+                    reverse=True):
+
         if USE_ANILIST:
             title = i['title']['romaji']
         else:
@@ -147,8 +150,7 @@ def parse_data(data: dict, file_count: int) -> list:
         if USE_ANILIST:
             year = i['startDate']['year']
         else:
-            year = i['year']
-            year = i['aired']['prop']['from']['year'] if not year else year
+            year = i.get('year', i['aired']['prop']['from']['year'])
 
         if year and int(year) > YEAR_NOW:
             continue
@@ -156,20 +158,18 @@ def parse_data(data: dict, file_count: int) -> list:
         if YEAR and year and YEAR != int(year):
             continue
 
-        parsed_data.append((clean_title, title, year, episodes))
-
-    parsed_data = sorted(parsed_data,
-                         key=lambda x: x[-1] == file_count, reverse=True)
+        parsed_data[clean_title] = (title, year, episodes)
 
     return parsed_data
 
 
-def fuzzy_sort(query: str, data: list) -> list:
-    return [
-        i[0] for i in process.extract(
-            query, data, limit=len(data)
-        ) if i[1] >= 90
-    ]
+def fuzzy_sort(query: str, choices: list) -> str:
+    try:
+        return [i[0]
+                for i in process.extract(query, choices, limit=len(choices))
+                if i[1] >= 90][0]
+    except IndexError:
+        return choices[0]
 
 
 def ask(question: str) -> bool:
@@ -256,14 +256,14 @@ def main():
 
         if args.fzf and len(data) > 1:
             out = fzf([
-                f'{title} ({year})' for _, title, year, _ in data
+                f'{title} ({year})' for title, year, _ in data.values()
             ], prompt=f'Query: {query}> ')
             if not out:
                 continue
             folder = out[0]
         else:
-            fuzz = fuzzy_sort(query, data)
-            _, title, year, _ = fuzz[0] if fuzz else data[0]
+            k = fuzzy_sort(query, data.keys())
+            title, year, _ = data[k]
             folder = f'{title} ({year})'
 
         move_to(files, folder)
