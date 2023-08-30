@@ -21,7 +21,7 @@ def select(action, downloads):
     while True:
         try:
             print('1 2 3...')
-            return [downloads[int(i.strip())-1]
+            return [downloads[int(i.strip()) - 1]
                     for i in input(f'{action}: ').split()]
         except Exception as err:
             print(err)
@@ -92,13 +92,13 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     cols += 7
     curr_line = 1
     output = []
-    # total_dlspeed = 0
-    # total_upspeed = 0
+    total_dlspeed = 0
+    total_upspeed = 0
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
         counter[status] += 1
 
-        if curr_line >= lines:  # stop printing
+        if curr_line >= lines - 1:  # stop printing
             continue
         curr_line += 1
 
@@ -107,9 +107,9 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         # ratio = round(get_ratio(dl), 1)
         # plen = psize(completed_length)
         dlspeed = int(dl['downloadSpeed'])
-        # total_dlspeed += dlspeed
+        total_dlspeed += dlspeed
         upspeed = int(dl['uploadSpeed'])
-        # total_upspeed += upspeed
+        total_upspeed += upspeed
         name = get_name(dl)
         error_code = '' if status != 'error' else dl["errorCode"]
         icon = {
@@ -138,14 +138,15 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             out = out[:cols] + '...'
         output.append(out)
 
-    total = sum([counter[k] for k in counter])
-    output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
-                                                for k in counter]))
+    if not numbered:
+        total = sum([counter[k] for k in counter])
+        output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
+                                                     for k in counter]))
+        print('DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
+                                               psize(total_upspeed)))
     if clear:
         print('\033[2J\033[1;1H')  # clear
     print('\n'.join(output))
-    # print('\033[1;31mDL\033[m: {:>8}/s \033[1;32mUP\033[m: {:>8}/s'.format(
-    #     psize(total_dlspeed), psize(total_upspeed)))
 
 
 def pause():
