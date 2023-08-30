@@ -21,7 +21,7 @@ def select(action, downloads):
     while True:
         try:
             print('1 2 3...')
-            return [downloads[int(i.strip())]
+            return [downloads[int(i.strip())-1]
                     for i in input(f'{action}: ').split()]
         except Exception as err:
             print(err)
@@ -77,6 +77,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     if not downloads:
         if clear:
             print('\033[2J\033[1;1H')  # clear
+        print('Nothing to see here...')
         return
 
     if sort_by == 'downloaded':
