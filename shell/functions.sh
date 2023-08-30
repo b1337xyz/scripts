@@ -152,7 +152,7 @@ ex() {
             *.Z)       uncompress "$i" ;;
             *) printf 'File cannot be extracted: "%s"\n' "$i"; continue ;;
         esac || return 1
-        [[ "$1" =~ -d|-r ]] && rm -v "$i"
+        [[ "$1" =~ -d|-r ]] && command rm -v "$i"
     done
     return 0
 }

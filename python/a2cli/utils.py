@@ -128,7 +128,7 @@ def get_magnet(file):
     return re.search(r'magnet:\?[^\s]+', out).group(1)
 
 
-def get_psize(size):
+def psize(size):
     psize = f"{size} B"
     for i in 'KMGTP':
         if size < 1000:

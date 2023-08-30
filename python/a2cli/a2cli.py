@@ -91,6 +91,8 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     cols += 7
     curr_line = 1
     output = []
+    # total_dlspeed = 0
+    # total_upspeed = 0
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
         counter[status] += 1
@@ -102,10 +104,11 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
         # ratio = round(get_ratio(dl), 1)
-        psize = get_psize(size)
-        # plen = get_psize(completed_length)
-        dlspeed = get_psize(int(dl['downloadSpeed']))
-        # upspeed = get_psize(int(dl['uploadSpeed']))
+        # plen = psize(completed_length)
+        dlspeed = int(dl['downloadSpeed'])
+        # total_dlspeed += dlspeed
+        upspeed = int(dl['uploadSpeed'])
+        # total_upspeed += upspeed
         name = get_name(dl)
         error_code = '' if status != 'error' else dl["errorCode"]
         icon = {
@@ -127,8 +130,8 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             f'{i}) ' if numbered else '',
             f"{dl['gid']}: " if SHOW_GID else '',
             icon, bar,
-            f'{dlspeed:>8}/s' if status == 'active' else ' ',
-            psize, name)
+            f'{psize(dlspeed):>8}/s' if status == 'active' else ' ',
+            psize(size), name)
 
         if len(out) > cols:
             out = out[:cols] + '...'
@@ -140,6 +143,8 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     if clear:
         print('\033[2J\033[1;1H')  # clear
     print('\n'.join(output))
+    # print('\033[1;31mDL\033[m: {:>8}/s \033[1;32mUP\033[m: {:>8}/s'.format(
+    #     psize(total_dlspeed), psize(total_upspeed)))
 
 
 def pause():
