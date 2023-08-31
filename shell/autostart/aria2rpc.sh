@@ -1,6 +1,8 @@
 #!/bin/sh
 pkill -15 -e -f -- 'aria2c -D --enable-rpc' && sleep 1
 
+find ~/.cache/aria2 -ctime +7 -delete
+
 session=${HOME}/.cache/aria2/session
 script=${HOME}/.scripts/python/a2notify.py
 set -- -D --enable-rpc --continue \
