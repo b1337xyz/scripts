@@ -138,14 +138,15 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             out = out[:cols] + '...'
         output.append(out)
 
+    if clear:
+        print('\033[2J\033[1;1H')  # clear
+
     if not numbered:
         total = sum([counter[k] for k in counter])
         output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                                      for k in counter]))
         print('DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
                                                psize(total_upspeed)))
-    if clear:
-        print('\033[2J\033[1;1H')  # clear
     print('\n'.join(output))
 
 
