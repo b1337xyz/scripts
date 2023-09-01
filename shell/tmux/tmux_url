@@ -1,4 +1,4 @@
 #!/bin/sh
 
 grep -oP 'https?://[-a-zA-Z0-9@:%._\+~#=]+\.[a-zA-Z0-9]+\b([-a-zA-Z0-9:%_\+.~#?&//=]*)' /tmp/tmux-buffer |
-    sort -u | fzf -0 --bind 'enter:execute(xdg-open {})'
+    sort -u | fzf -0 --bind 'enter:execute(xdg-open {} >/dev/null 2>&1 &)'

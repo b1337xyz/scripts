@@ -16,6 +16,9 @@ get_path() {
     } | sort -uz | xargs -r0 basename -a | sort -u | grep -v '^$' | dmenu -c -i -l 20 -n |
         tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0 | sort -zV
 }
+get_current_wallpaper() {
+    grep -oP '(?<= ")[^"]+\.(jpg|png|jpeg)' "$cache"
+}
 get_wallpaper() {
     find -L "$@" -iregex '.*\.\(jpg\|png\)' | shuf -n1
 }
@@ -25,19 +28,19 @@ declare -a opts=()
 declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
-        -h|--help) _help ;;
-        --prev) prev=y ;;
-        --next) next=y ;;
-        --dmenu) use_dmenu=y ;;
-        --sxiv) use_sxiv=y ;;
-        --current) current=y ;;  # only look for images in the current wallpaper directory
+        -h|--help)  _help ;;
+        --prev)     prev=y ;;
+        --next)     next=y ;;
+        --dmenu)    use_dmenu=y ;;
+        --sxiv)     use_sxiv=y ;;
+        --current)  current=y ;;  # only look for images in the current wallpaper directory
         --no-cache) cache=$(mktemp) ;;
-        -*) opts+=("$1")        ;; # xwallpaper options
+        -*)         opts+=("$1") ;; # xwallpaper options
         *)
             if [ -d "$1" ];then
                 targets+=("$1")
             elif file -Lbi "$1" | grep -q '^image/';then
-                wallpaper="$1"
+                wallpaper=$1
             fi
         ;;
     esac
@@ -46,30 +49,35 @@ done
 test ${#opts[@]}    -eq 0 && opts=(--stretch)
 test ${#targets[@]} -eq 0 && targets=("$default_target")
 
-get_current_wallpaper() {
-    grep -oP '(?<= ")[^"]+\.(jpg|png|jpeg)' "$cache"
-}
-
-if [ "$prev" = y ];then
+if [ "$prev" = y ]
+then
     curr=$(get_current_wallpaper)
     wallpaper=$(grep -xF "$curr" "$log" -B1 | tail -2 | head -1)
-elif [ "$next" = y ];then
+elif [ "$next" = y ]
+then
     curr=$(get_current_wallpaper)
     wallpaper=$(grep -xF "$curr" "$log" -A1 | tail -1)
-elif [ "$current" = y ]; then
+elif [ "$current" = y ]
+then
     dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
     wallpaper=$(find "$dir" -maxdepth 1 -iregex '.*\.\(jpe?g\|png\)' | shuf -n1)
     [ -f "$wallpaper" ] || exit 1
-elif [ "$use_dmenu" = y ]; then
+elif [ "$use_dmenu" = y ]
+then
     wallpaper=$(get_path "${targets[@]}" | xargs -r0I{} bash -c 'get_wallpaper "$@"' _ '{}')
     [ -f "$wallpaper" ] || exit 0
-elif [ "$use_sxiv" = y ]; then
+elif [ "$use_sxiv" = y ]
+then
+    curr_wall=$(get_current_wallpaper)
     depth=$(find "${targets[@]}" -iregex '.*\.\(jpg\|png\)' -printf '%d\n' | sort -n | head -1) 
     get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' -maxdepth "$depth" \
         -iregex '.*\.\(jpg\|png\)' -printf '%T@ %p\n' | 
         sort -rn | cut -d' ' -f2- | nsxiv -iqt 2>/dev/null
-    exit 0
+    
+    # if wallpaper was changed using nsxiv key-handler, exit
+    [ "$(get_current_wallpaper)" != "$curr_wall" ] && exit 0
 fi
+
 [ -f "$wallpaper" ] || wallpaper=$(get_wallpaper "${targets[@]}")
 wallpaper=$(realpath "$wallpaper")
 

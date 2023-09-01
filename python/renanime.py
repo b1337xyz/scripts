@@ -262,7 +262,7 @@ def main():
                 continue
             folder = out[0]
         else:
-            k = fuzzy_sort(query, data.keys())
+            k = fuzzy_sort(query, list(data.keys()))
             title, year, _ = data[k]
             folder = f'{title} ({year})'
 
