@@ -145,7 +145,7 @@ class Downloader:
             open(file, 'wb').write(data)
 
         self.rpc.addTorrent(Binary(data), [], {
-            'check-integrity': 'true',
+            'check-integrity': 'false',
             'rpc-save-upload-metadata': 'false',
             'force-save': 'false',
             'dir': str(file.parent)

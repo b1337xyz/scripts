@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
-from sys import argv, exit
+from sys import argv
 from time import sleep
 from shutil import move
 import subprocess as sp
@@ -46,11 +46,9 @@ def get_name(info):
 
 
 def get_torrent_file(info):
-    try:
-        infohash = info['infoHash']
-        return os.path.join(_dir, f'{infohash}.torrent')
-    except KeyError:  # not a torrent
-        return ''
+    infohash = info.get('infoHash')
+    file = os.path.join(dir, f'{infohash}.torrent')
+    return file if os.path.isfile(file) else f'{path}.torrent'
 
 
 def get_psize(size):
@@ -66,8 +64,8 @@ def get_psize(size):
 def mv(src, dst):
     try:
         move(src, dst)
-    except Exception:
-        pass
+    except Exception as err:
+        print(err)
 
 
 def notify(title, msg, icon='emblem-downloads'):
@@ -83,35 +81,29 @@ def on_complete():
     request('removeDownloadResult', gid)
     if is_metadata:
         notify(status, name)
-        if os.path.exists(torrent_file):
-            mv(torrent_file, CACHE)
     else:
         notify(status, f'{name}\nSize: {size}')
-        if os.path.exists(path) and _dir == TEMP_DIR:
+        if os.path.exists(path) and dir == TEMP_DIR:
             mv(path, DL_DIR)
 
-        file = f'{path}.torrent'
-        if os.path.exists(file):
-            mv(file, CACHE)
-
-    if 'Downloads/jackett/index.' in path:
-        os.remove(path)
+    if os.path.isfile(torrent_file):
+        mv(torrent_file, CACHE)
 
 
 if __name__ == '__main__':
     sleep(1)
     gid = argv[1]
     info = request('tellStatus', gid)
-    if not info or int(info.get("totalLength", 0)) < 10:
-        exit(0)
-
+    # if not info or int(info.get("totalLength", 0)) < 10:
+    #     exit(0)
     name = get_name(info)
-    _dir = info['dir']
-    path = os.path.join(_dir, name)
+    dir = info['dir']
+    path = os.path.join(dir, name)
     status = info['status']
     size = get_psize(int(info["totalLength"]))
-    is_metadata = name.startswith('[METADATA]')
+    is_metadata = name.startswith('[METADATA] ')
     torrent_file = get_torrent_file(info)
+    print(f'>>> a2notify {torrent_file=}')
 
     match status:
         case 'complete':

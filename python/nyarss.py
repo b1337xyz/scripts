@@ -91,6 +91,11 @@ def update(url: str, download: bool = False, dl_dir: str = None):
     else:
         config[key]['dir'] = dl_dir
 
+    if not os.path.isdir(dl_dir):
+        del config[key]
+        save_config(config, update=False)
+        return
+
     links = config[key]['links']
     for title, uri in rss_links:
         if uri not in links:
