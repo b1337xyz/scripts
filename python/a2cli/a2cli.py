@@ -145,8 +145,9 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         total = sum([counter[k] for k in counter])
         output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                                      for k in counter]))
-    print('\n'.join(output))
-    print('DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
+
+    print('\n'.join(output), '\t',
+          'DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
                                            psize(total_upspeed)))
 
 

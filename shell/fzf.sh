@@ -23,15 +23,17 @@ _fzfile() {
 }
 e() { 
     local file
-    file=$(find "${1:-.}" -xdev -type f \! -path '*/node_modules*' 2>/dev/null | _fzfile)
+    file=$(find "${1:-.}" -maxdepth 6 -xdev -type f -size -100k -regextype posix-extended \
+        \! \( -path '*/node_modules*' -o -path '*cache/*' -o -path '*__*__*' -o -path '*/venv/*' \) \
+        2>/dev/null | _fzfile)
     [ -f "$file" ] && vim "$file"
 }
 s() {
     local file
     file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
         -type f -size -100k -regextype posix-extended \
-        \! \( -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(png|jpg|json|json.bak)' \) 2>/dev/null |
-        _fzfile -d "${HOME}/" --with-nth 2..)
+        \! \( -path '*/node_modules*' -o -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(json|bak)' \) \
+        2>/dev/null | _fzfile -d "${HOME}/" --with-nth 2..)
 
     [ -f "$file" ] && vim "$file"
 }

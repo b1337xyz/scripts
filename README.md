@@ -35,7 +35,7 @@
   - [google-api-python-client](https://github.com/googleapis/google-api-python-client) - [ytcli.py](https://github.com/b1337xyz/scripts/blob/main/python/ytcli.py)
 
 
-## Install 
+## Install
 Arch Linux
 ```
 sudo pacman -Syu --needed base-devel git python python-pip python-wheel \
