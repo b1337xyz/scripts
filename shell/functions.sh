@@ -684,7 +684,7 @@ isup() {
 }
 tsxiv() {
     find . -maxdepth 3 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' -printf '%C@ %p\n' |
-        sort -n | cut -d' ' -f2- | sxiv -qi
+        sort -rn | cut -d' ' -f2- | sxiv -qi
 }
 tmpv() {
     find . -maxdepth 3 -type f -iregex '.*\.\(mkv\|mp4\|webm\|avi\|m4v\|gif\)' -printf '%C@ %p\n' |
