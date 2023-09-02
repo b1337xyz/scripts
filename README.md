@@ -33,3 +33,24 @@
   - [i3ipc](https://github.com/altdesktop/i3ipc-python)
   - [thefuzz](https://github.com/seatgeek/thefuzz)
   - [google-api-python-client](https://github.com/googleapis/google-api-python-client) - [ytcli.py](https://github.com/b1337xyz/scripts/blob/main/python/ytcli.py)
+
+
+#### Install 
+Arch linux
+```
+sudo pacman -Syu --needed python python-requests python-i3ipc python-google-api-python-client \
+    aria2 bat cksfv dash fzf jq mediainfo ueberzug xclip xwallpaper slop opus-tools nsxiv
+```
+
+Install and patch dmenu
+```
+sudo pacman -Syu --needed base-devel git
+cd /tmp
+git clone https://git.suckless.org/dmenu
+cd dmenu
+wget https://tools.suckless.org/dmenu/patches/instant/dmenu-instant-4.7.diff
+wget https://tools.suckless.org/dmenu/patches/center/dmenu-center-5.2.diff
+patch -p1 < dmenu-instant-4.7.diff
+patch -p1 < dmenu-center-5.2.diff
+make && sudo make install
+```
