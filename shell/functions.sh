@@ -33,6 +33,7 @@ curlt() { curl -s "$1" | sed 's/<\/*[^>]*>/ /g; s/&nbsp;/ /g'; } # curl html as 
 lowercase() { tr '[:upper:]' '[:lower:]'; }
 uppercase() { tr '[:lower:]' '[:upper:]'; }
 first() { awk '{print $1}'; }
+latest() { command ls -1trc "${@:-.}" | tail -1; }
 gmd() {
     grep -ornP '\[[^\]]+\]\(http[^\)]+\)' "${1:-.}" # | grep -oP 'http[^\)]+'
 }
@@ -705,4 +706,15 @@ truecolor_test() {
         }
         printf "\n";
     }'
+}
+cleanup_apps() {
+    grep -nro 'Exec=.*' ~/.local/share/applications/*.desktop | while read -r i
+    do
+        file=${i%.desktop:*}.desktop
+        cmd=${i##*:Exec=} cmd=${cmd%% *}
+        if ! [ -x "$cmd" ] && ! hash "$cmd" >/dev/null 2>&1;then
+            printf '\033[1;31m%s\033[m not found\n' "$cmd"
+            rm -vi "$file" </dev/tty
+        fi
+    done
 }
