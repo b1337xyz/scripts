@@ -9,9 +9,9 @@ export -f fun
 trap finalise EXIT
 start_ueberzug
 
-d=$(find /usr/share/icons ~/.local/share/icons -mindepth 1 -maxdepth 1 -type d | fzf)
+d=$(find /usr/share/icons ~/.local/share/icons -mindepth 1 -maxdepth 1 | fzf)
 test -d "$d" || exit 0
-find "$d" -type f -iregex '.*\.\(jpg\|png\)' \! -iname '*symbolic*' | fzf -e      \
+find -L "$d" -type f -iregex '.*\.\(jpg\|png\)' \! -iname '*symbolic*' | fzf -e      \
     --preview 'draw_preview {}' \
     --preview-window 'left:10%,border-none' \
     --bind 'Return:execute-silent(fun {})'

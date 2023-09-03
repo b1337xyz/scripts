@@ -34,14 +34,18 @@ lowercase() { tr '[:upper:]' '[:lower:]'; }
 uppercase() { tr '[:lower:]' '[:upper:]'; }
 first() { awk '{print $1}'; }
 latest() { command ls -1trc "${@:-.}" | tail -1; }
+
 gmd() {
+    # grep links in markdown files
     grep -ornP '\[[^\]]+\]\(http[^\)]+\)' "${1:-.}" # | grep -oP 'http[^\)]+'
 }
+
 # fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
 fext() {
     find . -type f -name '*\.*' | grep -o '[^\.]*$' |
         awk '{a[$0] += 1} END {for ( i in a ) printf("%s\t%s\n", a[i], i)}' | sort -n
 }
+
 histcount() {
     # Output:
     #  ...
@@ -52,6 +56,7 @@ histcount() {
     #  999 neofetch
     HISTTIMEFORMAT='' history | sed 's/[\t ]*[0-9]\+[\t ]*\([^ ]*\).*/\1/' | sort | uniq -c | sort -n | tail -10
 }
+
 cpl() {
     # Example:
     #   cpl <file> 
@@ -70,6 +75,7 @@ cpl() {
         printf 'nothing to do\n'
     fi
 }
+
 arc() {
     # Archive file
     local filename basename archive
@@ -86,16 +92,19 @@ arc() {
     printf '> %s\n' "$archive" 
     tar cf "$archive" "$@"
 }
+
 line() {
     # Example: `line 1 ~/.bashrc` or `cat ~/.bashrc | line 10`
     if [ -f "$2" ];then sed "${1}!d" "$2"; else sed "${1}!d"; fi
 }
+
 webdav_server() {
     local ip
     ip=$(command ip -br a | awk '/UP/{print substr($3, 1, length($3)-3); exit}')
     rclone serve webdav -L --read-only --no-modtime --no-checksum \
         --addr "$ip:6969" --user "$USER" --pass 123 "${1:-$HOME}"
 }
+
 frep() {
     # find repeated file
     local type depth
@@ -110,6 +119,7 @@ frep() {
     find . -maxdepth "${depth:-4}" -type "${type:-f}" -printf '%f\n' | sort | uniq -d |
     sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 | xargs -0rI{} find . -type "${type:-f}" -name '{}'
 }
+
 bkp() {
     local bname output
     [ -e "$1" ] || return 1
@@ -117,6 +127,7 @@ bkp() {
     output="${bname}.$(date +%Y.%m.%d).tar.lzma"
     tar --numeric-owner --lzma -pcf "$output" "$1" || { rm -v "$output" ; return 1; }
 }
+
 alljpg() {
     # Warning: this will convert to jpeg and DELETE all images that aren't jpeg
     
@@ -135,6 +146,7 @@ alljpg() {
         esac
     done
 }
+
 ex() {
     # decompress stuff
     for i in "$@";do
@@ -157,6 +169,7 @@ ex() {
     done
     return 0
 }
+
 repeat() {
     # Repeat n times command
     local max=$1; shift;
@@ -164,6 +177,7 @@ repeat() {
         eval "$*";
     done
 }
+
 loop() {
     # loop a command for n seconds
     local s
@@ -171,6 +185,7 @@ loop() {
     [ -z "$1" ] && { printf 'Usage: loop <sleep> <cmd...>\n'; return 1; }
     while :;do eval "$*"; echo "Exit code: $?"; sleep "${s:-10}" || break; done
 }
+
 _loop() {
     local cur
     _get_comp_words_by_ref cur
@@ -184,6 +199,7 @@ wait_for() {
     shift
     while pgrep -f "$prog" >/dev/null 2>&1;do sleep 1;done && eval "$*"
 }
+
 lst() {
     # list the total of files in the current directory and its subdirectories
 
@@ -197,10 +213,12 @@ lst() {
         printf '%4s: total\n' "$total";
     } | sort -n 
 }
+
 lst2() {
     # same as `lst` but with columns
     lst "${@:-.}" | pr -t4w 80;
 }
+
 lstar() {
     # list and extract tar files
     for i in "$@";do
@@ -212,6 +230,7 @@ lstar() {
     done
     return 0
 }
+
 ren5sum() {
     # rename file to <md5sum>.<ext>
     local out path
@@ -224,6 +243,7 @@ ren5sum() {
         fi
     done
 }
+
 sort_by_year() {
     # Given the following folders in the current directory:
     #   Folder (2013)
@@ -239,6 +259,7 @@ sort_by_year() {
         }
     }' | sort -n | cut -d',' -f2-
 }
+
 crc32check() {
     # How it works:
     #   anime_[12345678].ext > 12345678 = crc32
@@ -262,6 +283,7 @@ crc32check() {
         fi
     done
 }
+
 crc32rename() {
     # add [<crc32>] to the filename
 
@@ -274,6 +296,7 @@ crc32rename() {
         mv -vn "$i" "${i%.*} [${crc}].${i##*.}" || return 1
     done
 }
+
 chgrubbg() {
     # change grub background
     
@@ -292,12 +315,7 @@ chgrubbg() {
         *) return 1 ;;
     esac
 }
-dn() {
-    # top n biggest files
-    find . -mindepth 1 -maxdepth 1 -exec du -sh {} + |
-        sort -h | head -n "${1:-10}" | awk -F\\t '{print $2}' |
-        tr \\n \\0 | du --files0-from=- -csh | sort -h
-}
+
 dul() {
     # Output:
     #   size  | files | <filename>
@@ -314,6 +332,7 @@ dul() {
         printf '%-8s | %-6s | %s\n' "$size" "$files" "$i"
     done | sort -h
 }
+
 fixext() {
     local mimetype ext
     [ $# -eq 0 ] && set -- ./*
@@ -335,6 +354,7 @@ fixext() {
     done
     return 0
 }
+
 odr() {
     # modified from r/opendirectories
     # download files from unprotected directories 
@@ -347,23 +367,27 @@ odr() {
     wget "$@" -w 3 -r -nc --no-parent --no-check-certificate \
            -U Mozilla/5.0 -l 200 -e robots=off -R "index.html*" -x
 }
+
 grabindex() { wget  -e robots=off -r -k -nv -nH -l inf -R --reject-regex '(.*)\?(.*)' --no-parent "$1" ; }
 save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
         --no-parent --page-requisites -U Mozilla/5.0 "$1" 
 }
+
 edalt() {
     # edit the current alacritty theme
     awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
         ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
 }
+
 magrep() {
     # grep magnet links
     curl -s --user-agent "$UserAgent" "$1" |
         sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
         grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)'
 }
+
 trackers_best() {
     local url output
     url=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
@@ -371,10 +395,12 @@ trackers_best() {
     curl -s "$url" | grep --color=never '[a-z]' | tee "$output"
     xclip -sel clip -i "$output" 
 }
+
 random_img() {
     find "${@:-$HOME/Pictures/random}" -iname '*.jpg' -print0 |
         shuf -zn1 | xargs -0roI{} drawimg.sh '{}'
 }
+
 mvbyext() {
     find "${1:-.}" -maxdepth 1 -type f | while read -r i;do
         ext="${i##*.}"
@@ -383,6 +409,7 @@ mvbyext() {
         mv -vn -- "$i" "$ext"
     done
 }
+
 mkj() {
     # Usage: `mkj video.mkv`
     for i in "$@";do
@@ -391,6 +418,7 @@ mkj() {
 if .properties.default_track then "(default)" else "" end)"'
     done
 }
+
 random_str() {
     local chr n
     while (($#));do
@@ -401,6 +429,7 @@ random_str() {
     tr -dc "$chr" < /dev/urandom | fold -w "${n:-10}" | head -1
     # shuf -er -n8 {A..Z} {a..z} {0..9}| tr -d '\n'
 }
+
 iommu_groups() {
     for d in /sys/kernel/iommu_groups/*/devices/*
     do
@@ -410,6 +439,7 @@ iommu_groups() {
         lspci -nns "${d##*/}"
     done
 }
+
 toggle_btf_jit() {
     local target value
     target=/proc/sys/net/core/bpf_jit_enable
@@ -419,20 +449,24 @@ toggle_btf_jit() {
         0) echo 1 ;;
     esac | sudo tee "$target"
 }
+
 psrmem() {
     ps axch -o cmd,rss --sort=-%mem | head -10 |
         awk 'BEGIN { printf("\033[42;30m%-30s %-6s\033[m\n", "CMD", "MEM") } {printf("%-30s %.1f\n", $1, $2/1024)}'
 }
+
 freq() {
     while :;do
         awk -F':' '/cpu MHz/{printf("%.0f MHz ", $2)} END {printf "\n"}' /proc/cpuinfo;
         sleep "${1:-3}"
     done
 }
+
 pacman_unessential() {
     grep -vFf <(pacman -Sl core | awk '/\[installed\]/{print $2}') <(pacman -Qq) |
         awk '{print} END {printf("%s unessential packages installed\n", NR)}' 
 }
+
 ffstr() {
     # Usage: `ffstr <video>`
     for i in "$@";do
@@ -450,6 +484,7 @@ ffstr() {
         END { printf("Attachments: %s\n", c) }'
     done
 }
+
 show_reserved() {
     [ -b "$1" ] || return 1
     sudo tune2fs -l "$1" | awk -F':' '{
@@ -468,6 +503,7 @@ show_reserved() {
             printf("%.1f%%\n", reserved * 100 / block_count)
     }'
 }
+
 lifetime() {
     sudo smartctl -a "${1:-/dev/sda}" | awk '{
         if ($0 ~ /Device Model/) {
@@ -485,12 +521,15 @@ lifetime() {
         printf("%s: %.0f days, %.0f hours\n", dev, d, h)
     }' 
 }
+
 pyquote() {  # `quote/dequote` is already used by bash-completion :/
     python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'
 }
+
 unquote() {
     python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
 }
+
 last_modified() {
     stat -c '%Z' "${@:-.}" | xargs -rI{} date --date='@{}' '+%s %b %d %H:%M %Y' |
     awk -v s=$(date '+%s') '{
@@ -524,6 +563,7 @@ if ( d > 365 ) {
     printf("%s %d %s\n", $2, $3, $4)
 }}'
 }
+
 gcd() {
     local width=$1
     local height=$2
@@ -536,6 +576,7 @@ gcd() {
     rh=$(( height / r ))
     echo "${rw}:$rh"
 }
+
 todo() {
     TODOFILE=${TODOFILE:-${HOME}/.todo}
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
@@ -556,10 +597,12 @@ todo() {
         ;;
     esac
 }
+
 ftext() {
     # find text files
     find "${@:-.}" -type f -exec file -Li -- '{}' + | grep -oP '.*(?=:[\t ]*text/)'
 }
+
 paclog() {
     awk -v x="${1:-upgraded}" '$3 == x' /var/log/pacman.log |
     tac | awk -F'T' -v n=${2:-4} '{
@@ -573,12 +616,14 @@ paclog() {
         x = substr($1, length($1)-1)
     }' | tac
 }
+
 random_quote() { curl -s http://metaphorpsum.com/sentences/1; echo; }
 random_anime_quote() {
     # Default rate limit is 100 requests per hour.
     local url="https://animechan.vercel.app/api/random"
     curl -s "$url" | jq -Mc '"\(.anime)\n\"\(.quote)\" - \(.character)"'
 }
+
 random_notepadpp_quote() {
     # parsed from https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/Notepad_plus.cpp#L7103
     local target=~/.cache/notepadpp_quotes.txt
@@ -590,27 +635,33 @@ random_notepadpp_quote() {
         printf("%s\n\t- %s\n", $0, a);
     }'
 }
+
 random_color() {
     find ~/.scripts/playground/shell/Colors \
         -maxdepth 1 -type f -print0 | shuf -zn 1 | xargs -r0 bash
     printf '\e[0m'
 }
+
 grep_secrets() {
     grep --exclude-dir=".git" --color -rniP \
         'api.key|secret|token|password|passwd|(\d{1,3}\.){3}\d+'
 }
+
 ordinal() {
     [[ "$1" =~ ^[0-9]+$ ]] || return 1
     curl -s "https://conversor-de-medidas.com/mis/numero-ordinal/_$1_" | tr -d \\n |
         grep -oP "(?<=>)[^<]* \($1.\)"
 }
+
 toggle_conservation_mode() {
     local v
     v=$(</sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode)
     [ $v -eq 0 ] && v=1 || v=0
     echo "$v" | sudo tee /sys/bus/platform/drivers/ideapad_acpi/VPC*/conservation_mode
 }
+
 maldir() {
+    local out 
     out=/tmp/.mal.$$
     mal "$@" | tee "$out" | grep -v ^http | fzf -m | grep -oP '.*\d{4}\)(?=\s+\| \w)' | while read -r i
     do
@@ -618,24 +669,30 @@ maldir() {
     done
     cat "$out"; command rm "$out"
 }
+
 qrcode() {
+    local output
     output=$(mktemp -u /tmp/tmp.XXXXXXXX.png)
     sleep 1 ; scrot -s -q 100 "$output"
     zbarimg "$output"
     [ -f "$output" ] && rm "$output"
 }
+
 gamefaq() {
     # Example: gamefaq https://gamefaqs.gamespot.com/psp/955342-harvest-moon-hero-of-leaf-valley/faqs/59752
     curl -s "$1" | sed -n '/id="faqtext">/,$p' | tail -n +2 | sed '/<\/pre><\/div>/q' | head -n -2 | "$PAGER"
 }
+
 mvff() {
     # Move files listed on a text file ($1) to a directory ($2)
     file -Lbi "$1" | grep -q ^text/plain && [ -d "$2" ] || return 1
     while read -r i;do mv -vn "$i" "$2" || break ;done < "$1"
 }
+
 downloadarch() {
     curl -s 'https://archlinux.org/download/' | grep -oP '(?<=href=")magnet:.*\.iso(?=")' | aria2c --input-file=-
 }
+
 translate() {
     # Usage: translate <phrase> <output-language> 
     # Example: translate "Bonjour! Ca va?" en 
@@ -647,14 +704,17 @@ translate() {
     wget -U "Mozilla/5.0" -qO - "http://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=$2&dt=t&q=$query" |
         sed "s/,,,0]],,.*//g" | awk -F'"' '{print $2, $6}'
 }
+
 howin() {
     # Use curl and "https://cht.sh/" to quickly search how to do things
     # Examples: 'howin html do I view an image'
     #           'howin python do I add numbers'
+    local where q
     where="$1"; shift
     q=$* q=${q// /+}
     curl "https://cht.sh/$where/$q"
 }
+
 optimg() {
     # Potentially lower an image's file size using ImageMagick by lowering
     # the amount of colors, using dithering, increasing contrast, etc...
@@ -665,6 +725,7 @@ optimg() {
         -morphology Thicken:0.5 '3x1+0+0:1,0,0' \
         -remap netscape: -ordered-dither o8x8,6 +contrast "$1_converted"
 }
+
 optpdf() {
     # Potentially lower a PDF's file size using Ghostscript
     # 
@@ -673,24 +734,29 @@ optpdf() {
     gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
         -dPDFSETTINGS=/screen -sOutputFile="${1%%.*}_small.pdf" "$1"
 }
+
 vmrss() {
     while :;do
         ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
         sleep 1
     done
 }
+
 isup() {
     # curl -L -s --head --request GET "$1"
     wget -U Mozilla/5.0 -q --spider --server-response "$1" 2>&1
 }
+
 tsxiv() {
     find . -maxdepth 3 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' -printf '%C@ %p\n' |
         sort -rn | cut -d' ' -f2- | sxiv -qi
 }
+
 tmpv() {
     find . -maxdepth 3 -type f -iregex '.*\.\(mkv\|mp4\|webm\|avi\|m4v\|gif\)' -printf '%C@ %p\n' |
         sort -rn | cut -d' ' -f2- | mpv --playlist=-
 }
+
 truecolor_test() {
     # https://github.com/termstandard/colors
     awk 'BEGIN{
@@ -707,8 +773,9 @@ truecolor_test() {
         printf "\n";
     }'
 }
+
 cleanup_apps() {
-    grep -nro 'Exec=.*' ~/.local/share/applications/*.desktop | while read -r i
+    grep -nro 'Exec=.*' ~/.local/share/applications/*.desktop ~/Desktop/*.desktop | while read -r i
     do
         file=${i%.desktop:*}.desktop
         cmd=${i##*:Exec=} cmd=${cmd%% *}
