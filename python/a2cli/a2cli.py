@@ -86,11 +86,9 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     cols += 7
     output = []
     total_dlspeed, total_upspeed = 0, 0
-    i = 1
-    for dl in downloads:
+    for i, dl in enumerate(downloads, start=1):
         status = dl['status']
         counter[status] += 1
-        i += 1
         if i >= lines:  # stop printing
             continue
 
