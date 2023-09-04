@@ -59,12 +59,7 @@ def parse_feed(url: str):
 
 
 def add_uri(uri: str, dl_dir: str):
-    options = {
-        'dir': dl_dir,
-        'force-save': 'false',
-        'bt-save-metadata': 'false',
-        'check-integrity': 'true'
-    }
+    options = {'dir': dl_dir}
     jsonreq = json.dumps({
         'jsonrpc': '2.0',
         'id': 'nyarss',
@@ -209,6 +204,18 @@ def setup_logging(quiet=False):
             datefmt='%Y-%m-%d %H:%M:%S')
 
 
+def parse_uri(uri):
+    if not uri:
+        return
+    uri = re.sub(r'[&\?][cf]=[^&]+', '', uri)
+    uri = re.sub(r'user/([^/\?]+)', r'&u=\1', uri)
+    if 'page=rss' not in uri:
+        uri += '&page=rss'
+    if '?' not in uri:
+        uri = uri.replace('&', '?', 1)
+    return uri
+
+
 def main():
     args = parse_aguments()
     argv = sys.argv[1:]
@@ -224,11 +231,13 @@ def main():
     elif 'update' in argv:
         update_all(download=False)
     elif args.uri:
-        update(url=args.uri, download=args.download, dl_dir=dl_dir)
+        update(url=parse_uri(args.uri), download=args.download, dl_dir=dl_dir)
     elif args.file:
         with open(args.file, 'r') as f:
             for line in f:
-                update(url=line, download=args.download, dl_dir=dl_dir)
+                update(url=parse_uri(line),
+                       download=args.download,
+                       dl_dir=dl_dir)
     elif args.loop:
         monitor(args.seconds)  # TODO: fork this (daemon)?
     elif args.change_dir:

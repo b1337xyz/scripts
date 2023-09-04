@@ -88,8 +88,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     cols, lines = os.get_terminal_size()
     cols += 7
     output = []
-    total_dlspeed = 0
-    total_upspeed = 0
+    total_dlspeed, total_upspeed = 0, 0
     i = 1
     for dl in downloads:
         status = dl['status']
@@ -115,7 +114,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             'complete': '\033[1;34mC \033[m',
             'waiting': '\033[1;33mW \033[m',
             'removed': '\033[1;35mR \033[m',
-        }[status]
+        }.get(status)
 
         bar_size = 12
         p = int(completed_length * 100 // (size + .01))
@@ -131,7 +130,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             psize(size), name)
 
         if len(out) > cols:
-            out = out[:cols] + '...'
+            out = out[:cols - 3] + '...'
         output.append(out)
 
     if clear:
@@ -146,7 +145,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                                      for k in counter]))
 
-    print('\n'.join(output), '\t',
+    print('\n'.join(output), '\t|',
           'DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
                                            psize(total_upspeed)))
 
@@ -245,10 +244,14 @@ def move_to_top():
     aria2.changePosition(gid, 0, 'POS_SET')
 
 
+def connect(host='127.0.0.1', port=6800):
+    return ServerProxy(f'http://{host}:{port}/rpc')
+
+
 if __name__ == '__main__':
     args = parse_arguments()
     assert args.sort_by is None or args.sort_by in SORTING_KEYS
-    server = ServerProxy(f'http://127.0.0.1:{args.port}/rpc')
+    server = connect(port=args.port)
     aria2 = server.aria2
 
     SHOW_GID = args.show_gid
