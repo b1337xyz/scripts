@@ -34,7 +34,10 @@ def get_all():
     mc.aria2.tellWaiting(0, MAX)
     mc.aria2.tellStopped(0, MAX)
     mc.aria2.tellActive()
-    return [j for sub in mc() for j in sub]
+    for i in mc():
+        yield from i
+    # yield from [j for sub in mc() for j in sub]
+    # yield from chain.from_iterable(mc())
 
 
 def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
@@ -74,12 +77,6 @@ def get_ratio(x):
 
 def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     downloads = get_all()
-    if not downloads:
-        if clear:
-            print('\033[2J\033[1;1H')  # clear
-        print('Nothing to see here...')
-        return
-
     if sort_by == 'downloaded':
         downloads = sorted(downloads, key=get_perc, reverse=reverse)
     elif sort_by == 'ratio':
@@ -90,17 +87,16 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     counter = defaultdict(int)
     cols, lines = os.get_terminal_size()
     cols += 7
-    curr_line = 1
     output = []
     total_dlspeed = 0
     total_upspeed = 0
-    for i, dl in enumerate(downloads, start=1):
+    i = 1
+    for dl in downloads:
         status = dl['status']
         counter[status] += 1
-
-        if curr_line >= lines:  # stop printing
+        i += 1
+        if i >= lines:  # stop printing
             continue
-        curr_line += 1
 
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
@@ -140,6 +136,10 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
 
     if clear:
         print('\033[2J\033[1;1H')  # clear
+
+    if not output:
+        print('Nothing to see here...')
+        return
 
     if not numbered:
         total = sum([counter[k] for k in counter])

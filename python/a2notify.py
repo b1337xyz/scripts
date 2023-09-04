@@ -64,8 +64,9 @@ def get_psize(size):
 def mv(src, dst):
     try:
         move(src, dst)
-    except Exception as err:
-        print(err)
+    except Exception:
+        if os.path.isfile(src):
+            os.remove(src)
 
 
 def notify(title, msg, icon='emblem-downloads'):
