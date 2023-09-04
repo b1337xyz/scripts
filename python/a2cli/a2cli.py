@@ -34,10 +34,7 @@ def get_all():
     mc.aria2.tellWaiting(0, MAX)
     mc.aria2.tellStopped(0, MAX)
     mc.aria2.tellActive()
-    for i in mc():
-        yield from i
-    # yield from [j for sub in mc() for j in sub]
-    # yield from chain.from_iterable(mc())
+    return [j for sub in mc() for j in sub]
 
 
 def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
