@@ -94,8 +94,9 @@ if __name__ == '__main__':
     sleep(1)
     gid = argv[1]
     info = request('tellStatus', gid)
-    # if not info or int(info.get("totalLength", 0)) < 10:
-    #     exit(0)
+    if int(info.get("totalLength", 0)) < 2:
+        exit(0)
+
     name = get_name(info)
     dir = info['dir']
     path = os.path.join(dir, name)
@@ -103,7 +104,6 @@ if __name__ == '__main__':
     size = get_psize(int(info["totalLength"]))
     is_metadata = name.startswith('[METADATA] ')
     torrent_file = get_torrent_file(info)
-    print(f'>>> a2notify {torrent_file=}')
 
     match status:
         case 'complete':

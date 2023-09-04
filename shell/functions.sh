@@ -163,7 +163,6 @@ ex() {
             *.zip)     unzip "$i" -d "${i%.*}"   ;;
             *.7z)      7z x -o"${i%.*}" "$i"     ;;
             *.Z)       uncompress "$i" ;;
-            *) printf 'File cannot be extracted: "%s"\n' "$i"; continue ;;
         esac || return 1
         [[ "$1" =~ -d|-r ]] && command rm -v "$i"
     done

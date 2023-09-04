@@ -14,8 +14,8 @@ y = focused.rect.y
 if 'off' in focused.floating:
     sys.exit(1)
 
-# sp.call('alacritty --class floating_terminal &', shell=True)
-i3.command('exec alacritty --class floating_terminal')
+# sp.call('alacritty --class floating_window &', shell=True)
+i3.command('exec alacritty --class floating_window')
 fid = focused.id
 while focused.id == fid:
     tree = i3.get_tree()

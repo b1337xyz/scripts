@@ -25,7 +25,7 @@ cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
-    pulsemixer|top) run ts -n floating_terminal -- "$cmd" ;;
+    pulsemixer|top) run ts -n floating_window -- "$cmd" ;;
     sxcs)           run 'sxcs | xclip -sel c' ;;
     cmus)           run tmux new-session -d -s cmus cmus ;; 
     ncmpcpp)        run ts -t ncmpcpp -- ncmpcpp ;; 

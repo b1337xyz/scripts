@@ -29,6 +29,7 @@ declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
         -h|--help)  _help ;;
+        --parent)   parent=y ;;
         --prev)     prev=y ;;
         --next)     next=y ;;
         --dmenu)    use_dmenu=y ;;
@@ -49,13 +50,16 @@ done
 test ${#opts[@]}    -eq 0 && opts=(--stretch)
 test ${#targets[@]} -eq 0 && targets=("$default_target")
 
-if [ "$prev" = y ]
+curr=$(get_current_wallpaper)
+
+if [ "$parent" = y ]
 then
-    curr=$(get_current_wallpaper)
+    wallpaper=$(get_wallpaper "${curr%/*}")
+elif [ "$prev" = y ]
+then
     wallpaper=$(grep -xF "$curr" "$log" -B1 | tail -2 | head -1)
 elif [ "$next" = y ]
 then
-    curr=$(get_current_wallpaper)
     wallpaper=$(grep -xF "$curr" "$log" -A1 | tail -1)
 elif [ "$current" = y ]
 then
@@ -68,14 +72,13 @@ then
     [ -f "$wallpaper" ] || exit 0
 elif [ "$use_sxiv" = y ]
 then
-    curr_wall=$(get_current_wallpaper)
     depth=$(find "${targets[@]}" -iregex '.*\.\(jpg\|png\)' -printf '%d\n' | sort -n | head -1) 
     get_path "${targets[@]}" | xargs -r0 -I '{}' find -L '{}' -maxdepth "$depth" \
         -iregex '.*\.\(jpg\|png\)' -printf '%T@ %p\n' | 
         sort -rn | cut -d' ' -f2- | nsxiv -iqt 2>/dev/null
     
     # if wallpaper was changed using nsxiv key-handler, exit
-    [ "$(get_current_wallpaper)" != "$curr_wall" ] && exit 0
+    [ "$(get_current_wallpaper)" != "$curr" ] && exit 0
 fi
 
 [ -f "$wallpaper" ] || wallpaper=$(get_wallpaper "${targets[@]}")
@@ -85,4 +88,7 @@ printf 'xwallpaper %s "%s"' "${opts[*]}" "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
 cp "$wallpaper" ~/.cache/current_bg.jpg
 [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"
+
+wallpaper=${wallpaper%/*}
+notify-send -i image -r 1338 "XWall" "${wallpaper/${HOME}\//}"
 exit 0
