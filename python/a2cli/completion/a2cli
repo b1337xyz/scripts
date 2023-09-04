@@ -1,1 +1,27 @@
-/home/anon/.local/share/bash-completion/completions/a2cli
+_a2cli() {
+    local opts cur prev split=false
+    COMPREPLY=()
+    _get_comp_words_by_ref cur prev
+    opts='-h -d --dir --check-integrity --help -s --save -l --list --remove -p --pause --port --purge --purge-all -u --unpause --pause-all --unpause-all --remove-all --remove-metadata --top --status --gid --show-gid -y --yes --watch --files -o --sort-by --reverse'
+
+    case $prev in
+        --status)
+            COMPREPLY=( $( compgen -W 'active complete error paused removed waiting' -- "$cur" ) )
+            return ;;
+        -o|--sort-by)
+            COMPREPLY=( $( compgen -W 'completedLength dir downloadSpeed numPieces numSeeders pieceLength status totalLength uploadLength uploadSpeed downloaded ratio' -- "$cur" ) )
+            return ;;
+        --gid)
+            COMPREPLY=( $( a2cli --list-gids ) )
+            return ;;
+        -d|--dir) _filedir -d ;;
+    esac
+
+    case $cur in
+        -*) COMPREPLY=( $( compgen -W "$opts"  -- "$cur" ) ) ;;
+        *)  _filedir '@(torrent|magnet|txt)' ;;
+    esac
+
+} && complete -F _a2cli a2cli a2cli.py
+
+# ex: filetype=sh
