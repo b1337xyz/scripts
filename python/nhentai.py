@@ -133,7 +133,11 @@ class Downloader:
             att = 0
             max_attempts = 5
             while (att := att + 1) <= max_attempts:
-                r = self.session.get(url, stream=True)
+                try:
+                    r = self.session.get(url, stream=True)
+                except Exception:
+                    continue
+
                 content_type = r.headers.get('content-type', '')
                 if re.search(r'torrent|octet', content_type):
                     break
