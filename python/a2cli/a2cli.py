@@ -128,21 +128,20 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             out = out[:cols - 3] + '...'
         output.append(out)
 
-    if clear:
-        print('\033[2J\033[1;1H')  # clear
-
     if not output:
         print('Nothing to see here...')
         return
 
-    if not numbered:
-        total = sum([counter[k] for k in counter])
-        output.append(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
-                                                     for k in counter]))
+    if clear:
+        print('\033[2J\033[1;1H')  # clear
 
-    print('\n'.join(output), '\t|',
-          'DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
-                                           psize(total_upspeed)))
+    print('\n'.join(output))
+    if not numbered:
+        print('DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
+                                               psize(total_upspeed)))
+        total = sum([counter[k] for k in counter])
+        print(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
+                                             for k in counter]))
 
 
 def pause():
