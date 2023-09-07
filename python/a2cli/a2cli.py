@@ -65,7 +65,7 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
 
 
 def get_perc(x):
-    return x['completedLength'] // (x['totalLength'] + .01)
+    return int(x['completedLength']) // (int(x['totalLength']) + .01)
 
 
 def get_ratio(x):
