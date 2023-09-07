@@ -5,24 +5,27 @@ cache=~/.cache/xwallpaper
 log=~/.cache/.xwall.log
 
 _help() {
-    printf 'Usage: %s [--no-cache --prev --next --current --sxiv --dmenu --<xwallpaper option>] IMAGE\n' "${0##*/}"
+    printf 'Usage: %s [--no-cache --prev --next --current --sxiv --dmenu --<xwallpaper option>] IMAGE|DIR\n' "${0##*/}"
     exit 0
 }
-get_path() {
+get_path() { # Select a path with dmenu
     # find -L "$1" -iregex '.*\.\(jpg\|png\)' -printf '%h\n' | sort -u | dmenu -c -i -l 20 -n
-    {
+    
+    # same as above but does not show the whole path, just the basename of the images found
+    # pipe dirname to basename than find the selected basename in $@ path
+    { 
         [ "$1" != "." ] && printf '%s\0' "$1";
-        find -L "$@" -iregex '.*\.\(jpg\|png\)' -printf '%h\0';
+        find -L "$@" -iregex '.*\.\(jpg\|jpeg\|png\)' -printf '%h\0';  # %h = dirname
     } | sort -uz | xargs -r0 basename -a | sort -u | grep -v '^$' | dmenu -c -i -l 20 -n |
         tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0 | sort -zV
 }
 get_current_wallpaper() {
-    grep -oP '(?<= ")[^"]+\.(jpg|png|jpeg)' "$cache"
+    grep -oP '(?<= ")/[^"]+\.(jpg|png|jpeg)' "$cache"
 }
-get_wallpaper() {
-    find -L "$@" -iregex '.*\.\(jpg\|png\)' | shuf -n1
+random_wallpaper() {
+    find -L "$@" -iregex '.*\.\(jpg\|jpeg\|png\)' | shuf -n1
 }
-export -f get_wallpaper
+export -f random_wallpaper
 
 declare -a opts=()
 declare -a targets=()
@@ -54,7 +57,7 @@ curr=$(get_current_wallpaper)
 
 if [ "$parent" = y ]
 then
-    wallpaper=$(get_wallpaper "${curr%/*}")
+    wallpaper=$(random_wallpaper "${curr%/*}")
 elif [ "$prev" = y ]
 then
     wallpaper=$(grep -xF "$curr" "$log" -B1 | tail -2 | head -1)
@@ -68,7 +71,7 @@ then
     [ -f "$wallpaper" ] || exit 1
 elif [ "$use_dmenu" = y ]
 then
-    wallpaper=$(get_path "${targets[@]}" | xargs -r0I{} bash -c 'get_wallpaper "$@"' _ '{}')
+    wallpaper=$(get_path "${targets[@]}" | xargs -r0I{} bash -c 'random_wallpaper "$@"' _ '{}')
     [ -f "$wallpaper" ] || exit 0
 elif [ "$use_sxiv" = y ]
 then
@@ -81,7 +84,7 @@ then
     [ "$(get_current_wallpaper)" != "$curr" ] && exit 0
 fi
 
-[ -f "$wallpaper" ] || wallpaper=$(get_wallpaper "${targets[@]}")
+[ -f "$wallpaper" ] || wallpaper=$(random_wallpaper "${targets[@]}")
 wallpaper=$(realpath "$wallpaper")
 
 printf 'xwallpaper %s "%s"' "${opts[*]}" "$wallpaper" > "$cache"
