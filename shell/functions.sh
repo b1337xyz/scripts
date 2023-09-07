@@ -774,7 +774,8 @@ truecolor_test() {
 }
 
 cleanup_apps() {
-    grep -nro 'Exec=.*' ~/.local/share/applications/*.desktop ~/Desktop/*.desktop | while read -r i
+    grep -n 'Exec=' ~/.local/share/applications/*desktop ~/Desktop/*desktop 2>/dev/null |
+        while read -r i
     do
         file=${i%.desktop:*}.desktop
         cmd=${i##*:Exec=} cmd=${cmd%% *}

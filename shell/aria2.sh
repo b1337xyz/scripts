@@ -137,11 +137,27 @@ btsel() {
         xargs -orI{} aria2c --bt-remove-unselected-file --select-file '{}' "$1" 
 }
 addUri() {
-    data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]}' \
-        "$1" "${2:-${HOME}/Downloads}")
-
+    data=$(printf '{
+        "jsonrcp":"2.0", "id":"a",
+        "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]
+    }' "$1" "${2:-${HOME}/Downloads}" | jq -Mc .)
     curl -s "http://localhost:6800/jsonrpc" \
-        -H "Content-Type: application/json" -H "Accept: application/json" \
-        -d "$data"
-    echo
+        -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
+        -d "$data" -w '\n'
 }
+
+# addTorrent() {
+#     local torrent data
+#     [ -f "$1" ] || return 1
+#     torrent=$(base64 -i -w 0 "$1")
+#     data=$(printf '{
+#         "jsonrpc":"2.0", "id":"a",
+#         "method":"aria2.addTorrent",
+#         "params":["%s"]
+#     }' "$torrent" | jq -Mc .)
+#     curl -s 'http://127.0.0.1:6800/jsonrpc' \
+#         -H "Content-Type: application/json" \
+#         -H "Accept: application/json" \
+#         -d "$data" -w '\n'
+# }
