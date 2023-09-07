@@ -21,9 +21,7 @@ script=${HOME}/.scripts/python/a2notify.py
 [ -f "$session" ] || :>"$session"
 aria2c -D --enable-rpc --continue \
     --input-file="$session" \
-    --conf-path "${XDG_CONFIG_HOME}/aria2/seedbox.conf" \
-    --on-bt-download-complete="${script}" \
-    --on-download-complete="${script}" \
+    --conf-path "${HOME}/.config/aria2/seedbox.conf" \
     --on-download-error="${script}" \
     --on-download-start="${script}" \
     --save-session="$session" \

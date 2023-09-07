@@ -65,7 +65,7 @@ fzcbt() {
         cat "$cache"
     else
         aria2c -S ~/.cache/torrents/*/*.torrent |
-            awk -F'|' '/[0-9]\|\.\//{print $2}' | tee "$cache"
+            awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' | tee "$cache"
     fi | fzf "$@" | awk -F'/' '{print $2}' |
          sed -e 's/[]\[?\*\$]/\\&/g' | tr \\n \\0 |
          xargs -0rI{} find ~/.cache/torrents -type f -name '{}.torrent'

@@ -1,6 +1,7 @@
 bcat() { aria2c -S "$1";  }
 bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
 btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
+
 dubt() {
     [ $# -eq 0 ] && set -- ./*.torrent
     aria2c -S "$@" | awk '/^Total | 1\|\.\//{
@@ -28,6 +29,7 @@ dubt() {
         }
     }'
 }
+
 dubt2() {
     [ -f "$1" ] || { printf 'Usage: dubt2 <TORRENT>\n'; return 1; }
     aria2c -S "$1" | awk '/^Total |\|/{
@@ -45,6 +47,7 @@ dubt2() {
             printf("%s total\n", total)
     }'
 }
+
 dubt3() {
     [ $# -eq 0 ] && set -- ./*.torrent
     aria2c -S "$@" | awk '/^Total | 1\|\.\//{
@@ -56,6 +59,7 @@ dubt3() {
         printf("%-8s\t%s\n", size, a[2])
     }'
 }
+
 rentorrent() {
     local torrent
     find "${@:-.}" -maxdepth 1 -type f -iname '*.torrent' | while read -r torrent;do
@@ -67,6 +71,7 @@ rentorrent() {
     done
     return 0
 }
+
 m2t() {
     local tmpdir torrent torrent_name
     tmpdir=$(mktemp -d)
@@ -77,12 +82,14 @@ m2t() {
     mv -v "$torrent" "$torrent_name"
     rm -rf "$tmpdir"
 }
+
 btdiff() {
     # shellcheck disable=SC2046
     if [ $(file -Lbi -- "$1" "$2" | grep -c 'x-bittorrent') -eq 2 ];then
         diff --color <(aria2c -S "$1") <(aria2c -S "$2")
     fi
 }
+
 btch() {
     local torrent
 
@@ -90,7 +97,7 @@ btch() {
     [ -z "$1" ] && torrent=$(printf '%s\n' ./*.torrent | head -1)
 
     file -Lbi -- "$1" | grep -q bittorrent || return 1
-    aria2c -S "$torrent" | awk -F'|' '/[0-9]\|\.\//{print $2}' | sort | while read -r i;do
+    aria2c -S "$torrent" | awk -F'\\|\\./' '/[0-9]\|\.\//{printf("./%s\n", $2)}' | sort | while read -r i;do
         if [ -f "$i" ];then
             printf '[\e[1;32mOK\e[m] %s\n' "$i"
         else
@@ -99,6 +106,7 @@ btch() {
         fi
     done
 }
+
 lsbt() {
     if [ -z "$1" ];then
         aria2c -S ./*.torrent | awk '/[0-9]\|\.\//' | sort -n || return 1
@@ -108,6 +116,7 @@ lsbt() {
         done
     fi
 }
+
 btlst() {
     aria2c -S ./*.torrent | awk -F'/' '
 BEGIN { total = 0 }
@@ -128,14 +137,16 @@ BEGIN { total = 0 }
     printf("%s total\n", total)
 }' | sort -n
 }
+
 btsel() {
     file -Lbi -- "$1" | grep -q bittorrent || return 1
-    aria2c -S "$1" | awk -F'|' '/[0-9]\|\.\//{
+    aria2c -S "$1" | awk -F'\\|\\./' '/[0-9]\|\.\//{
         sub(/^[ \t]*/, "", $0);
         printf("%s|%s\n", $1, $2)
     }' | fzf -m --bind 'ctrl-a:select-all' | grep -oP '^\d+(?=\|)' | tr \\n ',' | sed 's/,$//' |
         xargs -orI{} aria2c --bt-remove-unselected-file --select-file '{}' "$1" 
 }
+
 addUri() {
     data=$(printf '{
         "jsonrcp":"2.0", "id":"a",

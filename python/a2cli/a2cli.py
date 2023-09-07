@@ -69,7 +69,7 @@ def get_perc(x):
 
 
 def get_ratio(x):
-    return x['uploadLength'] // (x['completedLength'] + .01)
+    return int(x['uploadLength']) // (int(x['completedLength']) + .01)
 
 
 def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
@@ -94,7 +94,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
 
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
-        # ratio = round(get_ratio(dl), 1)
+        ratio = round(get_ratio(dl), 1)
         # plen = psize(completed_length)
         dlspeed = int(dl['downloadSpeed'])
         total_dlspeed += dlspeed
@@ -112,17 +112,17 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         }.get(status)
 
         bar_size = 12
-        p = int(completed_length * 100 // (size + .01))
+        p = completed_length * 100 // (1 if size == 0 else size)
         blocks = p * bar_size // 100
         blank = bar_size - blocks
         bar = f'[{blocks * "#"}{blank * " "} {p:>3}%]'
 
-        out = '{}{}{}{} {} {:>8} {}'.format(
+        out = '{}{}{}{} {} {:>8} [{}] {}'.format(
             f'{i}) ' if numbered else '',
             f"{dl['gid']}: " if SHOW_GID else '',
             icon, bar,
             f'{psize(dlspeed):>8}/s' if status == 'active' else ' ',
-            psize(size), name)
+            psize(size), ratio, name)
 
         if len(out) > cols:
             out = out[:cols - 3] + '...'
@@ -137,11 +137,11 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
 
     print('\n'.join(output))
     if not numbered:
-        print('DL: {:>8}/s UP: {:>8}/s'.format(psize(total_dlspeed),
-                                               psize(total_upspeed)))
         total = sum([counter[k] for k in counter])
         print(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
-                                             for k in counter]))
+                                             for k in counter]), end='\t')
+        print('(DL: {:>8}/s UP: {:>8}/s)'.format(psize(total_dlspeed),
+                                                 psize(total_upspeed)))
 
 
 def pause():
@@ -182,15 +182,10 @@ def remove(downloads=[]):
         if dl['status'] in ['active', 'waiting']:
             try:
                 aria2.remove(gid)
-            except Exception as err:
-                print(err)
+            except Exception:
                 aria2.forceRemove(gid)
-        else:
-            try:
-                aria2.removeDownloadResult(gid)
-            except Exception as err:
-                print(err)
-                aria2.forceRemove(gid)
+        sleep(.4)
+        aria2.removeDownloadResult(gid)
         print(name, 'removed')
 
 
@@ -199,20 +194,6 @@ def remove_all(status=None):
         return
 
     remove([i for i in get_all() if status is None or status == i['status']])
-
-
-def purge():
-    if not yes(False):
-        return
-
-    # 11  If aria2 was downloading same file at that moment.
-    # 12  If aria2 was downloading same info hash torrent at that moment.
-    # 13  If file already existed.
-    for i in get_all():
-        if i['status'] == 'error' and i.get('errorCode') in ['11', '13', '12']:
-            remove([i])
-        elif i['status'] in ['complete', 'removed']:
-            remove([i])
 
 
 def remove_metadata(status=None):
@@ -272,8 +253,6 @@ if __name__ == '__main__':
     elif args.top:
         move_to_top()
     elif args.purge:
-        purge()
-    elif args.purge_all:
         print(aria2.purgeDownloadResult())
     elif args.seed:
         print(aria2.changeGlobalOption({'seed-time': '0.0'}))

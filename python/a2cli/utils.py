@@ -87,7 +87,6 @@ def parse_arguments():
     parser.add_argument('--fzf', action='store_true', help='use fzf')
     parser.add_argument('--list-gids', action='store_true')
     parser.add_argument('--purge', action='store_true')
-    parser.add_argument('--purge-all', action='store_true')
     parser.add_argument('argv', type=str, nargs='*',
                         help='[URI | MAGNET | TORRENT_FILE]')
 

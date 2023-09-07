@@ -380,13 +380,6 @@ edalt() {
         ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
 }
 
-magrep() {
-    # grep magnet links
-    curl -s --user-agent "$UserAgent" "$1" |
-        sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
-        grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)'
-}
-
 trackers_best() {
     local url output
     url=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
@@ -784,4 +777,11 @@ cleanup_apps() {
             rm -vi "$file" </dev/tty
         fi
     done
+}
+
+magnet2torrent() {
+    curl -s --user-agent "$UserAgent" "$1" |
+        sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
+        grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)' |
+        aria2c --bt-save-metadata --bt-metadata-only --input-file=-
 }

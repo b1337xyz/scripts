@@ -86,7 +86,7 @@ elif [ -z "$wallpaper" ];then
 fi
 
 [ -f "$wallpaper" ] || exit 0
-wallpaper=$(realpath "$wallpaper")
+wallpaper=$(realpath -s "$wallpaper")
 
 printf 'xwallpaper %s "%s"' "${opts[*]}" "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
