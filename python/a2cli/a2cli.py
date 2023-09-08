@@ -184,8 +184,6 @@ def remove(downloads=[]):
                 aria2.remove(gid)
             except Exception:
                 aria2.forceRemove(gid)
-        sleep(.4)
-        aria2.removeDownloadResult(gid)
         print(name, 'removed')
 
 

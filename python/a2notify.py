@@ -2,7 +2,6 @@
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
 from sys import argv
-from time import sleep
 from shutil import move
 import subprocess as sp
 import json
@@ -48,6 +47,8 @@ def get_name(info):
 def get_torrent_file(info):
     infohash = info.get('infoHash')
     file = os.path.join(dir, f'{infohash}.torrent')
+    if os.path.isfile(f'{path}.torrent') and os.path.isfile(file):
+        os.remove(file)
     return file if os.path.isfile(file) else f'{path}.torrent'
 
 
