@@ -45,8 +45,17 @@ def save_config(config: str, update: bool = True):
 def parse_feed(url: str):
     print(f'Requesting {url}')
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urlopen(req) as res:
-        xml = res.read().decode()
+    att = 0
+    while (att := att + 1) < 5:
+        try:
+            with urlopen(req) as res:
+                xml = res.read().decode()
+            break
+        except Exception as err:
+            print(err)
+            sleep(1)
+    else:
+        return None, None
 
     root = ET.fromstring(xml)
     feed_title = root.find('channel').find('title').text
@@ -78,6 +87,9 @@ def update(url: str, download: bool = False, dl_dir: str = None):
 
     config = load_config()
     key, rss_links = parse_feed(url)
+    if key is None:
+        return
+
     if key not in config:
         config[key] = {'url': url, 'links': []}
 
@@ -205,15 +217,11 @@ def setup_logging(quiet=False):
 
 
 def parse_uri(uri):
-    if not uri:
-        return
     uri = re.sub(r'[&\?][cf]=[^&]+', '', uri)
     uri = re.sub(r'user/([^/\?]+)', r'&u=\1', uri)
     if 'page=rss' not in uri:
         uri += '&page=rss'
-    if '?' not in uri:
-        uri = uri.replace('&', '?', 1)
-    return uri
+    return uri if '?' in url else uri.replace('&', '?', 1)
 
 
 def main():
