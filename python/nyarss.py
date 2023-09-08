@@ -221,7 +221,7 @@ def parse_uri(uri):
     uri = re.sub(r'user/([^/\?]+)', r'&u=\1', uri)
     if 'page=rss' not in uri:
         uri += '&page=rss'
-    return uri if '?' in url else uri.replace('&', '?', 1)
+    return uri if '?' in uri else uri.replace('&', '?', 1)
 
 
 def main():
