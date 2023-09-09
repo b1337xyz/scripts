@@ -163,6 +163,7 @@ ex() {
             *.zip)     unzip "$i" -d "${i%.*}"   ;;
             *.7z)      7z x -o"${i%.*}" "$i"     ;;
             *.Z)       uncompress "$i" ;;
+            *) continue ;;
         esac || return 1
         [[ "$1" = -[rd] ]] && command rm -v "$i"
     done
