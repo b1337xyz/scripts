@@ -5,6 +5,7 @@ from os import system
 
 
 def smart_resize(i3, e):
+    """ Prevents the window from growing outside it's workspace """
     cmd = e.binding.command
     if cmd.startswith('resize '):
         tree = i3.get_tree()
@@ -43,5 +44,4 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
         except FileNotFoundError:
-            continue
-        sleep(1)
+            sleep(1)
