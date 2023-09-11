@@ -16,7 +16,7 @@ DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
 LOG = os.path.expanduser('~/.cache/nyarss.log')
 HOST = 'http://127.0.0.1:6800/jsonrpc'
-INTERVAL = 60 * 30
+INTERVAL = 60 * 22
 LOCK = '/tmp/.nyarss'
 RE_NYAA = re.compile(r'^https://(?:sukebei\.)?nyaa.*[\?&]page=rss.*')
 
@@ -43,7 +43,7 @@ def save_config(config: str, update: bool = True):
 
 
 def parse_feed(url: str):
-    print(f'Requesting {url}')
+    logging.info(f'Requesting {url}')
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     att = 0
     while (att := att + 1) < 5:
@@ -182,7 +182,7 @@ def delete():
 def show():
     config = load_config()
     for k in config:
-        config[k]['links'] = '[ ... ]'
+        config[k]['links'] = len(config[k]["links"])
     print(json.dumps(config, indent=2))
 
 

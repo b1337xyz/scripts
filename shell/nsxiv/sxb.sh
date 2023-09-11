@@ -1,4 +1,5 @@
 #!/usr/bin/env dash
+# https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/dmenu-search
 set -e
 
 if hash devour && [ -z "$DEVOUR" ];then

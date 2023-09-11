@@ -28,6 +28,7 @@ stdbuf -oL -- udevadm monitor --udev -s block | while read -r -- _ _ event devpa
         read -r label uuid < <(get_label "$devname")
         label=${label:-$uuid}
         [ -z "$label" ] && continue
+        [[ "$devname" =~ nbd ]] && continue
         [[ "$label" =~ ^ARCH ]] && continue 
 
         mp="${MP}/$label"

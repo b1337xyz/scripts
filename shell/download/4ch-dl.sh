@@ -22,6 +22,6 @@ main() {
     notify-send "thread: $thread" "$subject"
 
     curl -L -s "$url" | grep -oP '(?<=href\=")[^"]*\.(jpg|png|gif|webm)' |
-        sort -u | xargs -P2 -rI{} wget -nc -nv -P "$dl_dir" "https:{}" 2>&1
+        sort -u | xargs -rI{} wget -U Mozilla/5.0 -nc -nv -P "$dl_dir" "https:{}" 2>&1
 }
 [ -n "$1" ] && main "$1"
