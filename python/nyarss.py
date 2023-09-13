@@ -43,7 +43,6 @@ def save_config(config: str, update: bool = True):
 
 
 def parse_feed(url: str):
-    logging.info(f'Requesting {url}')
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     att = 0
     while (att := att + 1) < 5:

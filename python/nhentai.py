@@ -131,22 +131,22 @@ class Downloader:
                 data = f.read()
         else:
             att = 0
-            max_attempts = 5
-            while (att := att + 1) <= max_attempts:
+            while (att := att + 1) <= 5:
                 try:
                     r = self.session.get(url, stream=True)
-                except Exception:
+                except Exception as err:
+                    print(f'{err=}, {att=}')
                     continue
 
                 content_type = r.headers.get('content-type', '')
                 if re.search(r'torrent|octet', content_type):
                     break
             else:
-                print('HTTP ERROR', r.status_code)
                 return
 
             data = r.raw.read()
-            open(file, 'wb').write(data)
+            with open(file, 'wb') as f:
+                f.write(data)
 
         self.rpc.addTorrent(Binary(data), [], {
             'check-integrity': 'false',

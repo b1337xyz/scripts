@@ -83,7 +83,6 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
 
     counter = defaultdict(int)
     cols, lines = os.get_terminal_size()
-    cols += 7
     output = []
     total_dlspeed, total_upspeed = 0, 0
     for i, dl in enumerate(downloads, start=1):
@@ -128,18 +127,19 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             out = out[:cols - 3] + '...'
         output.append(out)
 
+    if clear:
+        print('\033[2J\033[1;1H')  # clear
+
     if not output:
         print('Nothing to see here...')
         return
-
-    if clear:
-        print('\033[2J\033[1;1H')  # clear
 
     print('\n'.join(output))
     if not numbered:
         total = sum([counter[k] for k in counter])
         print(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                              for k in counter]), end='\t')
+
         print('(DL: {:>8}/s UP: {:>8}/s)'.format(psize(total_dlspeed),
                                                  psize(total_upspeed)))
 

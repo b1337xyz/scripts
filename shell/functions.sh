@@ -165,7 +165,7 @@ ex() {
             *.Z)       uncompress "$i" ;;
             *) continue ;;
         esac || return 1
-        [[ "$1" = -[rd] ]] && command rm -v "$i"
+        [[ "$1" = -[rd] ]] && rm "$i"
     done
     return 0
 }
@@ -369,6 +369,7 @@ odr() {
 }
 
 grabindex() { wget  -e robots=off -r -k -nv -nH -l inf -R --reject-regex '(.*)\?(.*)' --no-parent "$1" ; }
+
 save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
@@ -420,7 +421,7 @@ random_str() {
     done
     chr=${chr:-a-zA-Z0-9@!<>&%\$#_\\-\\.}
     tr -dc "$chr" < /dev/urandom | fold -w "${n:-10}" | head -1
-    # shuf -er -n8 {A..Z} {a..z} {0..9}| tr -d '\n'
+    # shuf -er -n8 {A..Z} {a..z} {0..9} | tr -d '\n'
 }
 
 iommu_groups() {
