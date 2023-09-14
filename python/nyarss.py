@@ -98,8 +98,7 @@ def update(url: str, download: bool = False, dl_dir: str = None):
         config[key]['dir'] = dl_dir
 
     if not os.path.isdir(dl_dir):
-        del config[key]
-        save_config(config, update=False)
+        logging.warning(f'{dl_dir} not found')
         return
 
     links = config[key]['links']
