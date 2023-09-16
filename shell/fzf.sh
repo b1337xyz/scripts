@@ -39,7 +39,7 @@ s() {
 }
 c() { 
     local file
-    file=$(find ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
+    file=$(find -L ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
         \! \( -name '__*__' -o -iregex '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) 2>/dev/null |
         _fzfile -d "${HOME}/" --with-nth 2..)
 
