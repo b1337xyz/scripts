@@ -729,6 +729,14 @@ optpdf() {
         -dPDFSETTINGS=/screen -sOutputFile="${1%%.*}_small.pdf" "$1"
 }
 
+optgif() { 
+    #Potentially lower an animated GIF's (89a) file size using gifsicle
+    #
+    #    Usage: optgif input.gif output.gif
+    #
+    gifsicle -i "$1" -O3 -o "$2"
+}
+
 vmrss() {
     while :;do
         ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
