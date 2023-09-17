@@ -184,6 +184,8 @@ def remove(downloads=[]):
                 aria2.remove(gid)
             except Exception:
                 aria2.forceRemove(gid)
+        else:
+            aria2.removeDownloadResult(gid)
         print(name, 'removed')
 
 
@@ -236,6 +238,7 @@ if __name__ == '__main__':
         remove()
     elif args.remove_all:
         remove_all(args.status)
+        print(aria2.purgeDownloadResult())
     elif args.pause:
         pause()
     elif args.unpause:
