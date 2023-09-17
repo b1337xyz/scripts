@@ -22,8 +22,9 @@ parser.add_argument('-p', '--path', type=str, default='.',
 parser.add_argument('-r', '--rename', action='store_true',
                     help='rename/link file itself')
 parser.add_argument('-f', '--files-only', action='store_true')
+parser.add_argument('--exclude', nargs='*')
 parser.add_argument('--fzf', action='store_true')
-parser.add_argument('--year', type=int)
+parser.add_argument('--year', type=int, default=-1)
 parser.add_argument('argv', nargs='*')
 args = parser.parse_args()
 argv = args.argv
@@ -37,7 +38,6 @@ if args.fzf:
     assert which('fzf')
 
 YEAR_NOW = datetime.now().year
-YEAR = args.year
 USE_ANILIST = args.use_anilist
 JIKAN_URL = "https://api.jikan.moe/v4/anime?q={}&limit=20"
 ANILIST_URL = 'https://graphql.anilist.co'
@@ -150,16 +150,14 @@ def parse_data(data: list, file_count: int) -> dict:
         if USE_ANILIST:
             year = i['startDate']['year']
         else:
-            year = i.get('year', i['aired']['prop']['from']['year'])
+            if (year := i.get('year')) is None:
+                year = i['aired']['prop']['from']['year']
 
-        if year and int(year) > YEAR_NOW:
-            continue
-
-        if YEAR and year and YEAR != int(year):
-            continue
+        if year is not None:
+            if int(year) > YEAR_NOW or args.year > int(year):
+                continue
 
         parsed_data[clean_title] = (title, year, episodes)
-
     return parsed_data
 
 
@@ -218,7 +216,14 @@ def fzf(args: list, prompt: str) -> str:
 
 def main():
     uniq = dict()
+    exclude = [os.path.basename(os.path.realpath(i)) for i in args.exclude]
+    print(exclude)
     for f in os.listdir() if not argv else argv:
+        f = os.path.basename(os.path.realpath(f))
+        if f in exclude:
+            print(f'skipping {f}')
+            continue
+
         if f.startswith('.') or (args.files_only and not os.path.isfile(f)):
             continue
 
