@@ -1,24 +1,10 @@
 #!/bin/sh
-
-SCRIPT="${0##*/}"
-URL="$1"
-DIR=~/Downloads/ytdl
-HST=~/.cache/ytdl_history
-
-notify() {
-    notify-send -i document-save "$@"
-}
-
-mkdir -p "$DIR"
-echo "$URL" >> "$HST"
-printf '\033]2;%s\007' "$URL"
-
-notify "$SCRIPT started" "$URL"
-if yt-dlp -P "$DIR" "$URL"
+echo "$*" >> ~/.cache/ytdl_history
+notify-send -i emblem-downloads.png "[ytdl] Downloading..." "$*"
+if yt-dlp -P ~/Downloads/ytdl "$@"
 then
-    notify "$SCRIPT successed" "$URL"
-    exit 0
+    notify-send -i document-save "[ytdl] Successed" "$*"
 else
-    notify-send -i dialog-error "$SCRIPT failed" "$URL"
+    notify-send -i dialog-error "[ytdl] Failed" "$*"
     exit 1
 fi

@@ -13,7 +13,7 @@ get_path() { # Select a path with dmenu
     # find -L "$1" -iregex "$reImage" -printf '%h\n' | sort -u | dmenu -c -i -l 20 -n
     
     # same as above but does not show the whole path, just the basename of the images found
-    # pipe dirname to basename than find the selected basename in $@ path
+    # pipe dirname to basename than find the selected basename in the provided path $@
     { 
         [ "$1" != "." ] && printf '%s\0' "$1";
         find -L "$@" -iregex "$reImage" -printf '%h\0';  # %h = dirname

@@ -1,25 +1,10 @@
 #!/bin/sh
-set -e
-
-SCRIPT="${0##*/}"
-URL="$1"
-DIR=~/Downloads/gdl
-HST=~/.cache/gdl_history
-
-notify() {
-    notify-send -i document-save "$@"
-}
-
-mkdir -p "$DIR"
-echo "$@" >> "$HST"
-printf '\033]2;%s\007' "$URL"
-
-notify "$SCRIPT started" "$URL"
-if gallery-dl -d "$DIR" "$URL" 2>> "$HST"
+echo "$*" >> ~/.cache/gdl_history
+notify-send -i emblem-downloads.png "[gdl] Downloading..." "$*"
+if gallery-dl -d ~/Downloads/gdl "$@"
 then
-    notify "$SCRIPT successed" "$URL"
-    exit 0
+    notify-send -i document-save "[gdl] Successed" "$*"
 else
-    notify-send -i dialog-error "$SCRIPT failed" "$URL"
+    notify-send -i dialog-error "[gdl] Failed" "$*"
     exit 1
 fi

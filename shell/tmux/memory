@@ -1,0 +1,8 @@
+#!/bin/sh
+awk '/^(MemTotal|MemAvailable):/{
+    total = ($2 + 0) / 1024
+    getline
+    avail = ($2 + 0) / 1024
+    getline 
+    printf("%d/%d\n",  total - avail, total)
+}' /proc/meminfo

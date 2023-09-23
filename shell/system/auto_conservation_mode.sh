@@ -12,9 +12,9 @@ while sleep 300; do
     value=$(cat "$TARGET")
     if   [ "$value" = 0 ] && [ "${capacity:-0}" -ge "$THRESHOLD" ]; then
         echo 1 > "$TARGET"
-        echo "INFO: conservation mode enabled at ${capacity}%"
+        echo "conservation mode enabled at ${capacity}%"
     elif [ "$value" = 1 ] && [ "${capacity:-0}" -lt "$THRESHOLD" ]; then
         echo 0 > "$TARGET"
-        echo "INFO: conservation mode disabled at ${capacity}%"
+        echo "conservation mode disabled at ${capacity}%"
     fi
 done
