@@ -198,6 +198,10 @@ def parse_aguments():
                         help='update and download every N seconds')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
+    parser.add_argument('--delete', action='store_true',
+                        help='delete rss entry')
+    parser.add_argument('--update', action='store_true',
+                        help='update all feeds')
     parser.add_argument('-c', '--change-dir', type=str)
     parser.add_argument('uri', type=str, nargs='?', help='<RSS URI>')
     return parser.parse_args()
@@ -230,11 +234,9 @@ def main():
 
     setup_logging(args.quiet)
 
-    if 'show' in argv:
-        show()
-    elif 'delete' in argv:
+    if 'delete' in argv or args.delete:
         delete()
-    elif 'update' in argv:
+    elif 'update' in argv or args.update:
         update_all(download=False)
     elif args.uri:
         update(url=parse_uri(args.uri), download=args.download, dl_dir=dl_dir)
@@ -249,8 +251,8 @@ def main():
     elif args.change_dir:
         chdir(args.change_dir)
     else:
-        print('Nothing to do')
-        parser.print_help()
+        show()
+
 
 
 if __name__ == '__main__':

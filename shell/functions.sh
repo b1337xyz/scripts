@@ -79,9 +79,7 @@ cpl() {
 arc() {
     # Archive file
     local filename basename archive
-    shopt -s extglob
-    filename=${1%%+(/)} # remove `///...` if present at the end of "$1" (requires extglob)
-    shopt -u extglob
+    filename=${1%%+(/)} # remove `file///+` if present at the end of "$1" (requires extglob)
     basename=${filename##*/}
     archive=${basename}.tar
     n=1
@@ -745,8 +743,11 @@ vmrss() {
 }
 
 isup() {
-    # curl -L -s --head --request GET "$1"
-    wget -U Mozilla/5.0 -q --spider --server-response "$1" 2>&1
+    if hash wget 2>/dev/null; then
+        wget -U Mozilla/5.0 -q --spider --server-response "$1" 2>&1
+    elif hash curl 2>/dev/null; then
+        curl -L -s --head --request GET "$1"
+    fi
 }
 
 tsxiv() {
@@ -794,4 +795,10 @@ magnet2torrent() {
         sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
         grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)' |
         aria2c --bt-save-metadata --bt-metadata-only --input-file=-
+}
+
+zipdir() {
+    local out
+    out=$(realpath "$1").zip
+    [ -d "$1" ] && zip -r -v -1 "${out}" "$1"
 }

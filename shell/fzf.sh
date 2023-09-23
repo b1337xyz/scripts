@@ -147,3 +147,10 @@ fzkill() {
 fdel() {
     find "${1:-.}" -maxdepth 2 -xdev -type f | fzf --print0 | xargs -r0 rm -vI
 }
+menu() { 
+    fzf -m -0 --no-separator --no-scrollbar --disabled \
+        --prompt='' --height=~20 --layout=reverse-list \
+        --cycle --border=none --no-info --no-sort \
+        --color gutter:-1,query:black \
+        --bind 'j:down' --bind 'k:up'
+}

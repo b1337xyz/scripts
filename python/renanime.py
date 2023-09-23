@@ -22,7 +22,7 @@ parser.add_argument('-p', '--path', type=str, default='.',
 parser.add_argument('-r', '--rename', action='store_true',
                     help='rename/link file itself')
 parser.add_argument('-f', '--files-only', action='store_true')
-parser.add_argument('--exclude', nargs='*')
+parser.add_argument('--exclude', nargs='*', default=[])
 parser.add_argument('--fzf', action='store_true')
 parser.add_argument('--year', type=int, default=-1)
 parser.add_argument('argv', nargs='*')

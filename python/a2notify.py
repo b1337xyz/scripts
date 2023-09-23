@@ -101,6 +101,7 @@ if __name__ == '__main__':
     dir = info['dir']
     path = os.path.join(dir, name)
     status = info['status']
+    error_code = info.get('errorCode')
     size = get_psize(int(info["totalLength"]))
     is_metadata = name.startswith('[METADATA] ')
     torrent_file = get_torrent_file(info)
@@ -109,6 +110,6 @@ if __name__ == '__main__':
         case 'complete':
             on_complete()
         case 'error':
-            notify(f"{status}", name, icon='dialog-error')
+            notify(f"{status} {error_code}", name, icon='dialog-error')
         case _:
             notify(f"{status}", f'{name}\nSize: {size}')

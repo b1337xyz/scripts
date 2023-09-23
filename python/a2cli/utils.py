@@ -13,7 +13,7 @@ TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB
 FZF_ARGS = [
-    '-m', '--delimiter=:', '--with-nth=2',
+    '-m', '--delimiter=:', '--with-nth=2..',
     '--bind', 'ctrl-a:toggle-all',
 ]
 SORTING_KEYS = [
@@ -155,7 +155,7 @@ def get_name(info):
         return info['gid']
 
 
-def fzf(prompt, args):
+def fzf(args, prompt='>'):
     if not args:
         return
 

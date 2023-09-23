@@ -25,7 +25,7 @@ while :;do
     [ "$l" -eq 0 ] && break
 
     if [ "$l" -gt 1 ];then
-        out=$(nsxiv -n "$n" -qito < "$cache" 2>/dev/null || { shift; n=$1; })
+        out=$(nsxiv -n "$n" -fqito < "$cache" 2>/dev/null || { shift; n=$1; })
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi
@@ -42,7 +42,7 @@ while :;do
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
-            nsxiv -s w -bqr "$out" 2>/dev/null || true
+            nsxiv -s w -fbqr "$out" 2>/dev/null || true
             out=
             n=$x
         else
