@@ -20,7 +20,7 @@ is_green() {
 is_dark() {
     unset mean
     mean=$(convert "$1" -format "%[fx:int(mean * 100)]" info:)
-    test "$mean" -lt 30
+    test "$mean" -lt 25
 }
 
 resize() {
