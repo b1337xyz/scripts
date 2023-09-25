@@ -1,8 +1,8 @@
 #!/bin/sh
-awk '/^(MemTotal|MemAvailable):/{
-    total = ($2 + 0) / 1024
-    getline
-    avail = ($2 + 0) / 1024
-    getline 
-    printf("%d/%d\n",  total - avail, total)
-}' /proc/meminfo
+while read -r a b _;do
+    case "$a" in
+        MemTotal:) total=$(( b / 1024 )) ;;
+        MemAvailable:) avail=$(( b / 1024 )) ; break ;;
+    esac
+done < /proc/meminfo
+printf '%d/%d\n' "$((total - avail))" "$total"

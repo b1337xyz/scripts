@@ -81,6 +81,10 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     elif sort_by is not None:
         downloads = sorted(downloads, key=lambda x: x.get(sort_by))
 
+    if USE_FZF:
+        fzf([f':{v["status"]}:[{get_name(v)}' for v in downloads])
+        return
+
     counter = defaultdict(int)
     cols, lines = os.get_terminal_size()
     output = []
@@ -186,7 +190,17 @@ def remove(downloads=[]):
                 aria2.forceRemove(gid)
         else:
             aria2.removeDownloadResult(gid)
-        print(name, 'removed')
+
+        print(gid, name, 'removed')
+        path = os.path.join(dl['dir'], name)
+        if os.path.exists(path):
+            print(path)
+            sp.run(['rm', '-rvI', path])
+
+    for dl in aria2.tellStopped(0, MAX):
+        if dl['status'] == 'removed':
+            aria2.removeDownloadResult(dl['gid'])
+            print(gid, name, 'removed')
 
 
 def remove_all(status=None):

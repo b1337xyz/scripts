@@ -75,12 +75,15 @@ rentorrent() {
 m2t() {
     local tmpdir torrent torrent_name
     tmpdir=$(mktemp -d)
-    aria2c --bt-save-metadata --bt-metadata-only --bt-stop-timeout=90 \
-        -d "$tmpdir" "$1" || { rm -rf "$tmpdir"; return 1; }
+    aria2c --file-allocation=none --bt-save-metadata --bt-metadata-only --bt-stop-timeout=90 \
+        -d "$tmpdir" "$1" || { rm -dv "$tmpdir"; return 1; }
+
     torrent=$(find "$tmpdir" -type f)
-    torrent_name=$(aria2c -S "$torrent" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
-    mv -v "$torrent" "$torrent_name"
-    rm -rf "$tmpdir"
+    if [ -f "$torrent" ];then
+        torrent_name=$(aria2c -S "$torrent" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
+        mv -v "$torrent" "${torrent_name:-.}"
+        rm -vd "$tmpdir"
+    fi
 }
 
 btdiff() {

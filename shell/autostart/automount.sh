@@ -4,7 +4,7 @@ set -e
 umask 0077 # rwx-----
 
 MP=/mnt/"$USER"
-[ -w "$MP" ] || { printf "Can't write to '%s': Permission denied\n" "$MP";  exit 1; }
+[ -w "$MP" ] || { printf "Can't write to '%s'\n" "$MP";  exit 1; }
 
 lock=/tmp/.automount.lock
 [ -f "$lock" ] && exit 0

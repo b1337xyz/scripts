@@ -79,7 +79,11 @@ def notify(title, msg, icon='emblem-downloads'):
 
 
 def on_complete():
-    request('removeDownloadResult', gid)
+    try:
+        request('removeDownloadResult', gid)
+    except Exception:
+        pass
+
     if is_metadata:
         notify(status, name)
     else:
@@ -103,7 +107,7 @@ if __name__ == '__main__':
     status = info['status']
     error_code = info.get('errorCode')
     size = get_psize(int(info["totalLength"]))
-    is_metadata = name.startswith('[METADATA] ')
+    is_metadata = name.startswith('[METADATA]')
     torrent_file = get_torrent_file(info)
 
     match status:

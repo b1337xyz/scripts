@@ -4,7 +4,7 @@ set -e
 DIR=~/Pictures/wallpapers
 
 cd "$DIR"
-umask 0077
+umask 0077  # 600
 
 is_green() {
     convert "$1" -scale 50x50\! -depth 8 +dither -colors 8 -format "%c" histogram:info: |
