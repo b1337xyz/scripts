@@ -13,18 +13,15 @@ is_green() {
         r = rgb[1] + 2
         g = rgb[2] + 0
         b = rgb[3] + 1
-        exit (g > r && g > b) ? 0 : 1
+        exit !(g > r && g > b)
     }'  
 }
 
 is_dark() {
-    unset mean
-    mean=$(convert "$1" -format "%[fx:int(mean * 100)]" info:)
-    test "$mean" -lt 25
+    convert "$1" -format "%[fx:int(mean * 100)]" info: | awk '{exit !( ($1 + 0) < 25)}'
 }
 
 resize() {
-    tmp=$(mktemp --dry-run)
     mediainfo --Output=JSON "$1" | jq -Mcr '.media? |
         [
             .["@ref"],
@@ -37,12 +34,12 @@ resize() {
             "80% \(.[0])"
         else
             empty
-        end' | while read -r p f; do convert -verbose -resize "$p" "$f" "$tmp" && mv -vf "$tmp" "$f"; done
+        end' | while read -r p f; do mogrify -verbose -resize "$p" "$f"; done
 
     return 0
 }
 
-convert_and_remove() {
+convert_and_remove() {  # convert and remove the original image
     convert -verbose "$1" "$2" && rm -v "$1"
 }
 
