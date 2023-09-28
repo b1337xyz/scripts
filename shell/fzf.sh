@@ -82,7 +82,7 @@ alacritty_theme_switcher() {
     # shellcheck disable=SC2317
     pv() {
         config=~/.config/alacritty/alacritty.yml
-        sed -i "s/\/themes\/.*\.yml$/\/themes\/${1}/" "$config"
+        sed -i "s/\/themes\/.*\.ya\?ml$/\/themes\/${1}/" "$config"
         bat --style=numbers --color=always --line-range :15 ~/.bashrc
         ls -x --color=always ~/
         bash ~/.scripts/playground/shell/Colors/panes

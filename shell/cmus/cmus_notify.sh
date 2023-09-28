@@ -5,16 +5,17 @@ DEFAULT_ICON=media-optical-audio
 [ -d "$COVER" ] || mkdir -p "$COVER"
 
 while [ -n "$1" ];do
-    case "$1" in
-        status)   shift; [ "$1" = playing ] || exit 0; status=${1^} ;;
-        file)     shift; file=$1 ;;
-        artist)   shift; artist=$1 ;;
-        album)    shift; album=$1 ;;
-        title)    shift; title=$1 ;;
-        date)     shift; date=$1 ;;
-        duration) shift; duration=$(printf '%02d:%02d' $(($1/60)) $(($1%60))) ;;
+    k=$1 v=$1
+    shift 2
+    case "$k" in
+        status) [ "$v" = playing ] || exit 0; status=${v^} ;;
+        file) file=$v ;;
+        artist) artist=$v ;;
+        album) album=$v ;;
+        title) title=$v ;;
+        date) date=$v ;;
+        duration) duration=$(printf '%02d:%02d' $((v / 60)) $((v % 60))) ;;
     esac
-    shift
 done
 
 filename=${file##*/} filename=${filename%.*}

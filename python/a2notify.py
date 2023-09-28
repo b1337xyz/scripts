@@ -98,7 +98,7 @@ def on_complete():
 if __name__ == '__main__':
     gid = argv[1]
     info = request('tellStatus', gid)
-    if int(info.get("totalLength", 0)) < 2:
+    if int(info.get("totalLength", 0)) <3:
         exit(0)
 
     name = get_name(info)
