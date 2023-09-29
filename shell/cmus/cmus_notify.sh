@@ -5,7 +5,7 @@ DEFAULT_ICON=media-optical-audio
 [ -d "$COVER" ] || mkdir -p "$COVER"
 
 while [ -n "$1" ];do
-    k=$1 v=$1
+    k=$1 v=$2
     shift 2
     case "$k" in
         status) [ "$v" = playing ] || exit 0; status=${v^} ;;

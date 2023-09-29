@@ -5,6 +5,7 @@ from thefuzz import process
 from time import sleep
 from shutil import which
 from datetime import datetime
+from tempfile import mktemp
 import requests
 import subprocess as sp
 import re
@@ -214,10 +215,26 @@ def fzf(args: list, prompt: str) -> str:
         pass
 
 
+def change_query(query: str):
+    tempfile = mktemp()
+    try:
+        with open(tempfile, 'w') as f:
+            f.write(query)
+
+        editor = which(os.getenv('EDITOR', ''))
+        if editor is None:
+            return input('query: ').strip()
+
+        sp.run([editor, tempfile])
+        with open(tempfile, 'r') as f:
+            return f.readline().strip()
+    finally:
+        os.remove(tempfile)
+
+
 def main():
     uniq = dict()
     exclude = [os.path.basename(os.path.realpath(i)) for i in args.exclude]
-    print(exclude)
     for f in os.listdir() if not argv else argv:
         f = os.path.basename(os.path.realpath(f))
         if f in exclude:
@@ -240,7 +257,8 @@ def main():
         files = uniq[query]
         print(f'{RED}< {files[0]}{END}\n{GRN}> {query}{END}')
         if ask('Change query?'):
-            query = input('Query: ').strip()
+            query = change_query(query)
+
         if not query:
             continue
 
@@ -248,6 +266,7 @@ def main():
             data = request_anilist(query)
         else:
             data = request_jikan(query)
+
         sleep(0.5)
 
         if not data:
