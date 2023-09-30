@@ -21,5 +21,4 @@ find "${1:-$WALLPAPERS}" -iregex '.*\.\(mkv\|avi\|mp4\|webm\|gif\)' |
     sort -V | fzf --preview "preview {}" \
     --border=none \
     --preview-window "${DEFAULT_PREVIEW_POSITION}:45%:border-sharp" \
-    --bind 'ctrl-h:execute-silent(vbg.sh -s hdmi1 {})' \
-    --bind 'enter:execute-silent(vbg.sh {})'
+    --bind 'enter:execute(vbg {})'

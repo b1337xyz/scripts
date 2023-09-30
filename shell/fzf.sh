@@ -119,7 +119,9 @@ dlbkp() {
     unset dl
 }
 fzopen() {
-    fzf --bind 'enter:execute-silent(xdg-open {} & disown)'
+    find "${1:-.}" -maxdepth 6 -xdev -type f -regextype posix-extended \
+        -iregex '.*\.(mkv|mp4|webm|avi|m4v|epub|pdf|jpe?g|png)' |
+        fzf --bind 'enter:execute-silent(xdg-open {} & disown)+accept'
 }
 fzpac() { 
     pacman "${@:--Qqe}" | fzf -m --header '^r ^s ^d' \

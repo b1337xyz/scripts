@@ -98,7 +98,7 @@ def update(url: str, download: bool = False, dl_dir: str = None):
 
     config[key]['links'][-100::]
     save_config(config)
-    logging.info(f'{key} updated')
+    # logging.info(f'{key} updated')
 
 
 def update_all(download=True):
