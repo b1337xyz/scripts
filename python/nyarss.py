@@ -4,8 +4,6 @@ import re
 import sys
 import json
 import logging
-import atexit
-import signal
 from time import sleep
 from urllib.request import Request, urlopen
 from shutil import copy
@@ -16,8 +14,6 @@ DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
 LOG = os.path.expanduser('~/.cache/nyarss.log')
 HOST = 'http://127.0.0.1:6800/jsonrpc'
-INTERVAL = 60 * 22
-LOCK = '/tmp/.nyarss'
 RE_NYAA = re.compile(r'^https://(?:sukebei\.)?nyaa.*[\?&]page=rss.*')
 
 
@@ -44,17 +40,8 @@ def save_config(config: str, update: bool = True):
 
 def parse_feed(url: str):
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    att = 0
-    while (att := att + 1) < 5:
-        try:
-            with urlopen(req) as res:
-                xml = res.read().decode()
-            break
-        except Exception as err:
-            print(err)
-            sleep(1)
-    else:
-        return None, None
+    with urlopen(req) as res:
+        xml = res.read().decode()
 
     root = ET.fromstring(xml)
     feed_title = root.find('channel').find('title').text
@@ -111,35 +98,12 @@ def update(url: str, download: bool = False, dl_dir: str = None):
 
     config[key]['links'][-100::]
     save_config(config)
-    # logging.info(f'{key} updated')
+    logging.info(f'{key} updated')
 
 
 def update_all(download=True):
     for v in load_config().values():
         update(v['url'], download)
-
-
-def monitor(seconds=INTERVAL):
-    assert seconds > 300
-
-    if os.path.exists(LOCK):
-        logging.error(f'lock file {LOCK} exists, already running?')
-        sys.exit(1)
-
-    @atexit.register
-    def cleanup(code=None, frame=None):
-        """ Cleanup at exit and by SIGTERM """
-        if os.path.isfile(LOCK):
-            os.remove(LOCK)
-
-        if code is not None:  # if SIGTERM
-            sys.exit(0)       # will run again by atexit
-
-    open(LOCK, 'w').close()
-    signal.signal(signal.SIGTERM, cleanup)
-    while True:
-        update_all()
-        sleep(seconds)
 
 
 def select():
@@ -192,10 +156,6 @@ def parse_aguments():
                         help='where to download files (default: %(default)s)')
     parser.add_argument('-f', '--file', type=str,
                         help='add rss feeds from file')
-    parser.add_argument('-s', '--seconds', default=INTERVAL, type=int,
-                        metavar='N', help='default: %(default)s')
-    parser.add_argument('--loop', action='store_true',
-                        help='update and download every N seconds')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
     parser.add_argument('--delete', action='store_true',
@@ -237,7 +197,7 @@ def main():
     if 'delete' in argv or args.delete:
         delete()
     elif 'update' in argv or args.update:
-        update_all(download=False)
+        update_all(download=args.download)
     elif args.uri:
         update(url=parse_uri(args.uri), download=args.download, dl_dir=dl_dir)
     elif args.file:
@@ -246,13 +206,10 @@ def main():
                 update(url=parse_uri(line),
                        download=args.download,
                        dl_dir=dl_dir)
-    elif args.loop:
-        monitor(args.seconds)  # TODO: fork this (daemon)?
     elif args.change_dir:
         chdir(args.change_dir)
     else:
         show()
-
 
 
 if __name__ == '__main__':

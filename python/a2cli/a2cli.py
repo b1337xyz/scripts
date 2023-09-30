@@ -120,11 +120,13 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         blank = bar_size - blocks
         bar = f'[{blocks * "#"}{blank * " "} {p:>3}%]'
 
-        out = '{}{}{}{} {} {:>8} [{}] {}'.format(
+        out = '{}{}{}{} {} {} {:>8} [{}] {}'.format(
             f'{i}) ' if numbered else '',
             f"{dl['gid']}: " if SHOW_GID else '',
-            icon, bar,
-            f'{psize(dlspeed):>8}/s' if status == 'active' else ' ',
+            icon,
+            bar,
+            f'{psize(dlspeed):>8}/s',
+            f'{psize(upspeed):>8}/s',
             psize(size), ratio, name)
 
         if len(out) > cols:
