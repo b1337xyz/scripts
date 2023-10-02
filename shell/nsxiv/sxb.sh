@@ -1,9 +1,10 @@
-#!/usr/bin/env dash
+#!/bin/sh
 # https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/dmenu-search
 set -e
 
-if hash devour && [ -z "$DEVOUR" ];then
-    DEVOUR=y devour "$0"; exit 0
+if command -v devour 2>/dev/null && [ -z "$DEVOUR" ];then
+    DEVOUR=y devour "$0"
+    exit
 fi
 
 tmp=$(mktemp -d)

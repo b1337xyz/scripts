@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 pkill -x xwinwrap >/dev/null 2>&1
 
 main() {

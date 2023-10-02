@@ -40,8 +40,12 @@ def save_config(config: str, update: bool = True):
 
 def parse_feed(url: str):
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urlopen(req) as res:
-        xml = res.read().decode()
+    try:
+        with urlopen(req) as res:
+            xml = res.read().decode()
+    except Exception as err:
+        logging.error(str(err))
+        sys.exit(1)
 
     root = ET.fromstring(xml)
     feed_title = root.find('channel').find('title').text
