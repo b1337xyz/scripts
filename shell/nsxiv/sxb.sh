@@ -2,7 +2,7 @@
 # https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/dmenu-search
 set -e
 
-if command -v devour 2>/dev/null && [ -z "$DEVOUR" ];then
+if command -v devour >/dev/null 2>&1 && [ -z "$DEVOUR" ];then
     DEVOUR=y devour "$0"
     exit
 fi
