@@ -4,7 +4,8 @@ btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
 
 getHashes() {
     # aria2c -S ./*.torrent | awk '/^>>>|^Info/'
-    aria2c -S ./*.torrent | awk '{
+    [ -z "$1" ] && set -- ./*.torrent
+    aria2c -S "$@" | awk '{
     if ($0 ~ /^>>>/) {
         s = substr($0, 36)
         sub(/.\.\.\.$/, "", s)
