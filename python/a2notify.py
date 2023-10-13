@@ -84,15 +84,15 @@ def on_complete():
     except Exception:
         pass
 
+    if os.path.isfile(torrent_file):
+        mv(torrent_file, CACHE)
+
     if is_metadata:
         notify(status, name)
     else:
         notify(status, f'{name}\nSize: {size}')
         if os.path.exists(path) and dir == TEMP_DIR:
             mv(path, DL_DIR)
-
-    if os.path.isfile(torrent_file):
-        mv(torrent_file, CACHE)
 
 
 if __name__ == '__main__':

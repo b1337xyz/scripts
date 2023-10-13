@@ -2,6 +2,10 @@ bcat() { aria2c -S "$1";  }
 bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
 btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
 
+getHashes() {
+    aria2c -S ./*.torrent | awk '/^>>>|^Info/'
+}
+
 dubt() {
     [ $# -eq 0 ] && set -- ./*.torrent
     aria2c -S "$@" | awk '/^Total | 1\|\.\//{
@@ -160,6 +164,7 @@ addUri() {
         -H "Accept: application/json" \
         -d "$data" -w '\n'
 }
+
 
 # addTorrent() {
 #     local torrent data

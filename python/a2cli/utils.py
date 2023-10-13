@@ -12,6 +12,7 @@ CACHE = os.path.expanduser('~/.cache/torrents')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB
+
 FZF_ARGS = [
     '-m', '--delimiter=:', '--with-nth=2..',
     '--bind', 'ctrl-a:toggle-all',
