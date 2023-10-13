@@ -3,7 +3,16 @@ bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
 btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
 
 getHashes() {
-    aria2c -S ./*.torrent | awk '/^>>>|^Info/'
+    # aria2c -S ./*.torrent | awk '/^>>>|^Info/'
+    aria2c -S ./*.torrent | awk '{
+    if ($0 ~ /^>>>/) {
+        s = substr($0, 36)
+        sub(/.\.\.\.$/, "", s)
+        print s
+    } else if ($0 ~ /^Info/) {
+        print $3
+    }
+}'
 }
 
 dubt() {
