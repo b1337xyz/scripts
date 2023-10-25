@@ -4,7 +4,6 @@ import re
 import sys
 import json
 import logging
-from time import sleep
 from urllib.request import Request, urlopen
 from shutil import copy
 from argparse import ArgumentParser
@@ -138,11 +137,12 @@ def chdir(new_dir):
     save_config(config)
 
 
-def delete():
+def remove():
     k = select()
     config = load_config()
     del config[k]
     save_config(config, update=False)
+    print(k, 'removed')
 
 
 def show():
@@ -162,8 +162,8 @@ def parse_aguments():
                         help='add rss feeds from file')
     parser.add_argument('--download', action='store_true',
                         help='add and download')
-    parser.add_argument('--delete', action='store_true',
-                        help='delete rss entry')
+    parser.add_argument('-r', '--remove', action='store_true',
+                        help='remove rss entry')
     parser.add_argument('--update', action='store_true',
                         help='update all feeds')
     parser.add_argument('-c', '--change-dir', type=str)
@@ -198,8 +198,8 @@ def main():
 
     setup_logging(args.quiet)
 
-    if 'delete' in argv or args.delete:
-        delete()
+    if 'remove' in argv or args.remove:
+        remove()
     elif 'update' in argv or args.update:
         update_all(download=args.download)
     elif args.uri:
