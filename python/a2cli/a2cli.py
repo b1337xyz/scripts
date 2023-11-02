@@ -7,9 +7,6 @@ import json
 
 
 def select(action, downloads):
-    if len(downloads) < 2:
-        return downloads
-
     if USE_FZF:
         return [downloads[int(i.split(':')[0])]
                 for i in fzf(prompt=action, args=[
@@ -65,11 +62,11 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
 
 
 def get_perc(x):
-    return int(x['completedLength']) // (int(x['totalLength']) + .01)
+    return int(x['completedLength']) / (int(x['totalLength']) + .01)
 
 
 def get_ratio(x):
-    return int(x['uploadLength']) // (int(x['completedLength']) + .01)
+    return int(x['uploadLength']) / (int(x['completedLength']) + .01)
 
 
 def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
@@ -88,7 +85,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     counter = defaultdict(int)
     cols, lines = os.get_terminal_size()
     output = []
-    total_dlspeed, total_upspeed = 0, 0
+    total_dlspeed, total_upspeed, total_dl, total_up = 0, 0, 0, 0
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
         counter[status] += 1
@@ -97,6 +94,9 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
 
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
+        upload_length = int(dl['uploadLength'])
+        total_dl += completed_length
+        total_up += upload_length
         ratio = round(get_ratio(dl), 1)
         # plen = psize(completed_length)
         dlspeed = int(dl['downloadSpeed'])
@@ -118,7 +118,7 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         p = completed_length * 100 // (1 if size == 0 else size)
         blocks = p * bar_size // 100
         blank = bar_size - blocks
-        bar = f'[{blocks * "#"}{blank * " "} {p:>3}%]'
+        bar = f'[{blocks * "#"}{blank * " "}{p:>3}%]'
 
         out = '{}{}{}{} {} {} {:>8} [{}] {}'.format(
             f'{i}) ' if numbered else '',
@@ -146,8 +146,10 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
         print(f'total: {total} ' + ' '.join([f'{k}: {counter[k]}'
                                              for k in counter]), end='\t')
 
-        print('(DL: {:>8}/s UP: {:>8}/s)'.format(psize(total_dlspeed),
-                                                 psize(total_upspeed)))
+        print('(DL: {:>8}/s UP: {:>8}/s)\t(TDL: {:>8} TUP: {:>8})'.format(
+            psize(total_dlspeed), psize(total_upspeed),
+            psize(total_dl), psize(total_up)
+            ))
 
 
 def pause():

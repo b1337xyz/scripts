@@ -21,19 +21,18 @@ while read -r i;do
         sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
+term=alacritty
 cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
-    pulsemixer|top) run ts -n floating_window -- "$cmd" ;;
-    sxcs)           run 'sxcs | xclip -sel c' ;;
+    pulsemixer|top) run "$term" --class floating_window -e "$cmd" ;;
+    ncmpcpp)        run "$term" --title ncmpcpp -e ncmpcpp ;; 
+    newsboat)       run "$term" --class newsboat --title newsboat -e newsboat ;;
+    fzfanime.sh)    run "$term" --title fzfanime -e fzfanime.sh ;;
     cmus)           run tmux new-session -d -s cmus cmus ;; 
-    ncmpcpp)        run ts -t ncmpcpp -- ncmpcpp ;; 
-    newsboat)       run ts -n newsboat -t newsboat -- newsboat ;;
     spotify)        run spotify -no-zygote ;;
     conky)          runconky.sh ;;
-    fzfanime.sh)    run ts -- fzfanime.sh ;;
-    cava)           run st -n Cava -g 40x10+15-15 cava ;;
     dhewm3) 
         # shellcheck disable=SC2016
         run 'dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"'

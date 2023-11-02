@@ -802,3 +802,8 @@ zipdir() {
     out=$(realpath "$1").zip
     [ -d "$1" ] && zip -r -v -1 "${out}" "$1"
 }
+
+allowit() {
+    find "${@:-.}" -type f -exec chmod -c g+r {} +
+    find "${@:-.}" -type d -exec chmod -c g+rwx {} +
+}

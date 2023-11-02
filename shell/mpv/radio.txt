@@ -33,7 +33,7 @@ Lofi-24_7                   |https://usa9.fastcast4u.com/proxy/jamz?mp=/1
 Majestic Jukebox            |https://uk3.internet-radio.com/proxy/majesticjukebox?mp=/live
 Matt Johnson Radio          |https://us2.internet-radio.com/proxy/mattjohnsonradio?mp=/stream;
 Metal Rock Radio            |https://kathy.torontocast.com:2800/stream/1/
-Plaza                       |https://radio.plaza.one/ogg
+Plaza                       |http://radio.plaza.one/mp3
 RelaxingJazz                |http://77.68.84.201/stream/1/
 RmFM                        |https://rautemusik-de-hz-fal-stream14.radiohost.de/study?ref=tunein
 Smooth Jazz Planet          |https://us3.internet-radio.com/proxy/smoothjazzplanet?mp=/stream;

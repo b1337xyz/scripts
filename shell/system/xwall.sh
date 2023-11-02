@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-set -e
 default_target=~/Pictures/wallpapers
 cache=~/.cache/xwallpaper
 log=~/.cache/.xwall.log
 reImage='.*\.\(jpe?g\|png\)'
+
+[ -f "$cache" ] || :>"$cache"
 
 _help() {
     printf 'Usage: %s [--no-cache --prev --next --current --sxiv --dmenu --<xwallpaper option>] IMAGE|DIR\n' "${0##*/}"

@@ -1,6 +1,4 @@
 #!/bin/sh
-pkill -15 -e -f -- 'aria2c -D --enable-rpc' && sleep 1
-
 find ~/.cache/aria2 -ctime +1 -delete
 
 session=${HOME}/.cache/aria2/session
@@ -15,15 +13,3 @@ aria2c  -D --enable-rpc --continue \
     --save-session="$session" \
     --save-session-interval=60 \
     --log "${HOME}/.cache/aria2/aria2.$(date +%Y%m%d).log"
-
-session=${HOME}/.cache/aria2/seedbox.session
-script=${HOME}/.scripts/python/a2notify.py
-[ -f "$session" ] || :>"$session"
-aria2c -D --enable-rpc --continue \
-    --input-file="$session" \
-    --conf-path "${HOME}/.config/aria2/seedbox.conf" \
-    --on-download-error="${script}" \
-    --on-download-start="${script}" \
-    --save-session="$session" \
-    --save-session-interval=60 \
-    --log "${HOME}/.cache/aria2/seedbox.$(date +%Y%m%d).log"

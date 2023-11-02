@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -e
-
 CACHE=~/.cache/thumbnails/mpc
 MPD_CONF=~/.config/mpd/mpd.conf
 
@@ -9,13 +7,13 @@ get_info() {
 }
 
 while read -r i;do
-    o=${i#* }
+    v=${i#* }
     case "$i" in
-        file*)   file=$o  ;;
-        title*)  title=$o ;;
-        artist*) artist="Artist: $o\n" ;;
-        album*)  album="Album: $o\n"   ;;
-        time*)   time="Duration: $o\n" ;;
+        file*)   file=$v  ;;
+        title*)  title=$v ;;
+        artist*) artist="Artist: $v\n" ;;
+        album*)  album="Album: $v\n"   ;;
+        time*)   time="Duration: $v\n" ;;
     esac
 done < <(get_info)
 
@@ -27,9 +25,9 @@ title=${title:-$filename}
 image=${CACHE}${path}.jpg
 mkdir -p "${image%/*}"
 
-[ -f "$image" ] || ffmpeg -nostdin -v -8 -i "$path" "$image" || true
+[ -f "$image" ] || ffmpeg -nostdin -v -8 -i "$path" "$image"
 notify-send -r 10 -i "$image" "♫ Playing now..." "${title}\n${album}${artist}${time}"
-pkill -SIGRTMIN+21 i3blocks
+# pkill -SIGRTMIN+21 i3blocks
 
 # conky_pid=$(pgrep -f 'conky.*conky.mpd.conf')
 # if [ -n "$conky_pid" ];then
