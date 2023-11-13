@@ -1,13 +1,21 @@
 #!/bin/sh
 
-find /sys/devices -type d -path '*hwmon[0-9]' ! -path '*power*' | while read -r d
+# find /sys/devices -type d -path '*hwmon[0-9]' ! -path '*power*' | while read -r d
+# do
+#     device=$(<"$d"/name)
+#     [ "$device" = "acpitz" ] && continue
+#     temp=$(awk '{avg+=($1 / 1000); n+=1} END {printf("%0.f", avg / n)}' "$d"/temp*_input)
+#     # crit=$(awk '{avg+=($1 / 1000); n+=1} END {printf("%0.f", avg / n)}' "$d"/temp*_crit)
+#     [ "$temp" -gt 68 ] && color="#900000" || color="#ffffff"
+#     output=" #[fg=1]$device: #[fg=$color]$temp°C"
+#     [ -n "$crit" ] && output="${output}/#[fg=red]$crit°C"
+#     echo -n "$output"
+# done | cut -c2-
+
+
+find /sys/devices -type d -path '*hwmon[0-9]' | while read -r d
 do
-    device=$(<"$d"/name)
-    [ "$device" = "acpitz" ] && continue
-    temp=$(awk '{avg+=($1 / 1000); n+=1} END {printf("%0.f", avg / n)}' "$d"/temp*_input)
-    # crit=$(awk '{avg+=($1 / 1000); n+=1} END {printf("%0.f", avg / n)}' "$d"/temp*_crit)
-    [ "$temp" -gt 68 ] && color="#900000" || color="#000000"
-    output=" #[fg=black]$device: #[fg=$color]$temp°C"
-    [ -n "$crit" ] && output="${output}/#[fg=red]$crit°C"
-    echo -n "$output"
-done | cut -c2-
+    awk -v device=$(cat "$d"/name) \
+        '{ avg+=($1 / 1000); n+=1 } END { printf(" #[fg=1]%s #[fg=7]%0.f°C", device, avg / n) }' \
+        "$d"/temp*_input
+done

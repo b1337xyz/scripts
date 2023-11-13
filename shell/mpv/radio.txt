@@ -7,7 +7,6 @@ Chillhop                    |https://streams.ilovemusic.de/iloveradio17.mp3
 City-Pop                    |https://igor.torontocast.com:1710
 DRUM & BASS                 |http://www.partyviberadio.com:8004/stream/1/
 Gothica                     |http://23.29.71.154:8226/stream/1/
-Gratitude                   |https://uk5.internet-radio.com/proxy/gratitude?mp=/live
 House of Grau Metal         |https://us3.internet-radio.com/proxy/graulive?mp=/live
 Howl Metal                  |http://69.46.88.26/;
 Hunter.FM-LoFi              |https://live.hunter.fm/lofi_high
