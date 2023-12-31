@@ -35,27 +35,24 @@ def get_all():
 
 
 def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
+    _dir = os.path.realpath(_dir)
     options = {
         'dir': _dir,
         'force-save': 'false',
         'bt-save-metadata': 'false',
         'check-integrity': str(verify).lower()
     }
+    print(json.dumps(options, indent=2), f'{torrent=}')
     if os.path.isfile(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
             with open(torrent, 'rb') as fp:
                 try:
                     aria2.addTorrent(Binary(fp.read()), [], options)
                 except Exception as err:
-                    logging.error(err)
+                    print(err)
         else:
             magnet = get_magnet(torrent)
             add_torrent(magnet)
-
-        try:
-            shutil.move(torrent, CACHE)
-        except shutil.Error:
-            pass
     else:
         options.update({'bt-save-metadata': 'true'})
         aria2.addUri([torrent], options)
@@ -238,6 +235,8 @@ def move_to_top():
 
 
 def connect(host='127.0.0.1', port=6800):
+    port = os.getenv('A2C_PORT', port)
+    print('port:', port)
     return ServerProxy(f'http://{host}:{port}/rpc')
 
 

@@ -377,7 +377,7 @@ save_page() {
 edalt() {
     # edit the current alacritty theme
     awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
-        ~/.config/alacritty/alacritty.yml | xargs -0roI{} vim '{}'
+        ~/.config/alacritty/alacritty.toml | xargs -0roI{} vim '{}'
 }
 
 trackers_best() {
@@ -778,8 +778,7 @@ truecolor_test() {
 }
 
 cleanup_apps() {
-    grep -n 'Exec=' ~/.local/share/applications/*desktop ~/Desktop/*desktop 2>/dev/null |
-        while read -r i
+    grep -n 'Exec=' ~/.local/share/applications/*desktop ~/Desktop/*desktop 2>/dev/null | while read -r i
     do
         file=${i%.desktop:*}.desktop
         cmd=${i##*:Exec=} cmd=${cmd%% *}
@@ -806,4 +805,7 @@ zipdir() {
 allowit() {
     find "${@:-.}" -type f -exec chmod -c g+r {} +
     find "${@:-.}" -type d -exec chmod -c g+rwx {} +
+}
+bak() {
+    command cp -vn "$1" "${1}.bak"
 }

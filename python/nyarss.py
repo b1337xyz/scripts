@@ -9,10 +9,10 @@ from shutil import copy
 from argparse import ArgumentParser
 import xml.etree.ElementTree as ET
 
-DEFAULT_DL_DIR = os.path.expanduser('~/Downloads')
+DEFAULT_DL_DIR = os.getenv('HOME')
 CONFIG = os.path.expanduser('~/.config/nyarss.json')
 LOG = os.path.expanduser('~/.cache/nyarss.log')
-HOST = 'http://127.0.0.1:6800/jsonrpc'
+HOST = 'http://127.0.0.1:6801/jsonrpc'
 RE_NYAA = re.compile(r'^https://(?:sukebei\.)?nyaa.*[\?&]page=rss.*')
 
 
@@ -101,7 +101,7 @@ def update(url: str, download: bool = False, dl_dir: str = None):
 
     config[key]['links'][-100::]
     save_config(config)
-    # logging.info(f'{key} updated')
+    logging.info(f'{key} updated')
 
 
 def update_all(download=True):
@@ -130,7 +130,7 @@ def select():
 
 
 def chdir(new_dir):
-    assert os.path.isdir(new_dir)
+
     k = select()
     config = load_config()
     config[k]['dir'] = os.path.realpath(new_dir)
@@ -193,7 +193,7 @@ def parse_uri(uri):
 def main():
     args = parse_aguments()
     argv = sys.argv[1:]
-    assert os.path.isdir(args.dir)
+    assert os.path.isdir(args.dir), f'{args.dir} not found.'
     dl_dir = os.path.realpath(args.dir)
 
     setup_logging(args.quiet)

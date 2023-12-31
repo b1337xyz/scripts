@@ -76,13 +76,13 @@ fzbt() {
 }
 alacritty_theme_switcher() {
     local config themes
-    config=~/.config/alacritty/alacritty.yml
+    config=~/.config/alacritty/alacritty.toml
     themes=~/.config/alacritty/themes
     cp -v "$config" "${config}.bkp"
     # shellcheck disable=SC2317
     pv() {
-        config=~/.config/alacritty/alacritty.yml
-        sed -i "s/\/themes\/.*\.ya\?ml$/\/themes\/${1}/" "$config"
+        config=~/.config/alacritty/alacritty.toml
+        sed -i "s/\/themes\/.*\.toml/\/themes\/${1}/" "$config"
         bat --style=numbers --color=always --line-range :15 ~/.bashrc
         ls -x --color=always ~/
         bash ~/.scripts/playground/shell/Colors/panes

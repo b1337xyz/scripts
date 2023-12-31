@@ -28,10 +28,12 @@ random_wallpaper() {
     find -L "$@" -iregex "$reImage" | shuf -n1
 }
 
+curr=$(get_current_wallpaper)
 declare -a opts=()
 declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
+        open) nsxiv "$curr" ; exit 0 ;;
         -h|--help)  _help ;;
         --parent)   parent=y ;;
         --prev)     prev=y ;;
@@ -53,8 +55,6 @@ while [ $# -gt 0 ];do
 done
 test ${#opts[@]}    -eq 0 && opts=(--stretch)
 test ${#targets[@]} -eq 0 && targets=("$default_target")
-
-curr=$(get_current_wallpaper)
 
 if   [ "$parent" ]
 then

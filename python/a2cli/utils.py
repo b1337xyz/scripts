@@ -8,7 +8,6 @@ import re
 SHOW_GID = False
 USE_FZF = False
 DL_DIR = os.path.expanduser('~/Downloads')
-CACHE = os.path.expanduser('~/.cache/torrents')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB
