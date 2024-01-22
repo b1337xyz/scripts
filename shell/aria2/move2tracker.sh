@@ -5,7 +5,7 @@ ls ./*.torrent >/dev/null 2>&1 || exit 0
 find . -maxdepth 1 -type f -iname '*.torrent' | while read -r i
 do
     torrent=$(aria2c -S "$i" | awk -F'/' '/ 1\|\.\//{print $2".torrent"}')
-    mv -f "$i" "$torrent" || true
+    mv -vf "$i" "$torrent" || true
 done
 
 aria2c -S ./*.torrent 2>/dev/null | awk '
@@ -24,8 +24,7 @@ aria2c -S ./*.torrent 2>/dev/null | awk '
 do
     tracker=${tracker:-unknown}
     [ -f "$torrent" ] || continue
-    [ -d "$tracker" ] || mkdir -v "$tracker"
-    [ -d "$tracker" ] && mv -f -- "$torrent" "$tracker"
+    mkdir -v "$tracker" 2>/dev/null && mv -fv -- "$torrent" "$tracker"
 done
 
 aria2c -S ./*/*.torrent | awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' > torrents.txt
