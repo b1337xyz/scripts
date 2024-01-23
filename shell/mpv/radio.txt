@@ -1,3 +1,4 @@
+SofaFM                      |https://sofafm.com/groovesalad.pls
 Anison                      |https://pool.anison.fm/AniSonFM(320)
 Bassment                    |https://uk6.internet-radio.com/proxy/unityadmin?mp=/stream;
 Brum Radio                  |https://uk3.internet-radio.com/proxy/brumradio?mp=/live

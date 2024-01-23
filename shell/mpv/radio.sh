@@ -2,6 +2,15 @@
 
 set -eo pipefail
 
+# > ~/.config/mpv/mpv.conf
+# [radio]
+# input-ipc-server=/tmp/mpvradio
+# really-quiet=yes
+# idle=yes
+# save-position-on-quit=no
+# no-resume-playback
+# no-video
+
 SOCK=/tmp/mpvradio
 src=$(realpath "$0")
 conf=${src%/*}/radio.txt
