@@ -16,8 +16,8 @@ os.umask(0o000)
 open(lock, 'w').close()
 
 # use `lsusb` to get VENDOR_ID and MODEL_ID
-VENDOR_ID = 0x1111
-MODEL_ID = 0x1111
+VENDOR_ID = 0x2dc8
+MODEL_ID = 0x3011
 
 gamepad = hid.device()
 for _ in range(10):
@@ -30,6 +30,7 @@ else:
     exit(1)
 
 try:
+    print(gamepad.get_product_string())
     gamepad.set_nonblocking(True)
     while True:
         sleep(9000)
