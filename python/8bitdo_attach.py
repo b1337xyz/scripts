@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# use `lsusb` to get VENDOR_ID and MODEL_ID
+VENDOR_ID = 0x2dc8
+MODEL_ID = 0x3011
+
 from time import sleep
 import hid
 import os
@@ -14,10 +19,6 @@ if os.path.exists(lock):
 
 os.umask(0o000)
 open(lock, 'w').close()
-
-# use `lsusb` to get VENDOR_ID and MODEL_ID
-VENDOR_ID = 0x2dc8
-MODEL_ID = 0x3011
 
 gamepad = hid.device()
 for _ in range(10):
