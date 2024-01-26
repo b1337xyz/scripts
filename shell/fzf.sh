@@ -144,7 +144,7 @@ gitlog() {
     git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --cycle --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
 }
 fzkill() {
-    ps -u anon h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | cut -d':' -f1 | xargs -r kill
+    ps -u "$USER" h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | cut -d':' -f1 | xargs -r kill
 }
 fdel() {
     find "${1:-.}" -maxdepth 2 -xdev -type f | fzf --print0 | xargs -r0 rm -vI

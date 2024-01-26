@@ -13,7 +13,6 @@ UserAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Fi
 
 f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
-fox() { command firefox "$@" &>/dev/null & disown ; }
 wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
 lyrics() { while :;do clyrics -p -k -s 20 ; sleep 5 ;done; }
 calc() { echo "scale=3;$*" | bc -l; }
