@@ -99,7 +99,7 @@ mvbyres() {
             ((.track[] |
                 select(.["@type"] == "Image" or .["@type"] == "Video"
             ) | .Height) | tonumber )
-        ] | "\(.[2])x\(.[1]) \(.[0])"' | sort -n | while read -r i
+        ] | "\(.[1])x\(.[2]) \(.[0])"' | sort -n | while read -r i
         do
             d="${i%% *}" f="${i#* }"
             test -d "$d" || mkdir -v "$d"

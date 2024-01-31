@@ -38,8 +38,6 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
     _dir = os.path.realpath(_dir)
     options = {
         'dir': _dir,
-        'force-save': 'false',
-        'bt-save-metadata': 'false',
         'check-integrity': str(verify).lower()
     }
     print(json.dumps(options, indent=2), f'{torrent=}')
