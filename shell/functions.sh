@@ -161,7 +161,7 @@ ex() {
             *.7z)      7z x -o"${i%.*}" "$i"     ;;
             *.Z)       uncompress "$i" ;;
             *) continue ;;
-        esac
+        esac || return 1
         [[ "$1" = -[rd] ]] && rm "$i"
     done
     return 0

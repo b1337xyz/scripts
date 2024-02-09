@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e 
-FIFO=/tmp/ub.fifo
+FIFO=/tmp/ub.$$.fifo
 path=$1
 
 mkfifo "$FIFO"
