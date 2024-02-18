@@ -7,15 +7,17 @@ lock = '/tmp/8bitdo.lock'
 if os.path.exists(lock):
     print(f'lock file found ({lock}), already running?')
     exit(1)
-
 open(lock, 'w').close()
-gamepad = hid.device()
 
 for dev in hid.enumerate():
     if dev.get('manufacturer_string') == '8BitDo':
         vendor_id, product_id = dev['vendor_id'], dev['product_id']
         break
+else:
+    print('8BitDo not found')
+    exit(1)
 
+gamepad = hid.device()
 for _ in range(10):
     try:
         gamepad.open(vendor_id, product_id)
