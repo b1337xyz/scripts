@@ -676,7 +676,8 @@ gamefaq() {
 
 mvff() {
     # Move files listed on a text file ($1) to a directory ($2)
-    file -Lbi "$1" | grep -q ^text/plain && [ -d "$2" ] || return 1
+    file -Lbi "$1" | grep -q ^text/plain || return 1
+    [ -d "$2" ] || return 1
     while read -r i;do mv -vn "$i" "$2" || break ;done < "$1"
 }
 
@@ -735,10 +736,7 @@ optgif() {
 }
 
 vmrss() {
-    while :;do
-        ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}' || break
-        sleep 1
-    done
+    ps -o rss -o comm "${1:-$!}" | awk '{if(!getline) exit 1; printf("%s MB\t%s\n", $1 / 1000, $2)}'
 }
 
 isup() {
@@ -777,13 +775,13 @@ truecolor_test() {
 }
 
 cleanup_apps() {
-    grep -n 'Exec=' ~/.local/share/applications/*desktop ~/Desktop/*desktop 2>/dev/null | while read -r i
+    grep -rn '^Exec=' ~/.local/share/applications/ ~/Desktop/ 2>/dev/null | while read -r i
     do
         file=${i%.desktop:*}.desktop
         cmd=${i##*:Exec=} cmd=${cmd%% *}
-        if ! [ -x "$cmd" ] && ! hash "$cmd" >/dev/null 2>&1;then
+        if ! [ -x "$cmd" ] && ! command -v "$cmd" >/dev/null 2>&1;then
             printf '\033[1;31m%s\033[m not found\n' "$cmd"
-            rm -vi "$file" </dev/tty
+            [ -f "$file" ] && rm -vi "$file" </dev/tty
         fi
     done
 }

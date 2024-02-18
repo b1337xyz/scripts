@@ -270,8 +270,8 @@ if __name__ == '__main__':
         move_to_top()
     elif args.purge:
         print(aria2.purgeDownloadResult())
-    elif args.seed:
-        print(aria2.changeGlobalOption({'seed-time': '0.0'}))
+    elif args.seed_time:
+        print(aria2.changeGlobalOption({'seed-time': '3000.0'}))
     elif args.max_downloads:
         print(aria2.changeGlobalOption({
             'max-concurrent-downloads': str(args.max_downloads)

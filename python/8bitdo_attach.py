@@ -8,10 +8,6 @@ from time import sleep
 import hid
 import os
 
-if os.getgid() != 0:
-    print('You need root privileges to run this script')
-    exit(1)
-
 lock = '/tmp/8bitdo.lock'
 if os.path.exists(lock):
     print(f'lock file found ({lock}), already running?')
@@ -28,6 +24,11 @@ for _ in range(10):
     except Exception:
         sleep(0.2)
 else:
+    print('''Try running as root or make the file:
+> /etc/udev/rules.d/99-hidraw-permissions.rules
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="input"
+
+Make sure you are in the `input` group''')
     exit(1)
 
 try:

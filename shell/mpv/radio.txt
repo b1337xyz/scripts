@@ -43,3 +43,4 @@ TOPBLUES                    |https://us3.internet-radio.com/proxy/topblues?mp=/s
 UndergroundFM               |https://uk1.internet-radio.com/proxy/undergroundfm?mp=/stream;
 WCJS                        |https://us5.internet-radio.com/proxy/wcjsradio?mp=/stream;
 XRDS                        |https://us1.internet-radio.com/proxy/xrds?mp=/stream;
+random                      |https://youtube.com/playlist?list=PLpaC6VpHI22y7I-ZpSJXVV8BK7qHsQvUi&si=VDFdG57W0EvBe1kR

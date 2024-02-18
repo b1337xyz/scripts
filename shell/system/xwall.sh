@@ -41,7 +41,7 @@ while [ $# -gt 0 ];do
         --dmenu)    use_dmenu=y ;;
         --sxiv)     use_sxiv=y ;;
         --current)  current=y ;;  # only look for images in the current wallpaper directory
-        --no-cache) cache=$(mktemp) ;;
+        --no-cache) cache=$(mktemp); trap 'rm $cache' EXIT ;;
         -*)         opts+=("$1") ;; # xwallpaper options
         *)
             if [ -d "$1" ];then
