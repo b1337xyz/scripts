@@ -3,12 +3,6 @@ from time import sleep
 import hid
 import os
 
-lock = '/tmp/8bitdo.lock'
-if os.path.exists(lock):
-    print(f'lock file found ({lock}), already running?')
-    exit(1)
-open(lock, 'w').close()
-
 for dev in hid.enumerate():
     if dev.get('manufacturer_string') == '8BitDo':
         vendor_id, product_id = dev['vendor_id'], dev['product_id']
@@ -32,6 +26,11 @@ KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="input"
 Make sure you are in the `input` group''')
     exit(1)
 
+lock = '/tmp/8bitdo.lock'
+if os.path.exists(lock):
+    print(f'lock file found ({lock}), already running?')
+    exit(1)
+open(lock, 'w').close()
 try:
     print(gamepad.get_product_string())
     gamepad.set_nonblocking(True)
