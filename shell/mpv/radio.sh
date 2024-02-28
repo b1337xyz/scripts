@@ -19,5 +19,5 @@ if [ -S "$SOCK" ] && [ -n "$url" ]
 then
     printf '{"command": ["loadfile", "%s"]}\n' "$url" | socat - "$SOCK"
 else
-    exec mpv --profile=radio "$url"
+    exec mpv --profile=radio "$url" >/dev/null 2>&1 &
 fi

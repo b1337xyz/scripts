@@ -35,7 +35,7 @@ function convert_mms(n) {
 }'
 }
 lsres() {
-    find "${@:-.}" -maxdepth 1 -iregex '.*\.\(jpg\|png\|jpeg\|mp4\|avi\|webm\|gif\|m4v\|mkv\)' -print0 |
+    find "${@:-.}" -maxdepth 1 -iregex "$VideoPattern" -print0 |
         xargs -r0 mediainfo --Output=JSON |
         jq -Mcr '.. | .media? // empty |
         [
@@ -47,7 +47,6 @@ lsres() {
                 select(.["@type"] == "Image" or .["@type"] == "Video"
             ) | .Height) | tonumber )
         ] | "\(.[1])x\(.[2]) \(.[0])"'
-    # printf '%sx%-4s %s\n' "$width" "$height" "$i"
 }
 killflac() {
     find "${@:-.}" -iregex '.*\.\(mkv\|mp4\)' -print0 |

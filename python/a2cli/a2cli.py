@@ -84,9 +84,6 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
         counter[status] += 1
-        if i >= lines:  # stop printing
-            continue
-
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
         upload_length = int(dl['uploadLength'])
@@ -108,6 +105,9 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
             'waiting': '\033[1;33mW \033[m',
             'removed': '\033[1;35mR \033[m',
         }.get(status)
+
+        if i >= lines:  # stop printing
+            continue
 
         bar_size = 12
         p = completed_length * 100 // (1 if size == 0 else size)
