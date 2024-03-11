@@ -74,6 +74,8 @@ def parse_arguments():
                         help='list downloaded files from selected download')
     parser.add_argument('--seed-time', action='store_true',
                         help='Specify seeding time in (fractional) minutes')
+    parser.add_argument('--seed-ratio', action='store_true',
+                        help='Specify  share  ratio')
     parser.add_argument('-m', '--max-downloads', type=int, metavar='[0-9]+',
                         help='max concurrent downloads')
     parser.add_argument('--download-limit', type=str, metavar='<SPEED>',

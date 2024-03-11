@@ -64,7 +64,8 @@ def get_ratio(x):
     return int(x['uploadLength']) / (int(x['completedLength']) + .01)
 
 
-def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
+def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
+             numbered=False):
     downloads = get_all()
     if sort_by == 'downloaded':
         downloads = sorted(downloads, key=get_perc, reverse=reverse)
@@ -83,6 +84,10 @@ def list_all(clear=False, sort_by=None, reverse=False, numbered=False):
     total_dlspeed, total_upspeed, total_dl, total_up = 0, 0, 0, 0
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
+
+        if not only_status is None and status != only_status:
+            continue
+
         counter[status] += 1
         size = int(dl["totalLength"])
         completed_length = int(dl["completedLength"])
@@ -248,7 +253,7 @@ if __name__ == '__main__':
     USE_FZF = args.fzf
 
     if args.list:
-        list_all(False, args.sort_by, args.reverse)
+        list_all(False, args.sort_by, args.reverse, args.status)
     elif args.remove:
         remove()
     elif args.remove_all:
@@ -271,7 +276,9 @@ if __name__ == '__main__':
     elif args.purge:
         print(aria2.purgeDownloadResult())
     elif args.seed_time:
-        print(aria2.changeGlobalOption({'seed-time': '3000.0'}))
+        print(aria2.changeGlobalOption({'seed-time': float(args.seed_time)}))
+    elif args.seed_ratio:
+        print(aria2.changeGlobalOption({'seed-ratio': float(args.seed_ratio)}))
     elif args.max_downloads:
         print(aria2.changeGlobalOption({
             'max-concurrent-downloads': str(args.max_downloads)
@@ -308,12 +315,12 @@ if __name__ == '__main__':
     elif args.watch:
         try:
             while True:
-                list_all(True, args.sort_by, args.reverse)
+                list_all(True, args.sort_by, args.reverse, args.status)
                 sleep(3)
         except KeyboardInterrupt:
             pass
     else:
         try:
-            list_all(False, args.sort_by, args.reverse)
+            list_all(False, args.sort_by, args.reverse, args.status)
         except Exception as err:
             print(err)

@@ -35,7 +35,7 @@ function convert_mms(n) {
 }'
 }
 lsres() {
-    find "${@:-.}" -maxdepth 1 -iregex "$VideoPattern" -print0 |
+    find "${@:-.}" -maxdepth 1 -iregex ".*\.\(jpg\|jpeg\|png\|mp4\|webm\|mov\|mkv\)" -print0 |
         xargs -r0 mediainfo --Output=JSON |
         jq -Mcr '.. | .media? // empty |
         [
