@@ -3,6 +3,17 @@ from time import sleep
 import hid
 import os
 
+# > /etc/systemd/system/8bitdo.service
+# [Service]
+# ExecStart=-8bitdo_connect.py
+# RestartKillSignal=9
+
+# > /etc/udev/rules.d/90-8bitdo.rules
+# SUBSYSTEM=="usb", ATTRS{idVendor}=="2dc8", ATTRS{idProduct}=="3011", RUN+="/usr/bin/systemctl restart 8bitdo.service"
+
+# > /etc/udev/rules.d/99-hidraw-permissions.rules
+# KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0666", GROUP="input"
+
 for dev in hid.enumerate():
     s = dev.get('manufacturer_string')
     print(dev)
