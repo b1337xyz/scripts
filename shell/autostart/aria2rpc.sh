@@ -11,5 +11,4 @@ aria2c  -D --enable-rpc --continue \
     --on-download-error="${script}" \
     --on-download-start="${script}" \
     --save-session="$session" \
-    --save-session-interval=60 \
-    --log "${HOME}/.cache/aria2/aria2.$(date +%Y%m%d).log"
+    --save-session-interval=60
