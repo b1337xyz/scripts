@@ -22,7 +22,7 @@ while read -r i;do
 done < "$tmpfile"
 
 # cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
-cmd=$(sort -u "$progs" | rofi -dmenu -p 'run:' -i -l 10)
+cmd=$(sort -u "$progs" | rofi -dmenu -p 'run' -i -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in

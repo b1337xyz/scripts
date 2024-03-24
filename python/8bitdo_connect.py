@@ -3,6 +3,8 @@ from time import sleep
 import hid
 import os
 
+# Does not work with xpad, use xone-dkms
+
 # > /etc/systemd/system/8bitdo.service
 # [Service]
 # ExecStart=-8bitdo_connect.py

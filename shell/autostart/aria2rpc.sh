@@ -1,6 +1,4 @@
 #!/bin/sh
-find ~/.cache/aria2 -ctime +1 -delete
-
 session=${HOME}/.cache/aria2/session
 script=${HOME}/.scripts/python/a2notify.py
 [ -f "$session" ] || :>"$session"
