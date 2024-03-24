@@ -1,6 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2091
 # shellcheck disable=SC2068
+# shellcheck disable=SC2016
 set -e
 
 progs=~/.cache/programs
@@ -21,20 +22,14 @@ while read -r i;do
         sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
-# cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
 cmd=$(sort -u "$progs" | rofi -dmenu -p 'run' -i -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
-    pulsemixer|top) run "$TERMINAL" --class floating_window -e "$cmd" ;;
-    ncmpcpp)        run "$TERMINAL" --title ncmpcpp -e ncmpcpp ;; 
-    newsboat)       run "$TERMINAL" --class newsboat --title newsboat -e newsboat ;;
-    fzfanime.sh)    run "$TERMINAL" --title fzfanime -e fzfanime.sh ;;
     cmus)           run tmux new-session -d -s cmus cmus ;; 
     spotify)        run spotify -no-zygote ;;
     conky)          runconky.sh ;;
     dhewm3) 
-        # shellcheck disable=SC2016
         run 'dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"'
         ;;
     *) run "$cmd" ;;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 default_target=~/Pictures/wallpapers
-cache=~/.cache/swaybg
+cache=~/.cache/setwall
 log=~/.cache/.swaybg.log
 reImage='.*\.\(jpe?g\|png\)'
 
@@ -80,7 +80,8 @@ fi
 [ -f "$wallpaper" ] || exit 0
 wallpaper=$(realpath -s "$wallpaper")
 
-printf 'swaymsg output \* bg "%s" fill' "$wallpaper" > "$cache"
+# printf 'timeout 10 swaymsg output \* bg "%s" fill' "$wallpaper" > "$cache"
+printf '#!/bin/sh\npkill swaybg; exec swaybg -i "%s" -m fill >/dev/null 2>&1 &' "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
 cp "$wallpaper" ~/.cache/current_bg.jpg
 [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"
