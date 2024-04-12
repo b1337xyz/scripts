@@ -8,10 +8,9 @@ import json
 import os
 
 HOST = 'http://127.0.0.1:6800/jsonrpc'
-HOME = os.getenv('HOME')
-DL_DIR = os.path.join(HOME, 'Downloads')
+CACHE = os.path.expanduser('~/.cache/torrents')
+DL_DIR = os.path.expanduser('~/Downloads')
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
-CACHE = os.path.join(HOME, '.cache/torrents')
 
 
 def request(method, params):
@@ -22,7 +21,6 @@ def request(method, params):
         'params': [params]
     }).encode('utf-8')
     r = Request(HOST)
-    r.add_header('Content-Length', len(jsonreq))
     r.add_header('Content-Type', 'application/json; charset=utf-8')
     r.add_header('Accept', 'application/json')
     with urlopen(r, jsonreq) as data:
@@ -47,8 +45,6 @@ def get_name(info):
 def get_torrent_file(info):
     infohash = info.get('infoHash')
     file = os.path.join(dir, f'{infohash}.torrent')
-    if os.path.isfile(f'{path}.torrent') and os.path.isfile(file):
-        os.remove(file)
     return file if os.path.isfile(file) else f'{path}.torrent'
 
 
@@ -100,20 +96,20 @@ if __name__ == '__main__':
     info = request('tellStatus', gid)
     if int(info.get("totalLength", 0)) <3:
         exit(0)
+    if not os.path.isdir(CACHE):
+        os.mkdir(CACHE)
 
     name = get_name(info)
     dir = info['dir']
     path = os.path.join(dir, name)
     status = info['status']
-    error_code = info.get('errorCode')
     size = get_psize(int(info["totalLength"]))
     is_metadata = name.startswith('[METADATA]')
     torrent_file = get_torrent_file(info)
 
-    match status:
-        case 'complete':
-            on_complete()
-        case 'error':
-            notify(f"{status} {error_code}", name, icon='dialog-error')
-        case _:
-            notify(f"{status}", f'{name}\nSize: {size}')
+    if status == 'complete':
+        on_complete()
+    elif status == 'error':
+        notify(status, name, icon='dialog-error')
+    else:
+        notify(status, f'{name}\nSize: {size}')
