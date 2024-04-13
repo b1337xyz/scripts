@@ -209,8 +209,6 @@ while (( $# ));do
     shift
 done
 
-set -x
-
 if [ -f "$input_file" ]; then
     while read -r url; do
         main "$url"
