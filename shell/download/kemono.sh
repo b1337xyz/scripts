@@ -5,7 +5,7 @@
 #   https://github.com/yt-dlp/yt-dlp
 #   https://github.com/mikf/gallery-dl
 
-set -e
+# set -e
 
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
 BASE_DIR=~/Downloads/kemono
@@ -15,7 +15,7 @@ end() { rm "${tmpfile}" "${tmpfile}.posts" 2>/dev/null || true; }
 trap end EXIT
 
 a2c() {
-    aria2c -q --auto-file-renaming=false --dir "$1" "$2"
+    aria2c -q --auto-file-renaming=false --dir "$1" "$2" || printf '\e[1;31mDownload failed %s, %s\e[m\n' "$1" "$2"
 }
 
 grep_posts() {
@@ -43,6 +43,7 @@ grep_data_links() {
 }
 
 grep_file_links() {
+    [ "$SKIP_FILES" = y ] && return
     grep -oP 'https://[^ \t\n\"<]*\.(mp4|webm|mov|m4v|7z|zip|rar)' "$1" | sort -u
 }
 
@@ -185,6 +186,7 @@ Usage: ${0##*/} [-mPp --skip-*] URL|FILE
     --skip-dropbox      don't grep dropbox links
     --skip-gdrive       don't grep gdrive links
     --skip-data         don't grep /data/*.(mp4|webm|m4v|png...) links
+    --skip-files        don't grep http*.(mp4|webm|m4v|png...) links
 EOF
     exit 0
 }
@@ -200,6 +202,7 @@ while (( $# ));do
         --skip-mega) SKIP_MEGA=y ;;
         --skip-dropbox) SKIP_DROPBOX=y ;;
         --skip-gdrive) SKIP_GDRIVE=y ;;
+        --skip-files) SKIP_FILES=y ;;
         http*) urls+=("$1") ;;
         *) [ -f "$1" ] && input_file="$1" ;;
     esac
