@@ -129,7 +129,7 @@ download_post_content() {
             http*)  printf '%s\n' "$url" ;;
             *data*) printf '%s\n' "${DOMAIN}${url}" ;;
         esac
-    done | sort -u | aria2c -q -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=-
+    done | sort -u | aria2c -q -j 1 --auto-file-renaming=false --dir "$dl_dir" --input-file=- || true
 }
 
 main() {
