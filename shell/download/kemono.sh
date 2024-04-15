@@ -50,13 +50,13 @@ grep_file_links() {
 grep_artist() {
     if ! grep -oP '(?<=meta name="artist_name" content=").*(?=">)' "$1" ;then
         tr -d \\n < "$1" | grep -oP 'post__user-name[^<]*' | sed -E 's/ +$//; s/.*> +(.*)/\1/'
-    fi
+    fi | sed 's/^\s\+//; s/\s\+$//'
 }
 
 grep_user() {
     if ! grep -oP '(?<=meta name="user" content=").*(?=">)' "$1"; then
         grep -oP '(?<=meta name="id" content=").*(?=">)' "$1"
-    fi
+    fi | sed 's/^\s\+//; s/\s\+$//'
 }
 
 unescape() {
