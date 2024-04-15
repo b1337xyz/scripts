@@ -634,8 +634,9 @@ random_color() {
 }
 
 grep_secrets() {
+    # (\d{1,3}\.){3}\d+ IP
     grep --exclude-dir=".git" --color -rniP \
-        'api.key|secret|token|password|passwd|(\d{1,3}\.){3}\d+'
+        'api.key|secret|token|password|passwd'
 }
 
 ordinal() {
