@@ -19,4 +19,6 @@ case "$1" in
     *) grim "$image" ;;
 esac
 
+[ -f "$image" ] && notify-send -i "$image" "$(date)" "$image"
+
 exit 0
