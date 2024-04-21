@@ -60,7 +60,3 @@ cd /tmp
 git clone https://github.com/salman-abedin/devour.git
 cd devour && sudo make install
 ```
-
-```
-python3 -m pip install --user thefuzz --break-system-packages
-```

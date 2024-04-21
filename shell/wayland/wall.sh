@@ -18,14 +18,13 @@ get_path() {
         tr \\n \\0 | xargs -r0I{} find -L "$@" -name '{}' -print0 | sort -zV
 }
 get_current_wallpaper() {
-    grep -oP '(?<= ")/[^"]+\.(jpg|png|jpeg)' "$cache"
+    grep -oP '/home[^ ]+\.(jpg|png)' "$cache"
 }
 random_wallpaper() {
     find -L "$@" -iregex "$reImage" | shuf -n1
 }
 
 curr=$(get_current_wallpaper)
-declare -a opts=()
 declare -a targets=()
 while [ $# -gt 0 ];do
     case "$1" in
@@ -58,7 +57,7 @@ elif [ "$prev" ]; then
 elif [ "$next" ]; then
     wallpaper=$(grep -xF "$curr" "$log" -A1 | tail -1)
 elif [ "$current" ]; then
-    dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
+    dir=${curr%/*}
     wallpaper=$(find "$dir" -maxdepth 1 -iregex "$reImage" | shuf -n1)
 elif [ "$use_sxiv" ]
 then
@@ -81,7 +80,7 @@ fi
 wallpaper=$(realpath -s "$wallpaper")
 
 # printf 'timeout 10 swaymsg output \* bg "%s" fill' "$wallpaper" > "$cache"
-printf '#!/bin/sh\npkill swaybg; exec swaybg -i "%s" -m fill >/dev/null 2>&1 &' "$wallpaper" > "$cache"
+printf "#!/bin/sh\npkill swaybg; exec swaybg -i '%s' -m fill >/dev/null 2>&1 &" "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
 cp "$wallpaper" ~/.cache/current_bg.jpg
 [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"
