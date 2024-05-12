@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 time=$(date +'%b %d %H:%M:%S')
 db=~/.cache/sensors.json
 new=${db}.bak

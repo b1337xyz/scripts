@@ -144,7 +144,7 @@ gitlog() {
     git log "${1:-.}" | grep -oP '(?<=^commit ).*' | fzf --cycle --preview-window '80%' --preview 'git show --color=always {}' | xargs -r git show
 }
 fzkill() {
-    ps -u "$USER" h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | cut -d':' -f1 | xargs -r kill
+    ps -u "$USER" h -o 'pid:1' -o cmd | fzf -m --tac --prompt 'kill> ' --height 25 | cut -d' ' -f1 | xargs -r kill
 }
 fdel() {
     find "${1:-.}" -maxdepth 2 -xdev -type f | fzf --print0 | xargs -r0 rm -vI
@@ -155,4 +155,12 @@ menu() {
         --cycle --border=none --no-info --no-sort \
         --color gutter:-1,query:black \
         --bind 'j:down' --bind 'k:up'
+}
+psndl() {
+    local db
+    db=~/.cache/psndl.csv
+    grep -oP '(?<=;)[^;]*(?=;[^;]*;https?:)' "$db" | sort -u | fzf -m --algo v1 |
+        xargs -rIV grep -F ';V;' "$db" | grep -oP '.*(?=;https?:)' |
+        fzf -m  | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
+        aria2c -j 1 --dir ~/Downloads --input-file=-
 }

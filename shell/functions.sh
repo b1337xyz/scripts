@@ -11,6 +11,7 @@ ImagePattern='\.\(jpg\|png\|jpeg\|bmp\|tiff\|svg\|webp\)$'
 ArchivePattern='\.\(zip\|rar\|7z\|lzma\|gz\|xz\|tar\|bz2\|arj\)$'
 UserAgent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0'
 
+za() { zathura "$@" >/dev/null 2>&1 & disown; }
 f() { find . -xdev -iname "*${*}*"; }
 d() { du -had1 "${1:-.}" 2>/dev/null | sort -h; }
 wall() { awk -F'"' '{print $2}' ~/.cache/xwallpaper 2>/dev/null; }
