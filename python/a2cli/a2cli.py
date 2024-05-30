@@ -297,7 +297,7 @@ if __name__ == '__main__':
     elif args.files:
         list_files()
     elif args.argv:
-        for arg in args.argv:
+        for arg in map(str.strip, args.argv):
             if arg.startswith('magnet:?'):
                 add_torrent(arg, args.dir, args.check)
             elif os.path.isfile(arg):
