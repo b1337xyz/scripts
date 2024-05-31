@@ -43,23 +43,36 @@ dubt() {
     }'
 }
 
-dubt2() {
-    [ -f "$1" ] || { printf 'Usage: dubt2 <TORRENT>\n'; return 1; }
-    aria2c -S "$1" | awk '/^Total |\|/{
-        if ($0 ~ /^Total/) total = $3
-        if ($0 ~ /[0-9]\|\.\//) {
-            split($0, a, "/")
-            fname = a[length(a)]
-            idx = substr(a[1], 1, length(a[1]) - 2)
-        } else if ($0 ~ / \|[0-9]*\.?[0-9]*?[KMG]iB/) {
-            size = substr($1, 2)
-            printf("%8s \033[1;31m%4s\033[m: %s\n", size, idx, fname)
-        }
-    } END {
-        if (total)
-            printf("%s total\n", total)
-    }'
+dufbt() {
+    [ -f "$1" ] || { printf 'Usage: dubt2 <TORRENT FILE>\n'; return 1; }
+    aria2c -S "$1" | awk -v n=0 '{
+    if ($0 ~ /^Total/) total = $3
+    if ($0 ~ /^idx\|path\/length/) n=1
+    if (n == 0) next
+    if ($0 ~ /^[\s\t ]+[0-9]+\|\.\//) {
+        match($0, /^[\s\t ]+([0-9]+)\|(.*)/, s)
+        sub(/.*\//, "", s[2])
+    } else if (! ($0 ~ /^---/) ) {
+        match($1, /\|([^ ]+)/, size)
+        printf("%8s \033[1;31m%4s\033[m: %s\n", size[1], s[1], s[2])
+    }} END { printf("%s total\n", total) }'
 }
+
+pptorrent() {
+    [ -f "$1" ] || { printf 'Usage: pptorrent <TORRENT FILE>\n'; return 1; }
+
+    aria2c -S "$1" | awk -v n=0 '{
+    if ($0 ~ /^idx\|path\/length/) n=1
+    if (n == 0) next
+    if ($0 ~ /^[\s\t ]+[0-9]+\|\.\//) {
+        match($0, /^[\s\t ]+([0-9]+)\|\.\/(.*)/, s)
+    } else if (! ($0 ~ /^---/) ) {
+        match($1, /\|([^ ]+)/, size)
+        printf("\033[1;35m%s\033[m) %s (%s)\n", s[1], s[2], size[1])
+    }}'
+
+}
+
 
 dubt3() {
     [ $# -eq 0 ] && set -- ./*.torrent

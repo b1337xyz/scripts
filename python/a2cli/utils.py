@@ -91,6 +91,11 @@ def parse_arguments():
     parser.add_argument('--purge', action='store_true')
     parser.add_argument('argv', type=str, nargs='*',
                         help='[URI | MAGNET | TORRENT_FILE]')
+    parser.add_argument('--metadata-only', action='store_true',
+                        help='Download metadata only')
+    parser.add_argument('--select-file', type=str, metavar='INDEX',
+                        dest='index', default=None,
+                        help='Set file to download by specifying its index.')
 
     return parser.parse_args()
 

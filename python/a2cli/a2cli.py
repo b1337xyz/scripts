@@ -34,12 +34,18 @@ def get_all():
     return [j for sub in mc() for j in sub]
 
 
-def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
+def add_torrent(torrent, _dir=TEMP_DIR, verify=False, metadata_only=False,
+                index=None):
     _dir = os.path.realpath(_dir)
     options = {
         'dir': _dir,
-        'check-integrity': str(verify).lower()
+        'check-integrity': str(verify).lower(),
+        'metadata-only': str(metadata_only).lower(),
+        'bt-save-metadata': 'true',
     }
+    if index:
+        options.update({'select-file': index})
+
     print(json.dumps(options, indent=2), f'{torrent=}')
     if os.path.isfile(torrent):
         if os.path.getsize(torrent) < MAX_SIZE:
@@ -50,9 +56,8 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False):
                     print(err)
         else:
             magnet = get_magnet(torrent)
-            add_torrent(magnet)
+            add_torrent(magnet, _dir, verify, metadata_only)
     else:
-        options.update({'bt-save-metadata': 'true'})
         aria2.addUri([torrent], options)
 
 
@@ -299,16 +304,18 @@ if __name__ == '__main__':
     elif args.argv:
         for arg in map(str.strip, args.argv):
             if arg.startswith('magnet:?'):
-                add_torrent(arg, args.dir, args.check)
+                add_torrent(arg, args.dir, args.check, args.metadata_only,
+                            args.index)
             elif os.path.isfile(arg):
                 file = os.path.realpath(arg)
                 if is_torrent(file):
-                    add_torrent(file, args.dir, args.check)
+                    add_torrent(arg, args.dir, args.check, args.metadata_only,
+                                args.index)
                 elif file.endswith('.magnet'):
                     with open(file, 'r') as fp:
                         magnet = fp.readline().strip()
-                    add_torrent(magnet, args.dir, args.check)
-                    os.remove(file)
+                    add_torrent(arg, args.dir, args.check, args.metadata_only,
+                                args.index)
             elif is_uri(arg):
                 aria2.addUri([arg], {'dir': DL_DIR})
             else:
