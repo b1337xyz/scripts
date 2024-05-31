@@ -573,7 +573,6 @@ todo() {
     TODOFILE=${TODOFILE:-${HOME}/.todo}
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
-        help|-h|--help) echo 'usage: todo <a|e|l|r> <TODO>' ;;
         e*) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
         l*) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
         r*)
@@ -587,6 +586,7 @@ todo() {
             shift
             [ -n "$1" ] && printf '%s: %s\n' "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
         ;;
+        *) echo 'Usage: todo <a|e|l|r> <TODO>' ;;
     esac
 }
 
