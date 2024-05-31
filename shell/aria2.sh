@@ -20,19 +20,14 @@ dubt() {
     aria2c -S "$@" | awk '/^Total | 1\|\.\//{
         if ($0 ~ /^Total/) {
             unit = $3
-            psize = substr($3, 1, length($3) - 3) + 0
-            if (unit ~ /GiB/) {
-                total += psize * 1024
-            } else if (unit ~ /KiB/) {
-                total += psize / 1024
-            } else {
-                total += psize
-            }
+            size = substr($3, 1, length($3) - 3) + 0
+            if (unit ~ /GiB/)      total += size * 1024
+            else if (unit ~ /KiB/) total += size / 1024
+            else                   total += size
             next
         }
-        split($0, a, "/")
-        torrent_name = a[2]
-        printf("%8s\t%s\n", unit, torrent_name)
+        match($0, /[0-9]\|\.\/([^\/]+)/, torrent_name)
+        printf("%8s\t%s\n", unit, torrent_name[1])
     } END {
         if (total >= 1024) {
             total /= 1024
@@ -44,6 +39,7 @@ dubt() {
 }
 
 dufbt() {
+    # like dubt but show files
     [ -f "$1" ] || { printf 'Usage: dubt2 <TORRENT FILE>\n'; return 1; }
     aria2c -S "$1" | awk -v n=0 '{
     if ($0 ~ /^Total/) total = $3
@@ -71,19 +67,6 @@ pptorrent() {
         printf("\033[1;35m%s\033[m) %s (%s)\n", s[1], s[2], size[1])
     }}'
 
-}
-
-
-dubt3() {
-    [ $# -eq 0 ] && set -- ./*.torrent
-    aria2c -S "$@" | awk '/^Total | 1\|\.\//{
-        if ($0 ~ /^Total/) {
-            size = $3
-            next
-        }
-        split($0, a, "/")
-        printf("%-8s\t%s\n", size, a[2])
-    }'
 }
 
 rentorrent() {
@@ -186,7 +169,6 @@ addUri() {
         -H "Accept: application/json" \
         -d "$data" -w '\n'
 }
-
 
 # addTorrent() {
 #     local torrent data
