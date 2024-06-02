@@ -776,6 +776,26 @@ truecolor_test() {
     }'
 }
 
+
+colors() {
+    # Output predominant colors in a image
+    file -Lib "$1"| grep -q ^image || return 1;
+    magick "$1" -scale 50x50\! -depth 8 +dither -colors 8 -format "%c" histogram:info: | sort -rn |
+        awk '{
+        hex = $3
+        s=" ";
+        match($2, /\(([0-9\.]+),([0-9\.]+),([0-9\.]+)/, rgb)
+        r = rgb[1]
+        g = rgb[2]
+        b = rgb[3]
+        if (g>255) g = 510-g;
+        printf "\033[48;2;%d;%d;%dm %8s %8s %8s", r,g,b,r,g,b;
+        printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b;
+        printf "%s\033[0m", substr(s,colnum+1,1);
+        printf " %s\n", hex;
+        }'
+}
+
 cleanup_apps() {
     grep -rn '^Exec=' ~/.local/share/applications/ ~/Desktop/ 2>/dev/null | while read -r i
     do
