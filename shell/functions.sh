@@ -783,7 +783,6 @@ colors() {
     magick "$1" -scale 50x50\! -depth 8 +dither -colors 8 -format "%c" histogram:info: | sort -rn |
         awk '{
         hex = $3
-        s=" ";
         match($2, /\(([0-9\.]+),([0-9\.]+),([0-9\.]+)/, rgb)
         r = rgb[1]
         g = rgb[2]
@@ -791,8 +790,7 @@ colors() {
         if (g>255) g = 510-g;
         printf "\033[48;2;%d;%d;%dm %8s %8s %8s", r,g,b,r,g,b;
         printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b;
-        printf "%s\033[0m", substr(s,colnum+1,1);
-        printf " %s\n", hex;
+        printf "\033[0m %s\n", hex;
         }'
 }
 
