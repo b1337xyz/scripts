@@ -24,6 +24,7 @@ for dev in hid.enumerate():
         gamepad.open(vendor_id, product_id)
         break
 else:
+    print('8BitDo not found.')
     exit(0)
 
 try:
