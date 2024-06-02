@@ -1,8 +1,8 @@
 ## *~/.scripts*
 ```
       /\         OS: Arch Linux x86_64
-     /  \        WM: i3/sway
-    /\   \       Shell: bash 5.x.x, dash 0.5.11.5-1
+     /  \        WM: sway
+    /\   \       Shell: bash 5.x.x, dash 0.5.12
    /      \      Python: 3.x.x
   /   ,,   \     
  /   |  |  -\    
