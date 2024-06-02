@@ -12,7 +12,7 @@ run() {
     # $( $@ >/dev/null 2>&1 &)
     # nohup $@ >/dev/null 2>&1 &
     # setsid -f -- $@ >/dev/null 2>&1
-    i3-msg exec "$*" 2>&1 &
+    swaymsg exec "$*" >/dev/null 2>&1
 }
 
 # clean up
@@ -26,9 +26,10 @@ cmd=$(sort -u "$progs" | rofi -dmenu -p 'run' -i -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
-    cmus)           run tmux new-session -d -s cmus cmus ;; 
-    spotify)        run spotify -no-zygote ;;
-    conky)          runconky.sh ;;
+    cmus) run tmux new-session -d -s cmus cmus ;; 
+    spotify) run spotify -no-zygote ;;
+    conky) runconky.sh ;;
+    dolphin-emu) run 'QT_QPA_PLATFORM=xcb dolphin-emu' ;;
     dhewm3) 
         run 'dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"'
         ;;

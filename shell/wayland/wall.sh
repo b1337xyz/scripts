@@ -80,7 +80,8 @@ fi
 wallpaper=$(realpath -s "$wallpaper")
 
 # printf 'timeout 10 swaymsg output \* bg "%s" fill' "$wallpaper" > "$cache"
-printf "#!/bin/sh\npkill swaybg; exec swaybg -i '%s' -m fill >/dev/null 2>&1 &" "$wallpaper" > "$cache"
+printf "#!/bin/sh\npkill -x swaybg\nswaybg -i '%s' -m fill >/dev/null 2>&1 &" \
+    "$wallpaper" > "$cache"
 chmod +x "$cache" && "$cache"
 cp "$wallpaper" ~/.cache/current_bg.jpg
 [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"

@@ -23,10 +23,16 @@
   - [nsxiv](https://github.com/nsxiv/nsxiv)
   - [ueberzug](https://github.com/b1337xyz/ueberzug)
   - [xclip](https://github.com/astrand/xclip)
-  - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
   - [slop](https://github.com/naelstrof/slop)
   - [opusenc](https://wiki.xiph.org/Opus-tools)
   - [inotify-tools](https://github.com/inotify-tools/inotify-tools)
+  - [xwallpaper](https://github.com/stoeckmann/xwallpaper)
+  - [swaybg](https://github.com/swaywm/swaybg) *wayland*
+  - [mpvpaper](https://github.com/GhostNaN/mpvpaper) *wayland*
+  - [slurp](https://github.com/emersion/slurp) *wayland*
+  - [grim](https://git.sr.ht/~emersion/grim) *wayland*
+  - [rofi](https://github.com/DaveDavenport/rofi) *wayland*
+  - [wf-recorder](https://github.com/ammen99/wf-recorder) *wayland*
 
 - python  
   - [requests](https://requests.readthedocs.io/en/latest/)
