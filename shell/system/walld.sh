@@ -6,7 +6,7 @@ DIR=~/Pictures/wallpapers
 cd "$DIR"
 
 is_green() {
-    convert "$1" -scale 50x50\! -depth 8 +dither -colors 8 -format "%c" histogram:info: |
+    magick "$1" -scale 50x50\! -depth 8 +dither -colors 8 -format "%c" histogram:info: |
     sort -rn | awk '{
         match($2, /\(([0-9\.]+),([0-9\.]+),([0-9\.]+)/, rgb)
         r = rgb[1] + 2
@@ -17,7 +17,7 @@ is_green() {
 }
 
 is_dark() {
-    convert "$1" -format "%[fx:int(mean * 100)]" info: | awk '{exit !( ($1 + 0) < 25)}'
+    magick "$1" -format "%[fx:int(mean * 100)]" info: | awk '{exit !( ($1 + 0) < 25)}'
 }
 
 resize() {
@@ -39,7 +39,7 @@ resize() {
 }
 
 convert_and_remove() {  # convert and remove the original image
-    convert -verbose "$1" "$2" && rm -v "$1"
+    magick -verbose "$1" "$2" && rm -v "$1"
 }
 
 lock=/tmp/.walld
@@ -55,7 +55,6 @@ inotifywait -r -m -e create,close_write,moved_to --format '%w%f%0' "$DIR" | whil
 do
     [ -f "$file" ] || continue
     grep -qxF "$file" "$cache" && { printf 'skipping "%s"\n' "$file"; continue; }
-    sleep 1
 
     new=${file}.jpg
     mime=$(file -bi "$file")

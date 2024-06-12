@@ -750,7 +750,7 @@ isup() {
 }
 
 tsxiv() {
-    find . -maxdepth 3 -type f -iregex '.*\.\(jpe?g\|png\|gif\)' -printf '%C@\t%p\n' |
+    find . -maxdepth 3 -type f -iregex '.*\.\(jpe?g\|png\)' -printf '%C@\t%p\n' |
         sort -rn | cut -f2- | sxiv -qi
 }
 
@@ -825,4 +825,11 @@ allowit() {
 }
 bak() {
     command cp -vn "$1" "${1}.bak"
+}
+clipw() {
+    local c p
+    while sleep .2;do 
+        c=$(wl-paste)
+        [ "$c" != "$p" ] && { echo "$c"; p="${c}"; }
+    done | tee "$1"
 }

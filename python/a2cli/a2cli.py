@@ -187,8 +187,7 @@ def unpause():
 
 def remove(downloads=[]):
     if not downloads:
-        # downloads = select('remove', get_all())
-        return
+        downloads = select('remove', get_all())
 
     for dl in downloads:
         name = get_name(dl)
