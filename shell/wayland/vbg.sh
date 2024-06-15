@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 # Get mpvpaper here -> https://github.com/GhostNaN/mpvpaper
 
 mpv_options=(
