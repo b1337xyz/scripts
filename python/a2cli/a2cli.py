@@ -14,8 +14,7 @@ def select(action, downloads):
                     for i, v in enumerate(downloads)
                 ])]
 
-    list_all(numbered=True)
-    while True:
+    while list_all(numbered=True):
         try:
             print('1 2 3...')
             return [downloads[int(i.strip()) - 1]
@@ -24,6 +23,7 @@ def select(action, downloads):
             print(err)
         except KeyboardInterrupt:
             exit(130)
+    return []
 
 
 def get_all():
@@ -155,6 +155,8 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
             psize(total_dlspeed), psize(total_upspeed),
             psize(total_dl), psize(total_up)
             ))
+
+    return len(output) > 0
 
 
 def pause():
