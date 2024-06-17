@@ -9,10 +9,8 @@ swaymsg -t subscribe -m '[ "window" ]' | while read -r _;do
 done |
     while read -r line; do
         case "$line" in
-            *TigerVNC*)
+            *TigerVNC*|*FreeRDP*)
                 swaymsg mode passthrough ;;
-            *)
-                swaymsg mode default ;;
+            *) swaymsg mode default ;;
         esac
-        # echo "$line"
     done
