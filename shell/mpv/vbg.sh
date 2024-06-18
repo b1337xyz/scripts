@@ -10,7 +10,7 @@ main() {
         --no-stop-screensaver       \
         --vo=gpu --hwdec=vaapi      \
         --no-input-default-bindings \
-        --keepaspect=yes \
+        --keepaspect=no             \
         --scale=bilinear            \
         --cscale=bilinear           \
         --dscale=bilinear           \
@@ -26,7 +26,7 @@ main() {
 if [ -f "$1" ];then
     while read -r i;do
         main "$i" "$1"
-    done < <(xrandr -q | grep ' connected' | grep -oP '\d+x\d+\+\d+\+\d+' | fzf -m)
+    done < <(xrandr -q | grep ' connected' | grep -oP '\d+x\d+\+\d+\+\d+')
 fi
 
 exit 0
