@@ -188,13 +188,10 @@ def unpause():
 
 
 def remove(downloads=[]):
-    if not downloads:
-        downloads = select('remove', get_all())
-
-    for dl in downloads:
+    for dl in downloads if downloads else select('remove', get_all()):
         name = get_name(dl)
         gid = dl['gid']
-        if dl['status'] in ['active', 'waiting']:
+        if dl['status'] in ['active', 'waiting', 'paused']:
             try:
                 aria2.remove(gid)
             except Exception:

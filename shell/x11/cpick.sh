@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# https://codeberg.org/NRK/sxcs
 color=$(sxcs --hex -o | cut -f2)
 if [ -n "$color" ];then
     xclip -rmlastnl -sel c <<< "$color"
