@@ -133,7 +133,7 @@ def is_torrent(file):
 
 def get_magnet(file):
     out = sp.run(['aria2c', '-S', file], stdout=sp.PIPE).stdout.decode()
-    return re.search(r'magnet:\?[^\s]+', out).group(1)
+    return re.search(r'magnet:\?.*', out).group()
 
 
 def psize(size):

@@ -829,7 +829,8 @@ bak() {
 clipw() {
     local c p
     while sleep .2;do 
-        c=$(wl-paste)
-        [ "$c" != "$p" ] && { echo "$c"; p="${c}"; }
+        # c=$(wl-paste)
+        c=$(xclip -o -rmlastnl)
+        [ "$c" != "$p" ] && { echo -- "$c"; p="${c}"; }
     done | tee -a "${1:-clipboard.txt}"
 }

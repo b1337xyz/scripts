@@ -55,6 +55,7 @@ def add_torrent(torrent, _dir=TEMP_DIR, verify=False, metadata_only=False,
                 except Exception as err:
                     print(err)
         else:
+            print('Too big')
             magnet = get_magnet(torrent)
             add_torrent(magnet, _dir, verify, metadata_only)
     else:
@@ -312,7 +313,7 @@ if __name__ == '__main__':
                 elif file.endswith('.magnet'):
                     with open(file, 'r') as fp:
                         magnet = fp.readline().strip()
-                    add_torrent(arg, args.dir, args.check, args.metadata_only,
+                    add_torrent(magnet, args.dir, args.check, args.metadata_only,
                                 args.index)
             elif is_uri(arg):
                 aria2.addUri([arg], {'dir': DL_DIR})
