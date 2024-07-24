@@ -11,6 +11,12 @@ run() {
     # $( $@ >/dev/null 2>&1 &)
     # nohup $@ >/dev/null 2>&1 &
     # setsid -f -- $@ >/dev/null 2>&1
+
+    desktop_file=$(grep -rxF "Name=${*}" ~/.local/share/applications | cut -d':' -f1)
+    if [ -f "$desktop_file" ]; then
+        cmd=$(grep -oP '(?<=^Exec=).*' "$desktop_file")
+        set -- "$cmd"
+    fi
     i3-msg exec "$*" 2>&1 &
 }
 
@@ -21,7 +27,11 @@ while read -r i;do
         sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
-cmd=$(sort -u "$progs" | dmenu -p 'run:' -i -c -l 10)
+grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
+    grep -oP '(?<=^Name=).*' "$i"
+done >> "$progs"
+
+cmd=$(sort -Vu "$progs" | dmenu -p 'run:' -i -c -l 10)
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
 case "$cmd" in
@@ -33,8 +43,7 @@ case "$cmd" in
     spotify)        run spotify -no-zygote ;;
     conky)          runconky.sh ;;
     dhewm3) 
-        # shellcheck disable=SC2016
-        run 'dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"'
+        run dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"
         ;;
-    *) run "$cmd" ;;
+    *) [ -n "$cmd" ] && run "$cmd" ;;
 esac

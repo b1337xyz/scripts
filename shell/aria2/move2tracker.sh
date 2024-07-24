@@ -1,4 +1,4 @@
-#!/usr/bin/env dash
+#!/bin/sh
 cd ~/.cache/torrents || exit 1
 ls ./*.torrent >/dev/null 2>&1 || exit 0
 
