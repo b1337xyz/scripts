@@ -41,7 +41,6 @@ case "$cmd" in
     fzfanime.sh)    run "$TERMINAL" --title fzfanime -e fzfanime.sh ;;
     cmus)           run tmux new-session -d -s cmus cmus ;; 
     spotify)        run spotify -no-zygote ;;
-    conky)          runconky.sh ;;
     dhewm3) 
         run dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"
         ;;
