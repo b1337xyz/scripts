@@ -14,12 +14,20 @@ n=1
 cwd=$PWD
 while :;do
     cache=${tmp}${PWD}/files
+    cache_d=${cache}.dir
     mkdir -p "${cache%/*}"
     if [ ! -f "$cache" ];then
         for i in ./*;do
-            d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
-            find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|gif\|webp\)' | sort -V | head -1
-        done > "$cache"
+            if [ -d "$i" ];then
+                d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
+                find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|webp\)' | sort -V |
+                    head -1 >> "$cache_d"
+            else
+                echo "$i" >> "$cache"
+            fi
+        done
+        cat "$cache" >> "$cache_d"
+        mv "$cache_d" "$cache"
     fi
 
     l=$(wc -l < "$cache")
@@ -43,7 +51,7 @@ while :;do
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
-            nsxiv -s w -fbqr "$out" 2>/dev/null || true
+            find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V | nsxiv -s w -ifbqr 2>/dev/null || true
             out=
             n=$x
         else

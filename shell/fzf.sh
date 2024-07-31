@@ -157,10 +157,10 @@ menu() {
         --bind 'j:down' --bind 'k:up'
 }
 psndl() {
-    local db
+    local db cat
     db=~/.cache/psndl.csv
-    grep -oP '(?<=;)[^;]*(?=;[^;]*;https?:)' "$db" | sort -u | fzf -m --algo v1 |
-        xargs -rIV grep -F ';V;' "$db" | grep -oP '.*(?=;https?:)' |
-        fzf -m  | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
+    cat=$(grep -oP '(?<=;)[^;]*(?=;[^;]*;https?:)' "$db" | sort -u | fzf -m --algo v1)
+    grep -F ";${cat};" "$db" | grep -oP '.*(?=;https?:)' |
+        fzf -m | xargs -rIV grep -F 'V' "$db" | grep -oP '(?<=;)http[^;]*' |
         aria2c -j 1 --dir ~/Downloads --input-file=-
 }
