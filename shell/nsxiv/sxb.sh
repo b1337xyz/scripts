@@ -26,7 +26,7 @@ while :;do
                 echo "$i" >> "$cache"
             fi
         done
-        cat "$cache" >> "$cache_d"
+        cat "$cache" 2>/dev/null >> "$cache_d" || true
         mv "$cache_d" "$cache"
     fi
 

@@ -823,9 +823,11 @@ allowit() {
     find "${@:-.}" -type f -exec chmod -c g+r {} +
     find "${@:-.}" -type d -exec chmod -c g+rwx {} +
 }
+
 bak() {
     command cp -vn "$1" "${1}.bak"
 }
+
 clipw() {
     local c p
     while sleep .2;do 
@@ -833,4 +835,43 @@ clipw() {
         c=$(xclip -o -rmlastnl)
         [ "$c" != "$p" ] && { echo -- "$c"; p="${c}"; }
     done | tee -a "${1:-clipboard.txt}"
+}
+
+
+n() {
+    if [ -n "$NNNLVL" ] && [ "${NNNLVL:-0}" -ge 1 ]; then
+        echo "nnn is already running"; return
+    fi
+    export NNN_TMPFILE="$HOME/.config/nnn/.lastd"
+
+    nnn "$@"
+
+    if [ -f "$NNN_TMPFILE" ]; then
+        # shellcheck disable=SC1090
+        . "$NNN_TMPFILE"
+        command rm -f "$NNN_TMPFILE"
+    fi
+}
+
+r() {
+    local cache=~/.cache/.rangedir
+    ranger --choosedir="$cache" "$@"
+    cd -- "$(cat "$cache")" || return 1
+}
+
+fixkbd() {
+    setxkbmap br
+    # localectl list-x11-keymap-options
+    # xmodmap -e "keycode 108 = Alt_L" # Alt_Gr
+    xmodmap -e "keycode 97 = Alt_L" # backslash
+    xmodmap -e "keycode 34 = dead_grave backslash" # dead_acute 
+    xmodmap -e "keycode 47 = asciitilde bar" # ccedilla
+    xmodmap -e "keycode 26 = e E NoSymbol NoSymbol g"
+    xmodmap -e "keycode 27 = r R NoSymbol NoSymbol h"
+    xmodmap -e "keycode 28 = t T NoSymbol NoSymbol Up"
+    # xmodmap -e "keycode 73 = g" # F7
+    # xmodmap -e "keycode 74 = h" # F8
+    # xmodmap -e "keycode 15 = 6 backslash"  # dead_diaeresis
+    # xmodmap -e "keycode 81 = bar backslash " # KP_Prior (9)
+    # xmodmap -e "keycode 91 = asciitilde"  # KP_Delete
 }
