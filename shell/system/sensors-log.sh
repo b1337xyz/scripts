@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-time=$(date +'%b %d %H:%M:%S')
+time=$(date +'%Y/%m/%d %H:%M:%S')
 db=~/.cache/sensors.json
 new=${db}.bak
 tmp=$(mktemp)
