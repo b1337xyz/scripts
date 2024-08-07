@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from urllib.request import Request, urlopen
 from urllib.parse import unquote
+from time import sleep
 from sys import argv
 from shutil import move
 import subprocess as sp
@@ -79,6 +80,8 @@ def on_complete():
         request('removeDownloadResult', gid)
     except Exception:
         pass
+
+    sleep(3)
 
     if os.path.isfile(torrent_file):
         mv(torrent_file, CACHE)
