@@ -829,12 +829,14 @@ bak() {
 }
 
 clipw() {
-    local c p
+    local c out
+    out="${1:-clipboard.txt}"
+    touch "$out"
     while sleep .2;do 
         # c=$(wl-paste)
-        c=$(xclip -o -rmlastnl)
-        [ "$c" != "$p" ] && { echo -- "$c"; p="${c}"; }
-    done | tee -a "${1:-clipboard.txt}"
+        c=$(xclip -o -rmlastnl 2>/dev/null)
+        grep -qxF "$c" "$out" || echo "$c"
+    done | tee -a "$out"
 }
 
 
