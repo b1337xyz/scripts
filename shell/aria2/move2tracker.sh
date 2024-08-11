@@ -30,6 +30,6 @@ do
     mv -fv -- "$torrent" "$tracker"
 done
 
-aria2c -S ./*/*.torrent | awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' > torrents.txt
+aria2c -S ./*/*.torrent | awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' > torrents.txt &
 
 exit 0

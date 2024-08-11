@@ -158,8 +158,8 @@ ex() {
             *.zst)     unzstd "$i"     ;;
             *.gz)      gunzip "$i"     ;;
             *.rar)     unrar x -op"${i%.*}" "$i" ;;
-            *.zip)     unzip "$i" -d "${i%.*}"   ;;
-            *.7z)      7z x -o"${i%.*}" "$i"     ;;
+            #*.zip)     unzip "$i" -d "${i%.*}" ;;
+            *.7z|*.zip) 7z x -o"${i%.*}" "$i" ;;
             *.Z)       uncompress "$i" ;;
             *) continue ;;
         esac || return 1
