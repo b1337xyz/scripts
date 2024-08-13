@@ -478,7 +478,7 @@ ffstr() {
 }
 
 show_reserved() {
-    [ -b "$1" ] || return 1
+    [ -b "$1" ] || set -- "$(df --output=source . | tail -1)"
     sudo tune2fs -l "$1" | awk -F':' '{
         if ( $0 ~ /^Block count/)
             block_count = $2 + 0

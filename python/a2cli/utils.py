@@ -7,7 +7,20 @@ import re
 
 SHOW_GID = False
 USE_FZF = False
-DL_DIR = os.path.expanduser('~/Downloads')
+
+config = dict()
+for file in [os.path.expanduser('~/.config/aria2/aria2.conf'),
+             os.path.expanduser('~/.aria2/aria2.conf')]:
+
+    if os.path.isfile(file):
+        with open(file, 'r') as f:
+            for l in f.readlines():
+                if l.startswith('#') or '=' not in l:
+                    continue
+                k, v = l.strip().split('=', maxsplit=1)
+                config[k] = v
+
+DL_DIR = os.path.expandvars(config.get('dir', '$HOME'))
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB
