@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 ptr='.*\.(mp4|mkv|webm|avi|m4v|mov)'
-DIR=~/.cache/thumbnails/sxmpv
+DIR=~/.cache/sxmpv
+hash ffmpegthumbnailer || { echo install ffmpegthumbnailer; exit 1; }
 find . -maxdepth 1 -regextype posix-extended -iregex "$ptr" -type f | sort -V | while read -r i
 do
     img="${DIR}/${i##*/}.jpg"

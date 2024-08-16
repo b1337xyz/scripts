@@ -20,7 +20,7 @@ for file in [os.path.expanduser('~/.config/aria2/aria2.conf'),
                 k, v = l.strip().split('=', maxsplit=1)
                 config[k] = v
 
-DL_DIR = os.path.expandvars(config.get('dir', '$HOME'))
+DL_DIR = os.path.expandvars(config.get('dir', '${HOME}/Downloads'))
 TEMP_DIR = os.path.join(DL_DIR, '.torrents')
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB

@@ -81,8 +81,6 @@ def on_complete():
     except Exception:
         pass
 
-    sleep(3)
-
     if os.path.isfile(torrent_file):
         mv(torrent_file, CACHE)
 
@@ -90,17 +88,20 @@ def on_complete():
         notify(status, name)
     else:
         notify(status, f'{name}\nSize: {size}')
-        if os.path.exists(path) and dir == TEMP_DIR:
+        if os.path.exists(path) and TEMP_DIR in dir:
             mv(path, DL_DIR)
 
 
 if __name__ == '__main__':
     gid = argv[1]
     info = request('tellStatus', gid)
+
     if int(info.get("totalLength", 0)) <3:
         exit(0)
     if not os.path.isdir(CACHE):
         os.mkdir(CACHE)
+
+    sleep(1)
 
     name = get_name(info)
     dir = info['dir']

@@ -40,6 +40,7 @@ while [ $# -gt 0 ];do
         --next)     next=y ;;
         --dmenu)    use_dmenu=y ;;
         --sxiv)     use_sxiv=y ;;
+        --remove)   remove=y ;;
         --current)  current=y ;;  # only look for images in the current wallpaper directory
         --no-cache) cache=$(mktemp); trap 'rm $cache' EXIT ;;
         -*)         opts+=("$1") ;; # xwallpaper options
@@ -56,7 +57,17 @@ done
 test ${#opts[@]}    -eq 0 && opts=(--stretch)
 test ${#targets[@]} -eq 0 && targets=("$default_target")
 
-if   [ "$parent" ]
+if [ "$remove" ];then
+    if [ -f "$curr" ];then
+        if printf 'Yes\nno' | dmenu -l 2 -i -p "Remove ${curr}?" | grep -q Yes
+        then
+            rm "$curr" || exit 1
+            notify-send "$wallpaper removed"
+            "$0"
+        fi
+    fi
+    exit 0
+elif [ "$parent" ]
 then
     wallpaper=$(random_wallpaper "${curr%/*}")
 elif [ "$prev" ]
@@ -81,8 +92,9 @@ then
         -maxdepth "$maxdepth" -iregex "$reImage" -printf '%T@\t%p\n' | 
         sort -rn | cut -f2- | nsxiv -iqt 2>/dev/null
 
-    exit 0  # set the wallpaper with nsxiv
-elif [ -z "$wallpaper" ];then
+    exit 0  # now set the wallpaper with nsxiv
+elif [ -z "$wallpaper" ]
+then
     wallpaper=$(random_wallpaper "${targets[@]}")
 fi
 
@@ -96,4 +108,5 @@ cp "$wallpaper" ~/.cache/current_bg.jpg
 
 wallpaper=${wallpaper%/*}
 notify-send -i image -r 1338 "XWall" "${wallpaper/${HOME}\//}"
+
 exit 0
