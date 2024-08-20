@@ -20,7 +20,7 @@
   - [fzf](https://github.com/junegunn/fzf)
   - [jq](https://github.com/stedolan/jq)
   - [mediainfo](https://mediaarea.net/)
-  - [nsxiv](https://github.com/nsxiv/nsxiv)
+  - [nsxiv](https://github.com/nsxiv/nsxiv) patched with [dmenu-search](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/dmenu-search)
   - [ueberzug](https://github.com/b1337xyz/ueberzug)
   - [xclip](https://github.com/astrand/xclip)
   - [slop](https://github.com/naelstrof/slop)
