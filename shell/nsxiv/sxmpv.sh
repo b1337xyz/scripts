@@ -7,7 +7,7 @@ do
     img="${DIR}/${i##*/}.jpg"
     if ! [ -f "$img" ];then
         mkdir -p "${img%/*}"
-        ffmpegthumbnailer -s 0 -i "$i" -o "$img" 2>/dev/null
+        ffmpegthumbnailer -s 0 -q 6 -i "$i" -o "$img" 2>/dev/null
     fi
     printf '%s\n' "$img"
 done | sxiv -qito | sed 's/.*\//\.\//; s/\.jpg$//'
