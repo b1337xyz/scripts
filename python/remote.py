@@ -11,7 +11,7 @@ import json
 
 os.environ.update({
     "DISPLAY": ":0",
-    "PATH": os.environ["PATH"] + ':/home/anon/.local/bin',
+    "PATH": os.environ["PATH"] + f':{os.getenv("HOME")}/.local/bin',
     'I3SOCK': '/run/user/1000/i3/ipc.sock',
 })
 
