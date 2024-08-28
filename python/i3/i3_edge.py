@@ -23,11 +23,11 @@ if 'off' in focused.floating:
 
 if resize and ('up' in args or 'down' in args):
     x = scr_x
-    win_width = (workspace.rect.width - 4)  # FIXME
+    win_width = (workspace.rect.width - 4)
     win_height = workspace.rect.height // 2
 if resize and ('left' in args or 'right' in args):
     y = bar
-    win_width = (workspace.rect.width // 2) - 5  # FIXME
+    win_width = (workspace.rect.width // 2)
     win_height = workspace.rect.height
 if resize and 'center' in args:
     win_width = (workspace.rect.width * 60) // 100
