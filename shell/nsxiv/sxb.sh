@@ -51,7 +51,9 @@ while :;do
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
-            find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V | nsxiv -s w -ifbqr 2>/dev/null || true
+            find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V |
+                zip -q -0 - -@ | zathura --mode=fullscreen -
+                # nsxiv -s w -ifbqr 2>/dev/null || true
             out=
             n=$x
         else
