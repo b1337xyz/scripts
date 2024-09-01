@@ -131,7 +131,7 @@ def add_buttons(title, items, on_press, user_data=None):
 
 
 def main():
-    global footer, loop
+    global footer
     body = []
     body.extend(add_buttons("MPV Controls", commands['mpv'], mpv_on_click))
     body.extend(add_buttons("Commands", commands['cmd'], cmd_on_click, 'cmd'))
@@ -151,7 +151,6 @@ def main():
         ('highlight', 'black', 'dark blue'),
     ]
     loop = urwid.MainLoop(widget, palette)
-    # loop.set_alarm_in(10, refresh)
     loop.run()
 
 
