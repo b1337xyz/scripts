@@ -29,11 +29,11 @@ done < "$tmpfile"
 
 grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
     grep -oP '(?<=^Name=).*' "$i"
-done >> "$progs"
+done >> "$tmpfile"
 
-cmd=$(sort -Vu "$progs" | dmenu -p 'run:' -i -c -l 10)
+cmd=$(sort -Vu "$tmpfile" | dmenu -p "run:" -i -c -l 15)
 [ -z "$cmd" ] && exit 1
-grep -qxF "$cmd" "$progs" || echo "$cmd" >> "$progs"
+grep -qxF "$cmd" "$tmpfile" || echo "$cmd" >> "$tmpfile"
 case "$cmd" in
     pulsemixer|top) run "$TERMINAL" --class floating_window -e "$cmd" ;;
     ncmpcpp)        run "$TERMINAL" --title ncmpcpp -e ncmpcpp ;; 
