@@ -1,6 +1,7 @@
 bcat() { aria2c -S "$1";  }
 bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
 btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
+getmagnet() { aria2c -S "$1" | awk '/Magnet URI:/{print $3}'; }
 
 getHashes() {
     [ -z "$1" ] && set -- ./*.torrent
@@ -58,14 +59,15 @@ pptorrent() {
     [ -f "$1" ] || { printf 'Usage: pptorrent <TORRENT FILE>\n'; return 1; }
 
     aria2c -S "$1" | awk -v n=0 '{
+    if ($0 ~ /^Total/) total = $3
     if ($0 ~ /^idx\|path\/length/) n=1
     if (n == 0) next
     if ($0 ~ /^[\s\t ]+[0-9]+\|\.\//) {
         match($0, /^[\s\t ]+([0-9]+)\|\.\/(.*)/, s)
-    } else if (! ($0 ~ /^---/) ) {
+    } else if ($0 ~ /^[\t ]/) {
         match($1, /\|([^ ]+)/, size)
         printf("\033[1;35m%s\033[m) %s (%s)\n", s[1], s[2], size[1])
-    }}'
+    }} END { printf("%s total\n", total) }'
 
 }
 
@@ -160,27 +162,40 @@ btsel() {
 }
 
 addUri() {
+    local data dir
+    dir=$(realpath "${2:-.}")
+    tempdir=$(mktemp -d "${dir}/.aria2.XXXXXXXXX")
     data=$(printf '{
-        "jsonrcp":"2.0", "id":"a",
+        "jsonrcp":"2.0", "id":"1",
         "method":"aria2.addUri", "params":[["%s"], {"dir": "%s"}]
-    }' "$1" "${2:-${HOME}/Downloads}" | jq -Mc .)
+    }' "$1" "${tempdir}" | jq -Mc .)
+
     curl -s "http://localhost:6800/jsonrpc" \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
         -d "$data" -w '\n'
 }
 
-# addTorrent() {
-#     local torrent data
-#     [ -f "$1" ] || return 1
-#     torrent=$(base64 -i -w 0 "$1")
-#     data=$(printf '{
-#         "jsonrpc":"2.0", "id":"a",
-#         "method":"aria2.addTorrent",
-#         "params":["%s"]
-#     }' "$torrent" | jq -Mc .)
-#     curl -s 'http://127.0.0.1:6800/jsonrpc' \
-#         -H "Content-Type: application/json" \
-#         -H "Accept: application/json" \
-#         -d "$data" -w '\n'
-# }
+addTorrent() {
+    local torrent data dir fsize magnet
+    fsize=$(du "$1" | awk '{print $1}')
+    if [ "$fsize" -gt 2000000 ];then
+        magnet=$(getmagnet "$1")
+        addUri "$magnet" "$2"
+        return
+    fi
+    
+    torrent=$(base64 -i -w 0 - < "$1")
+    dir=$(realpath "$2")
+    tempdir=$(mktemp -d "${dir}/.aria2.XXXXXXXXX")
+    data=$(printf '{
+        "jsonrpc":"2.0", "id":"1",
+        "method":"aria2.addTorrent",
+        "params":["%s", [], {"dir": "%s"}]
+    }' "$torrent" "$tempdir" | jq -Mc .)
+
+    curl -s 'http://127.0.0.1:6800/jsonrpc' \
+        -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
+        -d "$data" -w '\n'
+}

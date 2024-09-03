@@ -33,7 +33,7 @@ done >> "$tmpfile"
 
 cmd=$(sort -Vu "$tmpfile" | dmenu -p "run:" -i -c -l 15)
 [ -z "$cmd" ] && exit 1
-grep -qxF "$cmd" "$tmpfile" || echo "$cmd" >> "$tmpfile"
+grep -qxF "$cmd" "$tmpfile" || echo "$cmd" >> "$progs"
 case "$cmd" in
     pulsemixer|top) run "$TERMINAL" --class floating_window -e "$cmd" ;;
     ncmpcpp)        run "$TERMINAL" --title ncmpcpp -e ncmpcpp ;; 
