@@ -755,8 +755,8 @@ tsxiv() {
 }
 
 tmpv() {
-    find . -maxdepth 3 -type f -iregex '.*\.\(mkv\|mp4\|webm\|avi\|m4v\|gif\)' -printf '%C@\t%p\n' |
-        sort -n | cut -f2- | mpv --playlist=-
+    find . -maxdepth 3 -type f -iregex '.*\.\(mkv\|mp4\|mov\|webm\|avi\|m4v\|gif\)' -printf '%C@\t%p\n' |
+        sort -rn | cut -f2- | mpv --playlist=-
 }
 
 truecolor_test() {

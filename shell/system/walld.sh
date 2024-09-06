@@ -51,8 +51,9 @@ cache=.skip
 [ -f "$cache" ] || :>"$cache"
 mkdir -vp green dark
 
-inotifywait -r -m -e create,close_write,moved_to --format '%w%f%0' "$DIR" | while IFS= read -r file
+inotifywait -r -m -e close_write,moved_to --format '%w%f%0' "$DIR" | while IFS= read -r file
 do
+    sleep 1
     [ -f "$file" ] || continue
     grep -qxF "$file" "$cache" && { printf 'skipping "%s"\n' "$file"; continue; }
 
