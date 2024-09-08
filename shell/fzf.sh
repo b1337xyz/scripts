@@ -30,19 +30,14 @@ e() {
 }
 s() {
     local file
-    file=$(find ~/.scripts ~/.local/share/qutebrowser/{js,userscripts} \
-        -type f -size -100k -regextype posix-extended \
-        \! \( -path '*/node_modules*' -o -path '*__*__*' -o -path '*/venv/*' -o -iregex '.*\.(json|bak)' \) \
-        2>/dev/null | _fzfile -d "${HOME}/" --with-nth 2..)
-
+    file=$(~/.scripts/shell/system/find.sh ~/.scripts |
+        _fzfile -d "${HOME}/" --with-nth 2..)
     [ -f "$file" ] && vim "$file"
 }
 c() { 
     local file
-    file=$(find -L ~/.config -maxdepth 3 -type f -size -100k -regextype posix-extended \
-        \! \( -name '__*__' -o -iregex '.*\.(bdic|tdb|lpl|spl|state[0-9]?|srm|png|jpg|auto|crt|pem|lock)' \) 2>/dev/null |
+    file=$(~/.scripts/shell/system/find.sh ~/.config |
         _fzfile -d "${HOME}/" --with-nth 2..)
-
     [ -f "$file" ] && vim "$file"
 }
 fzumount() {
