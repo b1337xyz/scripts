@@ -1,6 +1,6 @@
 #!/bin/sh
 session=${HOME}/.cache/aria2/session
-script=${HOME}/.scripts/python/a2notify.py
+script=${HOME}/.scripts/python/a2cli/a2notify.py
 [ -f "$session" ] || :>"$session"
 aria2c  -D --enable-rpc --continue \
     --input-file="$session" \

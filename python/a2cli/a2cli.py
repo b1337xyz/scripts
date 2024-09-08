@@ -4,6 +4,10 @@ from time import sleep
 from xmlrpc.client import ServerProxy, Binary, MultiCall
 from collections import defaultdict
 import json
+import string
+import random
+
+# USE WITH a2notify.py
 
 
 def select(action, downloads):
@@ -34,11 +38,21 @@ def get_all():
     return [j for sub in mc() for j in sub]
 
 
-def add_torrent(torrent, _dir=TEMP_DIR, verify=False, metadata_only=False,
+def mktemp(path):
+    chars = string.ascii_letters + string.digits
+    random_str = ''.join(random.choice(chars) for _ in range(10))
+    path = os.path.join(path, f'.{random_str}_tempdir')
+    print(path)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
                 index=None):
-    _dir = os.path.realpath(_dir)
+
+    temp_dir = mktemp(path)
     options = {
-        'dir': _dir,
+        'dir': temp_dir,
         'check-integrity': str(verify).lower(),
         'metadata-only': str(metadata_only).lower(),
         'bt-save-metadata': 'true',
@@ -91,7 +105,7 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
     for i, dl in enumerate(downloads, start=1):
         status = dl['status']
 
-        if not only_status is None and status != only_status:
+        if only_status is not None and status != only_status:
             continue
 
         counter[status] += 1
@@ -117,8 +131,8 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
             'removed': '\033[1;35mR \033[m',
         }.get(status)
 
-        if i >= lines:  # stop printing
-            continue
+        # if i >= lines:  # stop printing
+        #     continue
 
         bar_size = 12
         p = completed_length * 100 // (1 if size == 0 else size)
@@ -154,8 +168,7 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
 
         print('(DL: {:>8}/s UP: {:>8}/s)\t(TDL: {:>8} TUP: {:>8})'.format(
             psize(total_dlspeed), psize(total_upspeed),
-            psize(total_dl), psize(total_up)
-            ))
+            psize(total_dl), psize(total_up)))
 
     return len(output) > 0
 
@@ -249,8 +262,13 @@ def connect(host='127.0.0.1', port=6800):
 
 
 if __name__ == '__main__':
-    args = parse_arguments()
-    assert args.sort_by is None or args.sort_by in SORTING_KEYS
+    args, parser = parse_arguments()
+    if (args.download_limit or args.upload_limit) and args.gid is None:
+        parser.error("--download-limit|--update-limit requires --gid")
+
+    if args.sort_by is not None and (args.sort_by not in SORTING_KEYS):
+        parser.error(f"{args.sort_by} not in {SORTING_KEYS}")
+
     server = connect(port=args.port)
     aria2 = server.aria2
 
@@ -272,8 +290,6 @@ if __name__ == '__main__':
         aria2.pauseAll()
     elif args.unpause_all:
         aria2.unpauseAll()
-    elif args.gid:
-        print(json.dumps(aria2.tellStatus(args.gid), indent=2))
     elif args.remove_metadata:
         remove_metadata(args.status)
     elif args.top:
@@ -288,14 +304,20 @@ if __name__ == '__main__':
         print(aria2.changeGlobalOption({
             'max-concurrent-downloads': str(args.max_downloads)
         }))
-    elif args.download_limit:
+    elif args.max_download_limit:
         print(aria2.changeGlobalOption({
             'max-overall-download-limit': args.download_limit
         }))
-    elif args.upload_limit:
+    elif args.max_upload_limit:
         print(aria2.changeGlobalOption({
             'max-overall-upload-limit': args.download_limit
         }))
+    elif args.download_limit:
+        aria2.changeoption(args.gid,
+                           {'max-download-limit': args.download_limit})
+    elif args.upload_limit:
+        aria2.changeoption(args.gid,
+                           {'max-download-limit': args.download_limit})
     elif args.list_gids:
         print('\n'.join([i['gid'] for i in get_all()]))
     elif args.files:
@@ -326,8 +348,7 @@ if __name__ == '__main__':
                 sleep(3)
         except KeyboardInterrupt:
             pass
+    elif args.gid:
+        print(json.dumps(aria2.tellStatus(args.gid), indent=2))
     else:
-        try:
-            list_all(False, args.sort_by, args.reverse, args.status)
-        except Exception as err:
-            print(err)
+        list_all(False, args.sort_by, args.reverse, args.status)

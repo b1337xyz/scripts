@@ -14,14 +14,15 @@ for file in [os.path.expanduser('~/.config/aria2/aria2.conf'),
 
     if os.path.isfile(file):
         with open(file, 'r') as f:
-            for l in f.readlines():
-                if l.startswith('#') or '=' not in l:
+            for line in f.readlines():
+                if line.startswith('#') or '=' not in line:
                     continue
-                k, v = l.strip().split('=', maxsplit=1)
+
+                k, v = line.strip().split('=', maxsplit=1)
                 config[k] = v
 
-DL_DIR = os.path.expandvars(config.get('dir', '${HOME}/Downloads'))
-TEMP_DIR = os.path.join(DL_DIR, '.torrents')
+DL_DIR = os.path.expandvars(config.get('dir', os.getenv('XDG_DOWNLOAD_DIR',
+                                                        '${HOME}/Downloads')))
 MAX = 999
 MAX_SIZE = 2000000  # 2 MB
 
@@ -56,7 +57,7 @@ def parse_arguments():
     parser.add_argument('--port', type=str, default='6800')
     parser.add_argument('-V', '--check-integrity', action='store_true',
                         dest='check', help='Check file integrity')
-    parser.add_argument('-d', '--dir', type=str, default=TEMP_DIR,
+    parser.add_argument('-d', '--dir', type=str, default=DL_DIR,
                         help='directory to store the downloaded file \
                                 (default: %(default)s)')
     parser.add_argument('-l', '--list', action='store_true',
@@ -95,6 +96,10 @@ def parse_arguments():
                         help='overall download speed limit')
     parser.add_argument('--upload-limit', type=str, metavar='<SPEED>',
                         help='overall upload speed limit')
+    parser.add_argument('--max-download-limit', type=str, metavar='<SPEED>',
+                        help='overall download speed limit')
+    parser.add_argument('--max-upload-limit', type=str, metavar='<SPEED>',
+                        help='overall upload speed limit')
     parser.add_argument('-y', '--yes', action='store_false',
                         help='don\'t ask')
     parser.add_argument('-s', '--save', action='store_true',
@@ -110,8 +115,7 @@ def parse_arguments():
                         dest='index', default=None,
                         help='Set file to download by specifying its index.')
 
-    return parser.parse_args()
-
+    return parser.parse_args(), parser
 
 
 def yes(ask=True):
