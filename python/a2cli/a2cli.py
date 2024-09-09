@@ -42,7 +42,6 @@ def mktemp(path):
     chars = string.ascii_letters + string.digits
     random_str = ''.join(random.choice(chars) for _ in range(10))
     path = os.path.join(path, f'.{random_str}_tempdir')
-    print(path)
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -257,7 +256,7 @@ def move_to_top():
 
 def connect(host='127.0.0.1', port=6800):
     port = os.getenv('A2C_PORT', port)
-    print('port:', port)
+    # print('port:', port)
     return ServerProxy(f'http://{host}:{port}/rpc')
 
 
