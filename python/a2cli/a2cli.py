@@ -350,4 +350,7 @@ if __name__ == '__main__':
     elif args.gid:
         print(json.dumps(aria2.tellStatus(args.gid), indent=2))
     else:
-        list_all(False, args.sort_by, args.reverse, args.status)
+        try:
+            list_all(False, args.sort_by, args.reverse, args.status)
+        except Exception as err:
+            print(err)

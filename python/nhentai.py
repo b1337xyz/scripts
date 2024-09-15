@@ -78,6 +78,7 @@ class Downloader:
         self.rpc_port = self.config.get('rpc_port')
         self.user_agent = self.config.get('user_agent')
         self.urls = [i.strip() for i in args if self.domain in i]
+        self.failed = []
 
         self.start_session()
         self.save_config()
@@ -142,22 +143,19 @@ class Downloader:
                 if re.search(r'torrent|octet', content_type):
                     break
             else:
+                print('\033[1;31mDOWNLOAD FAILED\033[m')
+                self.failed.append(url)
                 return
 
             data = r.raw.read()
             with open(file, 'wb') as f:
                 f.write(data)
 
-        self.rpc.addTorrent(Binary(data), [], {
-            'check-integrity': 'false',
-            'rpc-save-upload-metadata': 'false',
-            'force-save': 'false',
-            'dir': str(file.parent)
-        })
+        self.rpc.addTorrent(Binary(data), [], {'dir': str(file.parent)})
 
     def get_soup(self, url):
         print(f'GET: {url}')
-        sleep(random() * .8)
+        sleep(random() * .99)
         r = self.session.get(url)
         return BS(r.text, 'html.parser')
 
@@ -195,10 +193,14 @@ class Downloader:
                 url += '&page={}' if '?' in url else '?page={}'
 
             posts = self.get_posts(url)
-            print(f'posts found: {len(posts)}')
-            for url in posts:
+            l = len(posts)
+            for i, url in enumerate(posts, start=1):
                 fname = url.split('/')[-2] + '.torrent'
+                print(f'[{i}/{l}] {dl_dir / fname}')
                 self.download(url, dl_dir / fname)
+
+        if (l := len(self.failed)) > 0:
+            print(f'{"\n".join(self.failed)} failed: {l}')
 
 
 if __name__ == '__main__':

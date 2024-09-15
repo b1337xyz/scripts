@@ -23,7 +23,7 @@ for file in [os.path.expanduser('~/.config/aria2/aria2.conf'),
 
 DL_DIR = os.path.expandvars(config.get('dir', os.getenv('XDG_DOWNLOAD_DIR',
                                                         '${HOME}/Downloads')))
-MAX = 999
+MAX = 9999
 MAX_SIZE = 2000000  # 2 MB
 
 FZF_ARGS = [

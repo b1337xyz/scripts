@@ -861,6 +861,18 @@ r() {
     cd -- "$(cat "$cache")" || return 1
 }
 
+hxsj() {
+    # mappings for the hxsj keyboard
+    setxkbmap -layout us -variant altgr-intl
+    xmodmap -e "keycode  24 = q Q NoSymbol NoSymbol slash"
+    xmodmap -e "keycode  25 = w W NoSymbol NoSymbol question"
+    xmodmap -e "keycode  34 = backslash bar"
+    xmodmap -e "keycode  35 = bracketleft braceleft"
+    xmodmap -e "keycode  47 = asciitilde asciicircum"
+    xmodmap -e "keycode  51 = bracketright braceright"
+    xmodmap -e "keycode  61 = semicolon colon"
+}
+
 fixkbd() {
     setxkbmap br
     # localectl list-x11-keymap-options
