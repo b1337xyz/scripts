@@ -3,8 +3,7 @@
 set -e
 
 if command -v devour >/dev/null 2>&1 && [ -z "$DEVOUR" ];then
-    DEVOUR=y devour "$0"
-    exit
+    DEVOUR=y exec devour "$0"
 fi
 
 tmp=$(mktemp -d)
@@ -51,6 +50,7 @@ while :;do
     out=${out#./*} out=./${out%%/*}
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
+            echo "$out" >> ~/.cache/sxb_history
             find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V |
                 zip -q -0 - -@ | zathura --mode=fullscreen -
                 # nsxiv -s w -ifbqr 2>/dev/null || true
