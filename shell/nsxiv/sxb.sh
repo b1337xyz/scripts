@@ -32,14 +32,14 @@ while :;do
     l=$(wc -l < "$cache")
     [ "$l" -eq 0 ] && break
 
-    if [ "$l" -gt 1 ];then
+    if [ "$l" -ge 1 ];then
         out=$(nsxiv -n "$n" -fqito < "$cache" 2>/dev/null || { shift; n=$1; })
     elif [ -n "$out" ];then
         out=$(head -1 "$cache")
     fi
 
     if [ -z "$out" ];then 
-        [ "$PWD" = "$cwd" ] && break
+        [ "$PWD" = "$cwd" ] && { echo bye; break; }
         n=$1
         cd ..
         shift
