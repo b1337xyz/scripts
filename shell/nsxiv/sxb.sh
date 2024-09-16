@@ -6,20 +6,20 @@ if command -v devour >/dev/null 2>&1 && [ -z "$DEVOUR" ];then
     DEVOUR=y exec devour "$0"
 fi
 
-tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
+tmp=${HOME}/.cache/sxb
+# trap 'rm -rf "$tmp"' EXIT
 
 n=1
 cwd=$PWD
 while :;do
     cache=${tmp}${PWD}/files
-    cache_d=${cache}.dir
+    cache_d=${cache}.dir     # directories go first
     mkdir -p "${cache%/*}"
     if [ ! -f "$cache" ];then
         for i in ./*;do
             if [ -d "$i" ];then
-                d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)
-                find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|webp\)' | sort -V |
+                d=$(find -L "$i" -mindepth 1 -maxdepth 1 -type d | shuf -n1)      # choose a random subfolder/title
+                find -L "${d:-$i}" -iregex '.*\.\(jpe?g\|png\|webp\)' | sort -V | # get the first image from $d, e.g. 1.jpg
                     head -1 >> "$cache_d"
             else
                 echo "$i" >> "$cache"
