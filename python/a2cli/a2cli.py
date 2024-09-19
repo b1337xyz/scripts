@@ -214,8 +214,10 @@ def remove(downloads=[]):
 
         print(gid, name, 'removed')
         path = os.path.join(dl['dir'], name)
-        if os.path.exists(path):
-            print('Remove', path)
+        if dl['dir'].endswith('_tempdir'):
+            sp.run(['rm', '-rvI', dl['dir']])
+        elif os.path.exists(path):
+            print('Removing', path)
             sp.run(['rm', '-rvI', path])
 
     for dl in aria2.tellStopped(0, MAX):

@@ -9,7 +9,6 @@ trap 'rm "$tmpfile"' EXIT
 
 run() {
     # $( $@ >/dev/null 2>&1 &)
-    # nohup $@ >/dev/null 2>&1 &
     # setsid -f -- $@ >/dev/null 2>&1
 
     desktop_file=$(grep -rxF "Name=${*}" ~/.local/share/applications | cut -d':' -f1)
@@ -17,7 +16,12 @@ run() {
         cmd=$(grep -oP '(?<=^Exec=).*' "$desktop_file")
         set -- "$cmd"
     fi
-    i3-msg exec "$*" 2>&1 &
+
+    if hash i3-msg;then
+        i3-msg exec "$*" 2>&1 &
+    else
+        nohup $@ >/dev/null 2>&1 &
+    fi
 }
 
 # clean up
@@ -27,9 +31,15 @@ while read -r i;do
         sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
-grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
-    grep -oP '(?<=^Name=).*' "$i"
-done >> "$tmpfile"
+choice=$(printf 'Apps\nGames\n' | dmenu -c -l 2 -i)
+
+case "$choice" in 
+    Games)
+        grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
+            grep -oP '(?<=^Name=).*' "$i"
+        done > "$tmpfile"
+    ;;
+esac
 
 cmd=$(sort -Vu "$tmpfile" | dmenu -p "run:" -i -c -l 15)
 [ -z "$cmd" ] && exit 1

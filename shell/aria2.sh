@@ -49,7 +49,7 @@ dufbt() {
     if ($0 ~ /^[\s\t ]+[0-9]+\|\.\//) {
         match($0, /^[\s\t ]+([0-9]+)\|(.*)/, s)
         sub(/.*\//, "", s[2])
-    } else if (! ($0 ~ /^---/) ) {
+    } else if ($0 ~ /^[\t ]/) {
         match($1, /\|([^ ]+)/, size)
         printf("%8s \033[1;31m%4s\033[m: %s\n", size[1], s[1], s[2])
     }} END { printf("%s total\n", total) }'
