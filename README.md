@@ -16,7 +16,7 @@
   - [cksfv](http://zakalwe.fi/~shd/foss/cksfv)
   - [dash](http://gondor.apana.org.au/~herbert/dash/)
   - [devour](https://github.com/salman-abedin/devour)
-  - [dmenu](https://tools.suckless.org/dmenu/) patched with [instant](https://tools.suckless.org/dmenu/patches/instant/) and [center](https://tools.suckless.org/dmenu/patches/center/)
+  - [dmenu](https://tools.suckless.org/dmenu/) patched with [instant](https://tools.suckless.org/dmenu/patches/instant/), [center](https://tools.suckless.org/dmenu/patches/center/) and [no-input](https://tools.suckless.org/dmenu/patches/no-input/)
   - [fzf](https://github.com/junegunn/fzf)
   - [jq](https://github.com/stedolan/jq)
   - [mediainfo](https://mediaarea.net/)

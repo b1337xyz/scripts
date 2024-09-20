@@ -31,7 +31,7 @@ while read -r i;do
         sed -i "/${i}/d" "$progs"
 done < "$tmpfile"
 
-choice=$(printf 'Apps\nGames\n' | dmenu -c -l 2 -i)
+choice=$(printf 'Apps\nGames\n' | dmenu -c -l 2 -i -noi)
 
 case "$choice" in 
     Games)
