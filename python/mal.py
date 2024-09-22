@@ -16,9 +16,9 @@ CACHE = os.path.join(HOME, '.cache/mal.json')
 try:
     with open(CACHE, 'r') as fp:
         cache = json.load(fp)
+    copy(CACHE, f'{CACHE}.bak')
 except FileNotFoundError:
     cache = dict()
-copy(CACHE, f'{CACHE}.bak')
 
 parser = ArgumentParser(usage='%(prog)s [options] <search>')
 parser.add_argument('--tolerance', type=int, default=10)

@@ -10,7 +10,7 @@ import random
 # USE WITH a2notify.py
 
 
-def select(action, downloads):
+def select(action, downloads, status=None):
     if USE_FZF:
         return [downloads[int(i.split(':')[0])]
                 for i in fzf(prompt=action, args=[
@@ -18,7 +18,7 @@ def select(action, downloads):
                     for i, v in enumerate(downloads)
                 ])]
 
-    while list_all(numbered=True):
+    while list_all(numbered=True, only_status=status):
         try:
             print('1 2 3...')
             return [downloads[int(i.strip()) - 1]
@@ -101,9 +101,9 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
     cols, lines = os.get_terminal_size()
     output = []
     total_dlspeed, total_upspeed, total_dl, total_up = 0, 0, 0, 0
-    for i, dl in enumerate(downloads, start=1):
+    i = 1
+    for dl in downloads:
         status = dl['status']
-
         if only_status is not None and status != only_status:
             continue
 
@@ -151,6 +151,7 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
         if len(out) > cols:
             out = out[:cols - 3] + '...'
         output.append(out)
+        i += 1
 
     if clear:
         print('\033[2J\033[1;1H')  # clear
@@ -174,7 +175,7 @@ def list_all(clear=False, sort_by=None, reverse=False, only_status=None,
 
 def pause():
     downloads = aria2.tellActive()
-    for dl in select('pause', downloads):
+    for dl in select('pause', downloads, 'active'):
         aria2.pause(dl['gid'])
 
 
@@ -196,7 +197,7 @@ def list_files():
 
 def unpause():
     downloads = aria2.tellWaiting(0, MAX)
-    for dl in select('unpause', downloads):
+    for dl in select('unpause', downloads, 'paused'):
         aria2.unpause(dl['gid'])
 
 
