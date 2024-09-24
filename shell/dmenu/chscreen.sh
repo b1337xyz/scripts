@@ -1,8 +1,8 @@
 #!/bin/sh
-scr0="HDMI1"
-scr1="eDP1"
+scr0="HDMI-A-0" # primary
+scr1="HDMI-A-1-1"
 
-mode=$(cat << EOF | dmenu -c -i -l 6 | cut -d':' -f1
+mode=$(cat << EOF | dmenu -c -i -l 5 | cut -d':' -f1
 1: $scr1 left of $scr0
 2: $scr1 right of $scr0
 3: $scr1 only
