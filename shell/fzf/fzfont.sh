@@ -16,7 +16,7 @@ function preview {
     preview_text="▁▂▃▄▅▆▇█\nABCDEFGHIJKLM\nNOPQRSTUVWXYZ\nabcçdefghijklm\nnopqrstuvwxyz\n1234567890\n!@#$\%^&*,.;:\n_-=+'\"|\\(){}[]"
 
     if ! [ -f "$img" ];then
-        convert -size "$imgsize" xc:"$bgc" -fill "$fgc" \
+        magick -size "$imgsize" xc:"$bgc" -fill "$fgc" \
             -pointsize "$fontsize" -font "$1" -gravity center \
             -annotate +0+0 "$preview_text" "$img"
     fi
