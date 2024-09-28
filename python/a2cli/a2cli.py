@@ -215,7 +215,7 @@ def remove(downloads=[]):
 
         print(gid, name, 'removed')
         path = os.path.join(dl['dir'], name)
-        if dl['dir'].endswith('_tempdir'):
+        if dl['dir'].endswith('_tempdir') and os.path.isdir(dl['dir']):
             sp.run(['rm', '-rvI', dl['dir']])
         elif os.path.exists(path):
             print('Removing', path)
