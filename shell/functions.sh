@@ -890,24 +890,25 @@ fixkbd() {
     # xmodmap -e "keycode 91 = asciitilde"  # KP_Delete
 }
 
-_convert_functions_to_scripts() {
+convert_functions_to_scripts() {
     local functions_dir script
     functions_dir=~/.scripts/shell/functions
     mkdir -vp "$functions_dir"
     # `declare -F`
-    grep -oP '^[a-z0-9][a-z0-9_]+(?=\(\) {)' ~/.scripts/shell/{mediainfo,fzf,aria2,functions}.sh  | while IFS=: read -r path function_name
+    grep -oP '^[a-z0-9][a-z0-9_]+?(?=\(\) {)' ~/.scripts/shell/{mediainfo,fzf,aria2,functions}.sh  | while IFS=: read -r path function_name
     do
         script=${functions_dir}/${function_name}
-        [ -s "$script" ] && continue
+        [ -s "$script" ] && command rm "${script}"
         type "$function_name" | while IFS= read -r l
         do
-            if [[ "$l" =~ "is a function" ]];then
+            if [[ "$l" =~ "is a function"$ ]];then
                 echo "#!/usr/bin/env bash" >> "${script}"
                 continue
             fi
             [ -s "$script" ] || break
             echo "$l" >> "$script"
         done
+        printf '%s $@\n' "${function_name}" >> "$script"
         chmod +x "$script"
     done
 }
