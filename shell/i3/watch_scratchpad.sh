@@ -3,11 +3,20 @@ set -e
 
 lock=/tmp/.${0##*/}
 if [ -d "$lock" ];then
-    for d in "$lock"/*;do kill "${d##*/}" && rm -d "$d" ;done
-    sleep .2
+    for d in "$lock"/*;do pkill -P "${d##*/}" || true; rm -dv "$d" ;done
+    sleep 1
 fi
 mkdir -vp "${lock}/$$"
 trap 'rm -vrf ${lock} 2>/dev/null' EXIT
+
+COLORS=(
+'#ee9090'
+'#ee90ee'
+'#eeee90'
+'#90eeee'
+'#90ee90'
+'#9090ee'
+)
 
 get_scratchpad_class() {
     i3-msg -t get_tree | jq -Mcr '.. | .nodes? // empty | .[] |
@@ -21,18 +30,8 @@ get_scratchpad_name() {
     (.floating_nodes + .nodes) | .. | .name? // empty'
 }
 
-COLORS=(
-'#ee9090'
-'#ee90ee'
-'#eeee90'
-'#90eeee'
-'#90ee90'
-'#9090ee'
-)
-
 file=/tmp/i3status.scratchpad
 prev=
-rm "$file"
 i3-msg -t subscribe -m '[ "window" ]' | while read -r _;do
     curr=$(get_scratchpad_name)
     [ "$curr" = "$prev" ] && continue
