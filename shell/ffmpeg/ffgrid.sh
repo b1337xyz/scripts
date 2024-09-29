@@ -2,7 +2,7 @@
 
 while (($#));do
     if [ -f "$1" ];then input=$1
-    elif [[ "$d" =~ [0-9]*x[0-9]* ]];then d=$1
+    elif [[ "$1" =~ [0-9]*x[0-9]* ]];then d=$1
     fi
     shift
 done
@@ -11,7 +11,7 @@ cols=${d%x*}
 rows=${d##*x}
 n=$(( cols * rows  ))
 for (( i=0 ; i < n ; i++ ));do
-    cmd+=( -i "\"$input\"")
+    cmd+=( -i "'${input}'")
     filter="${filter}[$i:v]"
 done
 cmd+=( -filter_complex )
@@ -33,6 +33,6 @@ for (( i=0 ; i < cols; i++ ));do
 done
 
 cmd+=( "\"${filter}[v]\"" -map '"[v]"' -crf 10 -an -c:v h264 -c:a copy \
-    -preset fast -movflags +faststart -s 1920x1080 "${input%.*}_${d}.mp4")
+    -preset fast -movflags +faststart -s 1920x1080 "'${input%.*}_${d}.mp4'")
 
 eval "${cmd[*]}"
