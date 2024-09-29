@@ -1,10 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
 
 lock=/tmp/.${0##*/}
-[ -d "$LOCK" ] && exit 1
+if [ -d "$lock" ];then
+    for d in "$lock"/*;do kill "${d##*/}" && rm -d "$d" ;done
+    sleep .2
+fi
 mkdir -vp "${lock}/$$"
-trap 'rm -vrf ${lock}' EXIT
+trap 'rm -vrf ${lock} 2>/dev/null' EXIT
 
 get_scratchpad_class() {
     i3-msg -t get_tree | jq -Mcr '.. | .nodes? // empty | .[] |
@@ -37,6 +40,8 @@ i3-msg -t subscribe -m '[ "window" ]' | while read -r _;do
 
     c=0
     while IFS= read -r i;do
+        [ -z "$i" ] && { echo -n; break; }
+        [ "${#i}" -gt 43 ] && i=$(echo -n "${i::40}" | sed 's/\s+$//')...
         printf '[<span color="%s">%s</span>]' "${COLORS[c]}" "$i"
         c=$(( (c+1) % 6 ))
     done <<< "$curr" > "$file"
