@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -e
 
-lock=/tmp/.${0##*/}
+lock=/tmp/.watch_scratchpad.sh
 if [ -d "$lock" ];then
-    for d in "$lock"/*;do pkill -P "${d##*/}" || true; rm -dv "$d" ;done
+    for d in "$lock"/*;do ; pkill -P "${d##*/}" ;done
     sleep 1
 fi
 mkdir -vp "${lock}/$$"
@@ -44,5 +43,5 @@ i3-msg -t subscribe -m '[ "window" ]' | while read -r _;do
         printf '[<span color="%s">%s</span>]' "${COLORS[c]}" "$i"
         c=$(( (c+1) % 6 ))
     done <<< "$curr" > "$file"
-    killall -USR1 i3status
+    killall -USR1 i3status || true
 done
