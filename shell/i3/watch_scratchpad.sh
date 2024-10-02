@@ -1,21 +1,13 @@
 #!/usr/bin/env bash
-
 lock=/tmp/.watch_scratchpad.sh
 if [ -d "$lock" ];then
-    for d in "$lock"/*;do ; pkill -P "${d##*/}" ;done
-    sleep 1
+    for d in "$lock"/*;do pkill -P "${d##*/}" ;done
 fi
+sleep 1
 mkdir -vp "${lock}/$$"
 trap 'rm -vrf ${lock} 2>/dev/null' EXIT
 
-COLORS=(
-'#ee9090'
-'#ee90ee'
-'#eeee90'
-'#90eeee'
-'#90ee90'
-'#9090ee'
-)
+COLORS=('#ee9090' '#ee90ee' '#eeee90' '#90eeee' '#90ee90' '#9090ee')
 
 get_scratchpad_class() {
     i3-msg -t get_tree | jq -Mcr '.. | .nodes? // empty | .[] |
