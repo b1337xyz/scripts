@@ -9,7 +9,7 @@ reImage='.*\.\(jpe?g\|png\)'
 _help()
 {
     cat << EOF
-Usage: ${0##*/} open [--loop <S> --no-cache --prev --next --current --sxiv --dmenu --<xwallpaper options>] IMAGE|DIR
+Usage: ${0##*/} open [--dark --loop <S> --no-cache --prev --next --current --sxiv --dmenu --<xwallpaper options>] IMAGE|DIR
 EOF
 
     exit 0
@@ -34,6 +34,11 @@ random_wallpaper()
 {
     find -L "$@" -iregex "$reImage" | shuf -n1
 }
+is_dark()
+{
+    magick "$1" -format "%[fx:int(mean * 100)]" info: | awk '{exit !( ($1 + 0) < 25)}'
+}
+
 
 curr=$(get_current_wallpaper)
 declare -a opts=()
@@ -50,6 +55,7 @@ while [ $# -gt 0 ];do
                 seconds=$1
             fi
         ;;
+        --dark)     dark=y ;;
         --parent)   parent=y ;;
         --prev)     prev=y ;;
         --next)     next=y ;;
@@ -126,16 +132,25 @@ then
     exit 0  # now set the wallpaper with nsxiv
 fi
 
-echo "dir: ${targets[@]}"
+echo "dir: ${targets[*]}"
 echo "seconds: $seconds"
 while [ -d "$lock" ]
 do
     [ -z "$wallpaper" ] && wallpaper=$(random_wallpaper "${targets[@]}")
-    [ -f "$wallpaper" ] || exit 0
+    [ -s "$wallpaper" ] || exit 0
     wallpaper=$(realpath -s "$wallpaper")
+    if [ "$dark" = y ] && ! is_dark "$wallpaper" ;then
+        unset wallpaper
+        continue
+    fi
 
     printf 'xwallpaper %s "%s" &' "${opts[*]}" "$wallpaper" > "$cache"
-    chmod +x "$cache" && "$cache"
+    chmod +x "$cache"
+    if ! "$cache";then
+        unset wallpaper
+        continue
+    fi
+
     cp "$wallpaper" ~/.cache/current_bg.jpg
     [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"
 
