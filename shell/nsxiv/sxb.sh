@@ -2,6 +2,11 @@
 # https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/patches/dmenu-search
 set -e
 
+zathura=0
+case "$1" in
+    --zathura) zathura=1 ;;
+esac
+
 if command -v devour >/dev/null 2>&1 && [ -z "$DEVOUR" ];then
     DEVOUR=y exec devour "$0"
 fi
@@ -51,9 +56,13 @@ while :;do
     if [ -d "$out" ];then
         if [ -z "$(find "$out" -mindepth 1 -maxdepth 1 -type d)" ];then
             echo "$out" >> ~/.cache/sxb_history
-            find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V |
-                zip -q -0 - -@ | zathura --mode=fullscreen -
-                # nsxiv -s w -ifbqr 2>/dev/null || true
+            if [ "$zathura" -eq 1 ];then
+                find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V |
+                    zip -q -0 - -@ | zathura --mode=fullscreen -
+            else
+                find "$out" -iregex '.*\.\(jpe?g\|png\|webp\)' -type f | sort -V |
+                    nsxiv -s w -ifbqr 2>/dev/null || true
+            fi
             out=
             n=$x
         else
