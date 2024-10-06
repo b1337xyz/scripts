@@ -70,6 +70,8 @@ while [ $# -gt 0 ];do
                 targets+=("$1")
             elif file -Lbi "$1" | grep -q '^image/';then
                 wallpaper=$1
+            else
+                echo "?"; _help
             fi
         ;;
     esac
@@ -86,7 +88,7 @@ fi
 mkdir -vp "$lock"
 end() {
     [ "$no_cache" = y ] && rm -v "$cache"
-    rm -d "$lock"
+    rm -d "$lock" && rm -d "${lock%/*}"
 }
 trap 'end' EXIT
 
@@ -110,9 +112,11 @@ then
 elif [ "$prev" ]
 then
     wallpaper=$(grep -xF "$curr" "$log" -B1 | tail -2 | head -1)
+    [ -f "$wallpaper" ] || { echo "Previous wallpaper does not exist: $wallpaper"; exit 1; }
 elif [ "$next" ]
 then
     wallpaper=$(grep -xF "$curr" "$log" -A1 | tail -1)
+    [ -f "$wallpaper" ] || { echo "Next wallpaper does not exist: $wallpaper"; exit 1; }
 elif [ "$current" ]
 then
     dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
