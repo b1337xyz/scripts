@@ -145,39 +145,40 @@ alljpg() {
     done
 }
 
-ex() {
-    # decompress stuff
+ex() {  # decompress stuff
+    local exit_status
     for i in "$@";do
+        [ -f "$i" ] && [ -r "$i" ] || continue
         case "$i" in
-            *.tar.zst) tar --zstd -xf "$i" ;;
-            *.tar.xz)  tar xvJf "$i"   ;;
-            *.tar.bz2) tar xvjf "$i"   ;;
-            *.tar.gz)  tar xvzf "$i"   ;;
-            *.tar)     tar xvf "$i"    ;;
-            *.bz2)     bunzip2 "$i"    ;;
-            *.zst)     unzstd "$i"     ;;
-            *.gz)      gunzip "$i"     ;;
-            *.rar)     unrar x -op"${i%.*}" "$i" ;;
+            *.tar.zst)  tar --zstd -xf "$i" ;;
+            *.tar.xz)   tar xvJf "$i"   ;;
+            *.tar.bz2)  tar xvjf "$i"   ;;
+            *.tar.gz)   tar xvzf "$i"   ;;
+            *.tar)      tar xvf "$i"    ;;
+            *.bz2)      bunzip2 "$i"    ;;
+            *.zst)      unzstd "$i"     ;;
+            *.gz)       gunzip "$i"     ;;
+            *.rar)      unrar x -op"${i%.*}" "$i" ;;
             #*.zip)     unzip "$i" -d "${i%.*}" ;;
             *.7z|*.zip) 7z x -o"${i%.*}" "$i" ;;
-            *.Z)       uncompress "$i" ;;
-            *) continue ;;
-        esac || return 1
-        [[ "$1" = -[rd] ]] && rm "$i"
+            *.Z)        uncompress "$i" ;;
+            *)          continue ;;
+        esac
+        exit_status=$?
+        [ "$exit_status" -ne 0 ] && { printf 'Failed to extract "%s"\n' "$i"; return ${exit_status}; }
+        [[ "$1" = -[rd] ]] && command rm -v "$i"
     done
     return 0
 }
 
-repeat() {
-    # Repeat n times command
+repeat() { # Repeat n times command
     local max=$1; shift;
     for ((i=1; i <= max ; i++)); do
         eval "$*";
     done
 }
 
-loop() {
-    # loop a command every n seconds
+loop() { # loop a command every n seconds
     local s
     [[ "$1" =~ ^[0-9\.]+$ ]] && { s=$1; shift; }
     [ -z "$1" ] && { printf 'Usage: loop <sleep> <cmd...>\n'; return 1; }
@@ -282,8 +283,7 @@ crc32check() {
     done
 }
 
-crc32rename() {
-    # add [<crc32>] to the filename
+crc32rename() { # add [<crc32>] to the filename
 
     [ $# -eq 0 ] && { printf 'Usage: crc32rename <FILES>\n'; return 1; }
     command -v cksfv >/dev/null || { printf 'install cksfv\n'; return 1; }
@@ -295,8 +295,7 @@ crc32rename() {
     done
 }
 
-chgrubbg() {
-    # change grub background
+chgrubbg() { # change grub background
     
     local image mime
     if [ -f "$1" ];then
@@ -402,8 +401,7 @@ mvbyext() {
     done
 }
 
-mkj() {
-    # Usage: `mkj video.mkv`
+mkj() { # Usage: `mkj *.mkv`
     for i in "$@";do
         mkvmerge -J "$i" | jq -r '.tracks[] |
 "\(.type): \(.id) - \(.codec) - \(.properties.language) - \(.properties.track_name) \(
@@ -459,8 +457,7 @@ pacman_unessential() {
         awk '{print} END {printf("%s unessential packages installed\n", NR)}' 
 }
 
-ffstr() {
-    # Usage: `ffstr <video>`
+ffstr() { # Usage: `ffstr <video>`
     for i in "$@";do
         [ -f "$i" ] || continue
         [ "$#" -gt 1 ] && printf 'File: \e[1;35m%s\e[m\n' "$i"
