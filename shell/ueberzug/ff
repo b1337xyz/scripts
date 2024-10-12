@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ -f "$1" ];then
+    fifo=$(mktemp --dry-run --suffix "$$-ueberzug")
+    width=30
+    height=16
+    image=$(realpath "$1")
+    
+    mkfifo "$fifo"
+    end() { jobs -p | xargs -r kill; rm "$fifo" 2>/dev/null; }
+    trap end EXIT
+    tail --follow "$fifo" | ueberzug layer --parser json &
+    IFS='[;' read -p $'\e[6n' -d R -rs _ x y _ _
+
+    printf '{"action": "add", "identifier": "fetch", "x": "%s", "y": "%s", "width": "%s", "height": "%s", "scaler": "contain", "path": "%s"}\n' \
+           "$y" "$x" "$width" "$height" "$image" > "$fifo"
+
+    shift
+    fastfetch --logo-type file --logo <(echo) --logo-padding-left "$width" "$@"
+    printf '\n\n%'"$width"'s  ... PRESS ANY KEY ... '   ' '
+    read -N 1 -r -s _
+    echo
+else
+    exec fastfetch "$@"
+fi
