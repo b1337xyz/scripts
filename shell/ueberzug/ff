@@ -8,20 +8,15 @@ if [ -f "$1" ];then
     while [ $# -gt 0 ];do
         case "$1" in
             --logo-width) shift; width=${1} ;;
-            --logo-height) shift; width=${1} ;;
+            --logo-height) shift; height=${1} ;;
             -l|--logo|--logo-type|--logo-paddin*) : ;;
-            *) 
-                if [ -f "$1" ];then
-                    image=$(realpath $1)
-                else
-                    opts+=("$1")
-                fi
-            ;;
+            *) if [ -f "$1" ];then image=$(realpath $1); else opts+=("$1"); fi ;;
         esac
         shift
     done
 
-    [ -f "$image" ] || exit 2
+    [ -f "$image" ] || { printf 'usage: %s <fastfetch-options> <image>' "${0##*/}"; exit 1; }
+
     fifo=$(mktemp --dry-run --suffix "$$-ueberzug")
     width=${width:-30}
     height=${height:-16}
