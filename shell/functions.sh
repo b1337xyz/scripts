@@ -917,3 +917,9 @@ pfx() {
         echo "$WINEPREFIX"
     fi
 }
+
+get_cursor_pos() {
+    local c r
+    IFS='[;' read -p $'\e[6n' -d R -rs _ r c _ _
+    echo "row $r column $c"
+}
