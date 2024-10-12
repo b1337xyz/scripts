@@ -64,12 +64,12 @@ cpl() {
     #   cpl # <file> is copied to the current directory
 
     local cache=/tmp/.copy_later
-    if [ -f "$1" ];then
+    if [ -f "$1" ] || [ -d "$1" ];then
         command rm "$cache" 2>/dev/null
         realpath -- "$@" >> "$cache"
     elif [ -f "$cache" ];then
         while read -r i;do
-            [ -f "$i" ] && cp -vn "$i" .
+            [ -e "$i" ] && cp -rvn "$i" .
         done < "$cache"
     else
         printf 'nothing to do\n'
@@ -908,4 +908,12 @@ convert_functions_to_scripts() {
         printf '%s $@\n' "${function_name}" >> "$script"
         chmod +x "$script"
     done
+}
+
+pfx() {
+    if [ -d "$1" ];then
+        export WINEPREFIX=$(realpath "$1")
+    else
+        echo "$WINEPREFIX"
+    fi
 }

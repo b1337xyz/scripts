@@ -1,6 +1,6 @@
 #!/bin/sh
 
-df -h /home | awk 'END {printf("%s=%s\n", $6, $4)}'
+df -h /home | awk 'END {printf("%s\n", $4)}'
 #if df | grep -q '\/mnt';then
 #    df -h /mnt | awk 'END {printf(" #[fg=blue]%s=%s#[default]", $6, $4)}'
 #fi
