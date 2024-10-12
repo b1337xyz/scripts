@@ -2,13 +2,18 @@
 pid=$$
 lock=/tmp/.watch_i3.sh
 if [ -d "$lock" ];then
-    for d in "$lock"/*;do pkill -P "${d##*/}" ;done
+    for d in "$lock"/*;do
+        if [ -d "$d" ];then
+            { echo "${d##*/}"; ps -o pid= --ppid "${d##*/}"; } | xargs -tr kill
+            # pkill -P "${d##*/}"
+        fi
+    done && sleep 1
 fi
-sleep 1
-mkdir -vp "${lock}/${pid}"
-trap 'rm -vrf ${lock} 2>/dev/null' EXIT
+lock=${lock}/${pid}
+mkdir -vp "$lock"
+trap 'rm -d "$lock" && rm -d "${lock%/*}" 2>/dev/null' EXIT
 
-COLORS=('#ee9090' '#ee90ee' '#eeee90' '#90eeee' '#90ee90' '#9090ee')
+COLORS=('#AA8080' '#aa80aa' '#aaaa80' '#80aaaa' '#80aa80' '#8080aa')
 
 get_scratchpad_classes() {
     i3-msg -t get_tree | jq -Mcr '.. | .nodes? // empty | .[] |
@@ -40,14 +45,14 @@ scratchpad_file=/tmp/i3status.scratchpad
 window_file=/tmp/i3status.window
 prev=
 retries=0
-while [ -d "${lock}/${pid}" ] && pgrep -x i3 >/dev/null 2>&1
+while [ -d "${lock}" ] && pgrep -x i3 >/dev/null 2>&1
 do
 
     i3-msg -t subscribe -m '[ "window" ]' | while read -r j;do
 
         focused_name=$(jq -Mr 'select(.change == "title"  or .change == "focus") | .container.name' <<< "$j")
         if [ -n "$focused_name" ];then
-            s=$(trim_str "$focused_name" 83)
+            s=$(trim_str "$focused_name" 63)
             printf '<span color="#E0FFF0">%s</span>' "$s" > "$window_file"
             refresh
         fi
