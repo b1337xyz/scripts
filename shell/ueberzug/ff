@@ -25,7 +25,8 @@ if [ -f "$1" ];then
     shift
     lines=0
     while read -r i; do
-        printf '%s\n' "${i::$COLUMNS}"
+        limit=$(( COLUMNS - width ))
+        printf '%s\e[m\n' "${i::limit}"
         lines=$((lines + 1))
     done < <(fastfetch --logo-type file --logo <(echo) --logo-padding-left "$width" "${opts[@]}")
 
