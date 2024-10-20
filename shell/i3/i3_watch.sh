@@ -44,14 +44,14 @@ refresh() {
 scratchpad_file=/tmp/i3status.scratchpad
 window_file=/tmp/i3status.window
 prev=
-retries=0
-while [ -d "${lock}" ] && pgrep -x i3 >/dev/null 2>&1
+prev_window=
+while [ -d "${lock}" ] && pgrep -x i3 >/dev/null 2>&1 && sleep 3
 do
-
-    i3-msg -t subscribe -m '[ "window" ]' | while read -r j;do
-
-        focused_name=$(jq -Mr 'select(.change == "title"  or .change == "focus") | .container.name' <<< "$j")
-        if [ -n "$focused_name" ];then
+    i3-msg -t subscribe -m '[ "window" ]' | while read -r j
+    do
+        focused_name=$(jq -Mr 'select(.change == "title"  or .change == "focus") | .container.name' <<< "$j" 2>/dev/null)
+        if [ -n "$focused_name" ] && [ "$focused_name" != "$prev_window" ];then # avoid unecessary killing
+            prev_window=$focused_name
             s=$(trim_str "$focused_name" 63)
             printf '<span color="#E0FFF0">%s</span>' "$s" > "$window_file"
             refresh
@@ -70,8 +70,4 @@ do
             refresh
         fi
     done
-    
-    [ "$retries" -eq 5 ] && break
-    retries=$((retries + 1))
-    sleep 1
 done
