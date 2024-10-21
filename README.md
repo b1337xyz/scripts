@@ -45,8 +45,8 @@
 #### Setup
 ```
 sudo pacman -Syu --needed base-devel git python python-pip python-wheel \
-    python-requests python-i3ipc python-google-api-python-client \
-    aria2 bat cksfv dash fzf jq mediainfo ueberzug xclip xwallpaper \
+    python-requests python-i3ipc \
+    aria2 bat cksfv fzf jq mediainfo ueberzug xclip xwallpaper \
     slop opus-tools nsxiv inotify-tools
 ```
 
