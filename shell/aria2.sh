@@ -1,4 +1,5 @@
-bcat() { aria2c -S "$1";  }
+btcat() { aria2c -S "$1";  }
+btname() { aria2c -S "$1" | awk '/^Name: /{sub(/Name: /, "", $0); print}'; }
 bthead() { aria2c -S "$1" | sed '/^idx\|path\/length/q'; }
 btbody() { aria2c -S "$1" | sed -n '/^idx\|path\/length/,$p'; }
 getmagnet() { aria2c -S "$1" | awk '/Magnet URI:/{print $3}'; }
@@ -179,7 +180,7 @@ addUri() {
 addTorrent() {
     local torrent data dir fsize magnet
     fsize=$(du "$1" | awk '{print $1}')
-    if [ "$fsize" -gt 2000000 ];then
+    if [ "$fsize" -gt 2000000 ];then # default max rpc request size
         magnet=$(getmagnet "$1")
         addUri "$magnet" "$2"
         return

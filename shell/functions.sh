@@ -913,6 +913,7 @@ convert_functions_to_scripts() {
 pfx() {
     if [ -d "$1" ];then
         export WINEPREFIX=$(realpath "$1")
+        printf '\nwine prefix changed to \033[1;33m%s\033[m\n' "${WINEPREFIX}"
     else
         echo "$WINEPREFIX"
     fi

@@ -54,7 +54,7 @@ def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
         'dir': temp_dir,
         'check-integrity': str(verify).lower(),
         'metadata-only': str(metadata_only).lower(),
-        'bt-save-metadata': 'true',
+        'bt-save-metadata': 'true'
     }
     if index:
         options.update({'select-file': index})
@@ -68,7 +68,7 @@ def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
                 except Exception as err:
                     print(err)
         else:
-            print('Too big')
+            print(f'Torrent exceeds max ({MAX_SIZE}) rpc request size, using magnet link...')
             magnet = get_magnet(torrent)
             add_torrent(magnet, _dir, verify, metadata_only)
     else:
