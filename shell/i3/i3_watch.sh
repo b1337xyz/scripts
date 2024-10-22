@@ -53,7 +53,7 @@ while [ -d "${lock}" ] && pgrep -x i3 >/dev/null 2>&1 && sleep 3
 do
     i3-msg -t subscribe -m '[ "window" ]' | while read -r j
     do
-        focused_name=$(jq -Mr 'select(.change == "title"  or .change == "focus") | .container.name' <<< "$j" 2>/dev/null)
+        focused_name=$(jq -Mr 'select(.change == "title" or .change == "focus") | select(.container.focused) | .container.name' <<< "$j" 2>/dev/null)
         if [ -n "$focused_name" ] && [ "$focused_name" != "$prev_window" ];then # avoid unecessary killing
             prev_window=$focused_name
             s=$(trim_str "$focused_name" 63 | escape)
