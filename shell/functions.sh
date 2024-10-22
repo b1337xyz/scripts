@@ -512,11 +512,15 @@ lifetime() {
 }
 
 pyquote() {  # `quote/dequote` is already used by bash-completion :/
-    python3 -c 'print(__import__("urllib.parse").parse.quote(("\n".join(__import__("sys").stdin).strip())))'
+    python3 -c 'print(__import__("urllib.parse").parse.quote("\n".join(__import__("sys").stdin).strip() ))'
 }
 
 unquote() {
-    python3 -c 'print(__import__("urllib.parse").parse.unquote(("\n".join(__import__("sys").stdin).strip())))'
+    python3 -c 'print(__import__("urllib.parse").parse.unquote("\n".join(__import__("sys").stdin).strip()))'
+}
+
+pyescape() {
+    python3 -c 'print(__import__("html").escape("\n".join(__import__("sys").stdin).strip()))'
 }
 
 last_modified() {

@@ -4,6 +4,7 @@ set -e
 
 case "$1" in
     -z|--zathura) export ZATHURA=y ;;
+    -s|--shuffle) export SHUFFLE=y ;;
 esac
 if command -v devour >/dev/null 2>&1 && [ -z "$DEVOUR" ];then
     DEVOUR=y exec devour "$0"
@@ -11,6 +12,17 @@ fi
 
 tmp=${HOME}/.cache/sxb
 # trap 'rm -rf "$tmp"' EXIT
+
+if [ "$SHUFFLE" = y ];then
+    shuffled_tmp=$(mktemp --dry-run -d /tmp/sxb.XXXXXXXX)
+    [ -d "$tmp" ] && cp -r "$tmp" "${shuffled_tmp}"
+    find "$shuffled_tmp" -type f -name files | while read -r i;do
+        shuf "$i" > "${i}.s"
+        mv "${i}.s" "$i"
+    done
+    tmp=${shuffled_tmp}
+    trap 'rm -rf "$tmp"' EXIT
+fi
 
 n=1
 cwd=$PWD
@@ -28,7 +40,7 @@ while :;do
                 echo "$i" >> "$cache"
             fi
         done
-        cat "$cache" 2>/dev/null >> "$cache_d" || true
+        if [ "$SHUFFLE" = y ];then shuf "$cache"; else cat "$cache"; fi 2>/dev/null >> "$cache_d" || true
         mv "$cache_d" "$cache"
     fi
 
