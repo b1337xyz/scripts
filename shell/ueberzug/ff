@@ -20,36 +20,18 @@ if [ -f "$1" ];then
     fifo=$(mktemp --dry-run --suffix "$$-ueberzug")
     width=${width:-30}
     height=${height:-16}
-
-    IFS='[;' read -p $'\e[6n' -d R -rs _ row col _ _
-    shift
-    lines=0
-    while read -r i; do
-        limit=$(( COLUMNS - width ))
-        printf '%s\e[m\n' "${i::limit}"
-        lines=$((lines + 1))
-    done < <(fastfetch --logo-type file --logo <(echo) --logo-padding-left "$width" "${opts[@]}")
-
+    clear
+    fastfetch --logo-type file --logo <(echo) --logo-padding-left "$(( width - 2 ))" "${opts[@]}"
     mkfifo "$fifo"
     end() { jobs -p | xargs -r kill; rm "$fifo" 2>/dev/null; }
     trap end EXIT
     tail --follow "$fifo" | ueberzug layer --parser json &
-
-    lines=$((lines + 1))
-    if [ "$lines" -ge "$LINES" ];then
-        row=0
-    elif [ "$((row + lines))" -ge "$LINES" ];then
-        dif=$(( (row + lines) - "$LINES" ))
-        row=$((row - dif))
-    fi
-
-    printf '{"action": "add", "identifier": "fetch", "x": "%s", "y": "%s", "width": "%s", "height": "%s", "scaler": "contain", "path": "%s"}\n' \
-        "$col" "$row" "$width" "$height" "$image" > "$fifo"
+    printf '{"action": "add", "identifier": "fetch", "x": 1, "y": 0, "width": "%s", "height": "%s", "scaler": "contain", "path": "%s"}\n' \
+        "$width" "$height" "$image" > "$fifo"
 
 
-    printf '\n\n%'"$width"'s  ... PRESS ANY KEY ... '   ' '
+    # printf '\n\n%'"$width"'s  ... PRESS ANY KEY ... '   ' '
     read -N 1 -r -s _
-    echo
 else
     exec fastfetch "$@"
 fi

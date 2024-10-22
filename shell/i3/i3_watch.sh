@@ -41,6 +41,10 @@ refresh() {
     killall -USR1 i3status || true
 }
 
+escape() {
+    python3 -c 'print(__import__("html").escape(__import__("sys").stdin.readline()), end="")'
+}
+
 scratchpad_file=/tmp/i3status.scratchpad
 window_file=/tmp/i3status.window
 prev=
@@ -52,7 +56,7 @@ do
         focused_name=$(jq -Mr 'select(.change == "title"  or .change == "focus") | .container.name' <<< "$j" 2>/dev/null)
         if [ -n "$focused_name" ] && [ "$focused_name" != "$prev_window" ];then # avoid unecessary killing
             prev_window=$focused_name
-            s=$(trim_str "$focused_name" 63)
+            s=$(trim_str "$focused_name" 63 | escape)
             printf '<span color="#E0FFF0">%s</span>' "$s" > "$window_file"
             refresh
         fi
@@ -63,7 +67,7 @@ do
             c=0
             while IFS= read -r i;do
                 [ -z "$i" ] && { echo -n; break; }
-                i=$(trim_str "$i" 43)
+                i=$(trim_str "$i" 43 | escape)
                 printf '[<span color="%s">%s</span>]' "${COLORS[c]}" "$i"
                 c=$(( (c+1) % 6 ))
             done <<< "$curr" > "$scratchpad_file"
