@@ -111,12 +111,13 @@ def on_complete():
         if any(f.endswith('.aria2') for f in files):
             return
 
+        dest = os.path.dirname(Dir)
         for f in files:
             path = os.path.join(Dir, f)
             if f.endswith('.torrent'):
                 mv(path, CACHE)
             else:
-                mv(path, DL_DIR)
+                mv(path, dest)
 
         try:
             os.rmdir(Dir)

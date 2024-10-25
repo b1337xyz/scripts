@@ -76,8 +76,7 @@ alacritty_theme_switcher() {
     cp -v "$config" "${config}.bkp"
     # shellcheck disable=SC2317
     pv() {
-        config=~/.config/alacritty/alacritty.toml
-        sed -i "s/\/themes\/.*\.toml/\/themes\/${1}/" "$config"
+        sed -i "s/\/themes\/.*\.toml/\/themes\/${1}/" ~/.config/alacritty/alacritty.toml
         bat --style=numbers --color=always --line-range :15 ~/.bashrc
         ls -x --color=always ~/
         bash ~/.scripts/playground/shell/Colors/panes

@@ -42,7 +42,7 @@ gmd() {
 
 # fext() { find . -type f -name '*\.*' | grep -o '[^\.]*$' | sort -u; }
 fext() {
-    find . -type f -name '*\.*' | grep -o '[^\.]*$' |
+    find . -maxdepth "${1:-9}" -type f -name '*\.*' | grep -o '[^\.]*$' |
         awk '{a[$0] += 1} END {for ( i in a ) printf("%s\t%s\n", a[i], i)}' | sort -n
 }
 
@@ -59,9 +59,9 @@ histcount() {
 
 cpl() {
     # Example:
-    #   cpl <file> 
+    #   cpl <files> 
     #   cd ~/Downloads
-    #   cpl # <file> is copied to the current directory
+    #   cpl # <files> are copied to the current directory
 
     local cache=/tmp/.copy_later
     if [ -f "$1" ] || [ -d "$1" ];then
@@ -371,12 +371,6 @@ save_page() {
     wget -e robots=off --random-wait --adjust-extension \
         --span-hosts --convert-links --backup-converted \
         --no-parent --page-requisites -U Mozilla/5.0 "$1" 
-}
-
-edalt() {
-    # edit the current alacritty theme
-    awk -v home="$HOME" '/\/themes\//{sub("~", home, $2); printf("%s\0", $2)}' \
-        ~/.config/alacritty/alacritty.toml | xargs -0roI{} vim '{}'
 }
 
 trackers_best() {
