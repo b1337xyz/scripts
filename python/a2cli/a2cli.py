@@ -68,7 +68,8 @@ def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
                 except Exception as err:
                     print(err)
         else:
-            print(f'Torrent exceeds max ({MAX_SIZE}) rpc request size, using magnet link...')
+            print(f'File exceeds max ({MAX_SIZE}) rpc request size',
+                  'using magnet link...')
             magnet = get_magnet(torrent)
             add_torrent(magnet, _dir, verify, metadata_only)
     else:

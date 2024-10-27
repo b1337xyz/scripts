@@ -569,19 +569,21 @@ todo() {
     [ -s "$TODOFILE" ] && sed -i '/^[ \t]*\?$/d' "$TODOFILE"
     case "$1" in
         e*) [ -s "$TODOFILE" ] && "${EDITOR:-vi}" "$TODOFILE" ;;
-        l*) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
         r*)
             if [ -s "$TODOFILE" ]; then
                 nl "$TODOFILE"
-                read -r -p "1,2...: " n
-                [[ "$n" =~ ^[0-9,]+$ ]] && sed -i "${n}d" "$TODOFILE"
+                read -r -p "1 2 3...: " n
+                [[ "$n" =~ ^[0-9,[:space:]]+$ ]] && sed -i "${n//[,[:space:]]/d;}d" "$TODOFILE"
             fi
         ;;
         a*)
             shift
-            [ -n "$1" ] && printf '%s: %s\n' "$(date +'%Y.%m.%d %H:%M')" "$*" | tee -a "$TODOFILE"
+            s=$*
+            [ -z "$s" ] && read -p 'TODO: ' -r s
+            [ -n "$s" ] && printf '%s: %s\n' "$(date +'%Y.%m.%d %H:%M')" "$s" | tee -a "$TODOFILE"
         ;;
-        *) echo 'Usage: todo <a|e|l|r> <TODO>' ;;
+        h*|-*) echo 'Usage: todo <a|e|l|r> <TODO>' ;;
+        *) [ -s "$TODOFILE" ] && { printf >&2 '\e[1;30;43m TODO \033[m\n'; cat "$TODOFILE"; echo; } ;;
     esac
 }
 
