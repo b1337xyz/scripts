@@ -97,9 +97,6 @@ def on_complete():
     except Exception:
         pass
 
-    if os.path.isfile(torrent_file):
-        mv(torrent_file, CACHE)
-
     if is_metadata:
         logging.info(f'{name} is metadata')
         notify(status, name)

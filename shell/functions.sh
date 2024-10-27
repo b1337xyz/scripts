@@ -23,7 +23,7 @@ keys() { xev | awk -F'[ )]+' '/^KeyPress/ { a[NR+2] } NR in a { printf "%-3s %s\
 transfer.sh() { curl --upload-file "$1" https://transfer.sh | tee -a ~/.cache/transfer.sh; }
 bashupload() { curl bashupload.com -T "$1"; }
 uniq_lines() { awk '!seen[$0]++' "$1"; }
-fvideo() { find . -iregex ".*$VideoPattern"; }
+fvideo() { find . -iregex ".*$VideoPattern" | sort -V; }
 fimage() { find . -iregex ".*$ImagePattern"; }
 farchive() { find . -iregex ".*$ArchivePattern"; }
 grep_video() { grep --color=never -i "$VideoPattern" "$1"; }
