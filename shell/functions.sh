@@ -191,13 +191,6 @@ _loop() {
     # shellcheck disable=SC2207
     COMPREPLY=( $( compgen -W "$(compgen -c)" -- "$cur" ) )
 } && complete -F _loop loop
-wait_for() {
-    [ $# -lt 2 ] && return 1
-    local prog
-    prog=$1
-    shift
-    while pgrep -f "$prog" >/dev/null 2>&1;do sleep 1;done && eval "$*"
-}
 
 lst() {
     # list the total of files in the current directory and its subdirectories
