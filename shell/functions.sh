@@ -64,12 +64,14 @@ cpl() {
     #   cpl # <files> are copied to the current directory
 
     local cache=/tmp/.copy_later
-    if [ -f "$1" ] || [ -d "$1" ];then
+    if [ "$1" = - ];then
+        tr \\n \\0 | xargs -r0 realpath >> "$cache" 
+    elif [ -f "$1" ] || [ -d "$1" ];then
         command rm "$cache" 2>/dev/null
         realpath -- "$@" >> "$cache"
     elif [ -f "$cache" ];then
         while read -r i;do
-            [ -e "$i" ] && cp -rvn "$i" .
+            [ -e "$i" ] && cp -irvn "$i" .
         done < "$cache"
     else
         printf 'nothing to do\n'
@@ -797,7 +799,9 @@ cleanup_apps() {
 }
 
 magnet() {
-    curl -s --user-agent "$UserAgent" "$1" |
+    local url
+    url=$(printf '%s' "$1" | sed 's/f=[0-9]&c=[0-9]_[0-9]&//')
+    curl -s --user-agent "$UserAgent" "$url" |
         sed 's/<.\?br>//g; s/\&amp;/\&/g'  |
         grep -oP 'magnet:\?xt=urn:[A-z0-9]+:[A-z0-9]+(?=&dn=)' |
         aria2c --file-allocation=none --bt-save-metadata --bt-metadata-only --input-file=-
