@@ -49,7 +49,7 @@ def mktemp(path):
 def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
                 index=None):
 
-    temp_dir = mktemp(path)
+    temp_dir = mktemp(os.path.realpath(path))
     options = {
         'dir': temp_dir,
         'check-integrity': str(verify).lower(),
