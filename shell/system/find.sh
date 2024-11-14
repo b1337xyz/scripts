@@ -16,7 +16,6 @@ find "$1" -maxdepth 8 -regextype posix-extended -type f \( -size +30c -and -size
           -path '*/gnupg/*' -o \
           -path '*/GIMP/*' -o \
           -path '*/chromium/*' -o \
-          -path '*/playlists/*' -o \
           -path '*/YouTube*' -o \
           -path '*/playlists/*' -o \
           -iregex "$e" \)
