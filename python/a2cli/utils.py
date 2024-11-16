@@ -58,8 +58,10 @@ def parse_arguments():
     parser.add_argument('-V', '--check-integrity', action='store_true',
                         dest='check', help='Check file integrity')
     parser.add_argument('-d', '--dir', type=str, default=DL_DIR,
-                        help='directory to store the downloaded file \
+                        help='Location for downloaded file \
                                 (default: %(default)s)')
+    parser.add_argument('-D', '--directory', type=str,
+                        help='Exact location for the downloaded file')
     parser.add_argument('-l', '--list', action='store_true',
                         help='list all downloads')
     parser.add_argument('-r', '--remove', action='store_true',

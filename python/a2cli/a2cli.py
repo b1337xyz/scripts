@@ -47,9 +47,9 @@ def mktemp(path):
 
 
 def add_torrent(torrent, path=DL_DIR, verify=False, metadata_only=False,
-                index=None):
+                index=None, exact_path=None):
 
-    temp_dir = mktemp(os.path.realpath(path))
+    temp_dir = mktemp(os.path.realpath(path)) if not exact_path else os.path.realpath(exact_path)
     options = {
         'dir': temp_dir,
         'check-integrity': str(verify).lower(),
@@ -329,17 +329,17 @@ if __name__ == '__main__':
         for arg in map(str.strip, args.argv):
             if arg.startswith('magnet:?'):
                 add_torrent(arg, args.dir, args.check, args.metadata_only,
-                            args.index)
+                            args.index, args.directory)
             elif os.path.isfile(arg):
                 file = os.path.realpath(arg)
                 if is_torrent(file):
                     add_torrent(arg, args.dir, args.check, args.metadata_only,
-                                args.index)
+                                args.index, args.directory)
                 elif file.endswith('.magnet'):
                     with open(file, 'r') as fp:
                         magnet = fp.readline().strip()
                     add_torrent(magnet, args.dir, args.check, args.metadata_only,
-                                args.index)
+                                args.index, args.directory)
             elif is_uri(arg):
                 aria2.addUri([arg], {'dir': DL_DIR})
             else:
