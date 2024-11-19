@@ -136,8 +136,8 @@ then
     exit 0  # now set the wallpaper with nsxiv
 fi
 
-echo "dir: ${targets[*]}"
-echo "seconds: $seconds"
+echo "targets: ${targets[*]}"
+[ -n "$loop" ] && echo "seconds: $seconds"
 while [ -d "$lock" ]
 do
     [ -z "$wallpaper" ] && wallpaper=$(random_wallpaper "${targets[@]}")
