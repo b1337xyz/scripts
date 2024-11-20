@@ -28,7 +28,7 @@ get_path()
 }
 get_current_wallpaper()
 {
-    grep -oP '(?<= ")/[^"]+\.(jpg|png|jpeg)' "$cache"
+    grep -oP '(?<=^>).*' "$log" || grep -oP '(?<= ")/[^"]+\.(jpg|png|jpeg)' "$cache" || exit 1
 }
 random_wallpaper()
 {
@@ -109,14 +109,18 @@ if [ "$remove" = y ];then
 elif [ "$parent" ]
 then
     wallpaper=$(random_wallpaper "${curr%/*}")
-elif [ "$prev" ]
+elif [ "$prev" ] || [ "$next" ]
 then
-    wallpaper=$(grep -xF "$curr" "$log" -B1 | tail -2 | head -1)
-    [ -f "$wallpaper" ] || { echo "Previous wallpaper does not exist: $wallpaper"; exit 1; }
-elif [ "$next" ]
-then
-    wallpaper=$(grep -xF "$curr" "$log" -A1 | tail -1)
-    [ -f "$wallpaper" ] || { echo "Next wallpaper does not exist: $wallpaper"; exit 1; }
+    [ "$prev" ] && n=-1 || n=1
+    while :;do
+        s=$(grep -n '^>' "$log")
+        ln=${s%:*} wallpaper=${s#*:} wallpaper=${wallpaper:1}
+        wallpaper=$(sed "$((ln + n))!d" "$log")
+        [ -z "$wallpaper" ] && { echo "Nothing previous"; exit 1; }
+        sed -i "s/^>//" "$log"
+        sed -i "$(( ln + n ))s/^/>/" "$log"
+        [ -f "$wallpaper" ] && break
+    done
 elif [ "$current" ]
 then
     dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
@@ -156,7 +160,7 @@ do
     fi
 
     cp "$wallpaper" ~/.cache/current_bg.jpg
-    [ -z "$prev" ] && [ -z "$next" ] && echo "$wallpaper" >> "$log"
+    [ -z "$prev" ] && [ -z "$next" ] && echo ">$wallpaper" >> "$log"
 
     if [ -z "$loop" ];then
         wallpaper=${wallpaper%/*}
