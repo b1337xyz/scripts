@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 PID=$$
 lock=/tmp/.xwall.lock/"$PID"
 default_target=~/Pictures/wallpapers
@@ -112,15 +113,15 @@ then
 elif [ "$prev" ] || [ "$next" ]
 then
     [ "$prev" ] && n=-1 || n=1
+    ln=$(grep -n '^>' "$log" | cut -d':' -f1)
     while :;do
-        s=$(grep -n '^>' "$log")
-        ln=${s%:*} wallpaper=${s#*:} wallpaper=${wallpaper:1}
-        wallpaper=$(sed "$((ln + n))!d" "$log")
+        ln=$(( ln + n ))
+        wallpaper=$(sed "${ln}!d" "$log")
         [ -z "$wallpaper" ] && { echo "Nothing previous"; exit 1; }
-        sed -i "s/^>//" "$log"
-        sed -i "$(( ln + n ))s/^/>/" "$log"
         [ -f "$wallpaper" ] && break
     done
+    sed -i "s/^>//" "$log"
+    sed -i "${ln}s/^/>/" "$log"
 elif [ "$current" ]
 then
     dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
