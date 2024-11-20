@@ -6,6 +6,7 @@ default_target=~/Pictures/wallpapers
 cache=~/.cache/xwallpaper
 log=~/.cache/.xwall.log
 reImage='.*\.\(jpe?g\|png\)'
+seconds=15
 
 _help()
 {
@@ -50,7 +51,6 @@ while [ $# -gt 0 ];do
         -h|--help) _help ;;
         --loop)
             loop=y
-            seconds=15
             if [[ "$2" =~ ^[0-9]+$ ]];then
                 shift
                 seconds=$1
