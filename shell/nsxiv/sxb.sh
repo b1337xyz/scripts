@@ -30,6 +30,21 @@ while :;do
     cache=${tmp}${PWD}/files
     cache_d=${cache}.dir     # directories go first
     mkdir -p "${cache%/*}"
+
+    if [ -f "$cache" ];then
+        test $(wc -l < "$cache") -eq $(find . -mindepth 1 -maxdepth 1 -type d | wc -l) || rm "$cache"
+    fi
+
+    # if [ -f "$cache" ];then
+    #     if diff -q <(cut -d'/' -f -2 "$cache" | sort) <(find . -mindepth 1 -maxdepth 1 -type d | sort);then
+    #         rm "$cache" # something changed, can't trust cache, make a new one
+    #     else
+    #         while read -r i;do
+    #             test -f "$i" || { rm "$cache"; break; }
+    #         done < "$cache"
+    #     fi
+    # fi
+
     if [ ! -f "$cache" ];then
         for i in ./*;do
             if [ -d "$i" ];then

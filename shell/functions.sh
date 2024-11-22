@@ -826,6 +826,7 @@ clipw() {
     local c out
     out="${1:-clipboard.txt}"
     touch "$out"
+    echo -n | xclip
     while sleep .2;do 
         # c=$(wl-paste)
         c=$(xclip -o -rmlastnl 2>/dev/null)
