@@ -8,6 +8,8 @@ log=~/.cache/.xwall.log
 reImage='.*\.\(jpe?g\|png\)'
 seconds=15
 
+[ -f "$log" ] || :>"$log"
+
 _help()
 {
     cat << EOF
@@ -40,7 +42,6 @@ is_dark()
 {
     magick "$1" -format "%[fx:int(mean * 100)]" info: | awk '{exit !( ($1 + 0) < 25)}'
 }
-
 
 curr=$(get_current_wallpaper)
 declare -a opts=()
@@ -161,7 +162,10 @@ do
     fi
 
     cp "$wallpaper" ~/.cache/current_bg.jpg
-    [ -z "$prev" ] && [ -z "$next" ] && echo ">$wallpaper" >> "$log"
+    if [ -z "$prev" ] && [ -z "$next" ];then
+        sed -i "s/^>//" "$log"
+        echo ">$wallpaper" >> "$log"
+    fi
 
     if [ -z "$loop" ];then
         wallpaper=${wallpaper%/*}
