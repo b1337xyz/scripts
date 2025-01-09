@@ -18,4 +18,10 @@ find "$1" -maxdepth 8 -regextype posix-extended -type f \( -size +30c -and -size
           -path '*/chromium/*' -o \
           -path '*/YouTube*' -o \
           -path '*/playlists/*' -o \
+          -path '*/unity*' -o \
+          -path '*/rpcs3*' -o \
+          -path '*/steamtinker*' -o \
+          -path '*/ppsspp*' -o \
+          -path '*/dolphin-emu*' -o \
+          -path '*/furnace*' -o \
           -iregex "$e" \)

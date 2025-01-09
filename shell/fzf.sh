@@ -16,7 +16,7 @@ ffp() {
         --preview 'bat --style=numbers --color=always --line-range :100 {}'
 }
 _fzfile() {
-    fzf -e --scheme=path --tiebreak=end --layout=reverse --height 20 --no-border --no-scrollbar "$@" \
+    fzf -e --scheme=path --tiebreak=end --layout=reverse --no-border --no-scrollbar "$@" \
         --bind 'ctrl-t:toggle-preview' \
         --preview 'file -Lbi {} | grep -q ^text && bat --color=always {}' \
         --preview-window 'hidden,border-none'

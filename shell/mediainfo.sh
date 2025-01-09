@@ -71,6 +71,21 @@ tall() {
         ) | .Height) | tonumber )
     ] | select(.[2] > .[1]) | .[0]' #| nsxiv -itq 2>/dev/null
 }
+wide() {
+    find . -maxdepth 1 -iregex '.*\.\(jpg\|png\|jpeg\|mp4\|webm\|gif\)' -print0 |
+    xargs -r0 mediainfo --Output=JSON |
+    jq -Mcr '.. | .media? // empty |
+    [
+        .["@ref"],
+        ((.track[] |
+            select(.["@type"] == "Image" or .["@type"] == "Video"
+        ) | .Width) | tonumber ),
+        ((.track[] |
+            select(.["@type"] == "Image" or .["@type"] == "Video"
+        ) | .Height) | tonumber )
+    ] | select(.[2] < .[1]) | .[0]' #| nsxiv -itq 2>/dev/null
+}
+
 all1080p() {
     find . -maxdepth 1 -type f -name '*.jpg' -print0 |
         xargs -P 2 -r0 mediainfo --Output=JSON |
