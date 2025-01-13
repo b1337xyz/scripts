@@ -57,7 +57,7 @@ do
         if [ -n "$focused_name" ] && [ "$focused_name" != "$prev_window" ];then # avoid unecessary killing
             prev_window=$focused_name
             s=$(trim_str "$focused_name" 63 | escape)
-            printf '<span color="#E0FFF0">%s</span>' "$s" > "$window_file"
+            printf '%s' "$s" > "$window_file"
             refresh
         fi
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 PID=$$
-lock=/tmp/.xwall.lock/"$PID"
+lock=/tmp/.wall.lock/"$PID"
 default_target=~/Pictures/wallpapers
 cache=~/.cache/xwallpaper
 log=~/.cache/.xwall.log
