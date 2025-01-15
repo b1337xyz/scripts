@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -x
-DIR=~/Pictures/Screenshots
+DIR=~/Pictures/screenshots
 [ -d "$DIR"  ] || mkdir -vp "$DIR"
 image="${DIR}/scr_$(date +%Y.%m.%d_%H%M%S).png"
 
