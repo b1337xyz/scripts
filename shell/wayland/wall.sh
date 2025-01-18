@@ -13,7 +13,7 @@ seconds=15
 _help()
 {
     cat << EOF
-Usage: ${0##*/} open [--dark --loop <S> --no-cache --prev --next --current --sxiv --dmenu --<xwallpaper options>] IMAGE|DIR
+Usage: ${0##*/} open [--dark --loop <S> --no-cache --prev --next --current --sxiv --dmenu --remove] IMAGE|DIR
 EOF
 
     exit 0
@@ -66,7 +66,7 @@ while [ $# -gt 0 ];do
         *)
             if [ -d "$1" ];then
                 targets+=("$1")
-            elif file -Lbi "$1" | grep -q '^image/';then
+            elif [ -f "$1" ] && file -Lbi "$1" 2>/dev/null | grep -q '^image/';then
                 wallpaper=$1
             else
                 echo "?"; _help

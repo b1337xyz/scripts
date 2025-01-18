@@ -828,8 +828,11 @@ clipw() {
     touch "$out"
     echo -n | xclip
     while sleep .2;do 
-        # c=$(wl-paste)
-        c=$(xclip -o -rmlastnl 2>/dev/null)
+        if [ -n "$WAYLAND_DISPLAY" ];then
+            c=$(wl-paste -n)
+        else
+            c=$(xclip -o -rmlastnl 2>/dev/null)
+        fi
         grep -qxF "$c" "$out" || echo "$c"
     done | tee -a "$out"
 }
