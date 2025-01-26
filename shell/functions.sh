@@ -829,7 +829,7 @@ clipw() {
     echo -n | xclip
     while sleep .2;do 
         if [ -n "$WAYLAND_DISPLAY" ];then
-            c=$(wl-paste -n)
+            c=$(wl-paste -n 2>/dev/null)
         else
             c=$(xclip -o -rmlastnl 2>/dev/null)
         fi

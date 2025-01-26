@@ -13,7 +13,7 @@ seconds=15
 _help()
 {
     cat << EOF
-Usage: ${0##*/} open [--dark --loop <S> --no-cache --prev --next --current --sxiv --dmenu --remove] IMAGE|DIR
+Usage: ${0##*/} open [--dark --loop <S> --no-cache --prev --next --current --sxiv --rofi --remove] IMAGE|DIR
 EOF
 
     exit 0
@@ -58,7 +58,7 @@ while [ $# -gt 0 ];do
         --parent)   parent=y ;;
         --prev)     prev=y ;;
         --next)     next=y ;;
-        --dmenu)    use_dmenu=y ;;
+        --rofi)     use_rofi=y ;;
         --sxiv)     use_sxiv=y ;;
         --remove)   remove=y ;;
         --current)  current=y ;;  # only look for images in the current wallpaper directory
@@ -122,7 +122,7 @@ elif [ "$current" ]
 then
     dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
     wallpaper=$(find "$dir" -maxdepth 1 -iregex "$reImage" | shuf -n1)
-elif [ "$use_dmenu" ]
+elif [ "$use_rofi" ]
 then
     path=$(get_path "${targets[@]}" | tr -d \\0)
     wallpaper=$(random_wallpaper "$path")
