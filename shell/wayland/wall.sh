@@ -98,8 +98,8 @@ if [ "$remove" = y ];then
         if printf 'Yes\nno' | rofi -dmenu -l 2 -i -p "Remove ${curr}?" | grep -q Yes
         then
             rm "$curr" || exit 1
-            notify-send "$wallpaper removed"
-            "$0"
+            notify-send "Wallpaper removed" "$curr"
+            $0
         fi
     fi
     exit 0
@@ -120,7 +120,7 @@ then
     sed -i "${ln}s/^/>/" "$log"
 elif [ "$current" ]
 then
-    dir=$(grep -oP '(?<= ")/home/.*/' "$cache")
+    dir=$(grep -oP '(?<=-i .).*(?=. -)' "$cache" | grep -oP '.*/')
     wallpaper=$(find "$dir" -maxdepth 1 -iregex "$reImage" | shuf -n1)
 elif [ "$use_rofi" ]
 then
