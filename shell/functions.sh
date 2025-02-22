@@ -826,7 +826,7 @@ clipw() {
     local c out
     out="${1:-clipboard.txt}"
     touch "$out"
-    echo -n | xclip
+    if [ -n "$WAYLAND_DISPLAY" ];then wl-copy -c; else echo -n | xclip ;fi
     while sleep .2;do 
         if [ -n "$WAYLAND_DISPLAY" ];then
             c=$(wl-paste -n 2>/dev/null)
