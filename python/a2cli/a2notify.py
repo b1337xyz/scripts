@@ -98,7 +98,7 @@ def on_complete():
         pass
 
     if is_metadata:
-        logging.info(f'{name} is metadata')
+        logging.info(f'Ignoring {name}')
         notify(status, name)
         return
 
