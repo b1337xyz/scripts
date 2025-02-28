@@ -8,8 +8,7 @@ do
     mv -vf -- "$i" "$torrent" || true
 done
 
-aria2c -S ./*.torrent 2>/dev/null | awk '
-{
+aria2c -S ./*.torrent 2>/dev/null | awk '{
     if ($0 ~ /^Announce:/) {
         getline
         split($0, a, "/")
@@ -30,6 +29,6 @@ do
     mv -fv -- "$torrent" "$tracker"
 done
 
-aria2c -S ./*/*.torrent | awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' > torrents.txt &
+aria2c -S ./*/*.torrent | awk -F'\\|\\./' '/[0-9]\|\.\//{print $2}' > torrents.txt
 
 exit 0
