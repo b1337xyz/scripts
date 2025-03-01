@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -x
 # Get mpvpaper here -> https://github.com/GhostNaN/mpvpaper
+[ -f "$1" ] || exit 1
 
 mpv_options=(
     --no-config \
@@ -13,7 +14,7 @@ mpv_options=(
     --no-stop-screensaver \
     --hwdec=vaapi \
     --no-input-default-bindings \
-    --keepaspect=yes \
+    --keepaspect=no \
     --scale=bilinear \
     --cscale=bilinear \
     --dscale=bilinear \
