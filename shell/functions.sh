@@ -148,9 +148,10 @@ alljpg() {
 }
 
 ex() {  # decompress stuff
-    local exit_status
+    local filename exit_status
     for i in "$@";do
         [ -f "$i" ] && [ -r "$i" ] || continue
+        filename=${i##*/}
         case "$i" in
             *.tar.zst)  tar --zstd -xf "$i" ;;
             *.tar.xz)   tar xvJf "$i"   ;;
@@ -160,9 +161,9 @@ ex() {  # decompress stuff
             *.bz2)      bunzip2 "$i"    ;;
             *.zst)      unzstd "$i"     ;;
             *.gz)       gunzip "$i"     ;;
-            *.rar)      unrar x -op"${i%.*}" "$i" ;;
+            *.rar)      unrar x -op./"${filename%.*}" "$i" ;;
             #*.zip)     unzip "$i" -d "${i%.*}" ;;
-            *.7z|*.zip) 7z x -o"${i%.*}" "$i" ;;
+            *.7z|*.zip) 7z x -o./"${filename%.*}" "$i" ;;
             *.Z)        uncompress "$i" ;;
             *)          continue ;;
         esac
