@@ -35,13 +35,15 @@ choice=$(printf 'Apps\nGames\n' | dmenu -c -l 2 -i -noi)
 
 case "$choice" in 
     Games)
-        grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
-            grep -oP '(?<=^Name=).*' "$i"
-        done > "$tmpfile"
+        find ~/.local/share/applications/ -name '*.desktop' -printf '%C@\t%p\n' | sort -rn| cut -f2- | xargs -r grep Categories=Game |
+            while IFS=: read -r i _;do
+                grep -oP '(?<=^Name=).*' "$i"
+            done > "$tmpfile"
     ;;
 esac
 
-cmd=$(sort -Vu "$tmpfile" | dmenu -p "run:" -i -c -l 15)
+# cmd=$(sort -Vu "$tmpfile" | dmenu -p "run:" -i -c -l 15)
+cmd=$(dmenu -p "run:" -i -c -l 15 < "$tmpfile")
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$tmpfile" || echo "$cmd" >> "$progs"
 case "$cmd" in

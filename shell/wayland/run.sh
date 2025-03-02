@@ -10,6 +10,7 @@ trap 'rm "$tmpfile"' EXIT
 run() {
     desktop_file=$(grep -rxF "Name=${*}" ~/.local/share/applications | cut -d':' -f1)
     if [ -f "$desktop_file" ]; then
+        touch "$desktop_file"
         cmd=$(grep -oP '(?<=^Exec=).*' "$desktop_file")
         set -- "$cmd"
     fi
@@ -32,13 +33,14 @@ choice=$(printf 'Apps\nGames\n' | rofi -dmenu -i -l 10)
 
 case "$choice" in 
     Games)
-        grep -r 'Categories=Game' ~/.local/share/applications | while IFS=: read -r i _;do
-            grep -oP '(?<=^Name=).*' "$i"
-        done > "$tmpfile"
+        find ~/.local/share/applications/ -name '*.desktop' -printf '%C@\t%p\n' | sort -rn| cut -f2- | xargs -r grep Categories=Game |
+            while IFS=: read -r i _;do
+                grep -oP '(?<=^Name=).*' "$i"
+            done > "$tmpfile"
     ;;
 esac
 
-cmd=$(sort -Vu "$tmpfile" | rofi -dmenu -p 'run' -i -l 10)
+cmd=$(rofi -dmenu -p 'run' -i -l 10 < "$tmpfile")
 [ -z "$cmd" ] && exit 1
 grep -qxF "$cmd" "$tmpfile" || echo "$cmd" >> "$progs"
 case "$cmd" in
