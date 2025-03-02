@@ -65,6 +65,7 @@ cpl() {
 
     local cache=/tmp/.copy_later
     if [ "$1" = - ];then
+        command rm "$cache" 2>/dev/null
         tr \\n \\0 | xargs -r0 realpath >> "$cache" 
     elif [ -f "$1" ] || [ -d "$1" ];then
         command rm "$cache" 2>/dev/null
