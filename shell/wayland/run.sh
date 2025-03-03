@@ -33,7 +33,7 @@ choice=$(printf 'Apps\nGames\n' | rofi -dmenu -i -l 10)
 
 case "$choice" in 
     Games)
-        find ~/.local/share/applications/ -name '*.desktop' -printf '%C@\t%p\n' | sort -rn| cut -f2- | xargs -r grep Categories=Game |
+        find ~/.local/share/applications/ -name '*.desktop' -printf '%C@\t%p\n' | sort -rn| cut -f2- | tr \\n \\0 | xargs -0r grep Categories=Game |
             while IFS=: read -r i _;do
                 grep -oP '(?<=^Name=).*' "$i"
             done > "$tmpfile"
@@ -52,7 +52,6 @@ case "$cmd" in
     spotify)        run spotify -no-zygote ;;
     *rpcs3*)        run gamemoderun "$cmd" ;;
     dhewm3) 
-        run dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3"
-        ;;
+        run dhewm3 +set fs_basepath "${HOME}/.local/share/Steam/steamapps/common/Doom 3" ;;
     *) [ -n "$cmd" ] && run "$cmd" ;;
 esac
