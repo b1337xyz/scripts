@@ -120,12 +120,13 @@ then
     sed -i "${ln}s/^/>/" "$log"
 elif [ "$current" ]
 then
-    dir=$(grep -oP '(?<=-i .).*(?=. -)' "$cache" | grep -oP '.*/')
+    dir=$(grep -oP '(?<= -i .).*(?=. -)' "$cache" | grep -oP '.*/')
     wallpaper=$(find "$dir" -maxdepth 1 -iregex "$reImage" | shuf -n1)
 elif [ "$use_rofi" ]
 then
     path=$(get_path "${targets[@]}" | tr -d \\0)
     wallpaper=$(random_wallpaper "$path")
+
 elif [ "$use_sxiv" ]
 then
     # don't look in sub-directories
@@ -166,7 +167,8 @@ do
 
     if [ -z "$loop" ];then
         wallpaper=${wallpaper%/*}
-        notify-send -i image -r 1338 "Wallpaper" "${wallpaper/${HOME}\//}"
+        notify-send -h string:x-canonical-private-synchronous:wall \
+            "Wallpaper" "${wallpaper/${HOME}\//}"
         break
     else
         unset wallpaper 

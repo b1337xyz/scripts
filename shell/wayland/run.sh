@@ -33,7 +33,8 @@ choice=$(printf 'Apps\nGames\n' | rofi -dmenu -i -l 10)
 
 case "$choice" in 
     Games)
-        find ~/.local/share/applications/ -name '*.desktop' -printf '%C@\t%p\n' | sort -rn| cut -f2- | tr \\n \\0 | xargs -0r grep Categories=Game |
+        find ~/.local/share/applications -name '*.desktop' -printf '%C@\t%p\n' |
+            sort -rn| cut -f2- | tr \\n \\0 | xargs -0r grep Categories=Game |
             while IFS=: read -r i _;do
                 grep -oP '(?<=^Name=).*' "$i"
             done > "$tmpfile"
