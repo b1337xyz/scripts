@@ -928,3 +928,19 @@ get_cursor_pos() {
     IFS='[;' read -p $'\e[6n' -d R -rs _ r c _ _
     echo "row $r column $c"
 }
+
+vlsix() {
+    local cache img imgs
+    cache=~/.cache/vlsix
+    imgs=()
+    for i in "${PWD}"/./*.{mp4,mkv,webm,avi,m4v,mov};do
+        [ -f "$i" ] || continue
+        img="${cache}/${i}.jpg"
+        if ! [ -f "$img" ];then
+            mkdir -p "${img%/*}"
+            ffmpegthumbnailer -s 0 -q 6 -i "$i" -o "$img" 2>/dev/null
+        fi
+        imgs+=("$img")
+    done
+    lsix "${imgs[@]}"
+}
