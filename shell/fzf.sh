@@ -26,19 +26,19 @@ e() {
     file=$(find "${1:-.}" -maxdepth 6 -xdev -type f -size -100k -regextype posix-extended \
         \! \( -path '*/node_modules*' -o -path '*cache/*' -o -path '*__*__*' -o -path '*/venv/*' \) \
         2>/dev/null | _fzfile)
-    [ -f "$file" ] && vim "$file"
+    [ -f "$file" ] && $EDITOR "$file"
 }
 s() {
     local file
     file=$(~/.scripts/shell/system/find.sh ~/.scripts |
         _fzfile -d "${HOME}/" --with-nth 2..)
-    [ -f "$file" ] && vim "$file"
+    [ -f "$file" ] && $EDITOR "$file"
 }
 c() { 
     local file
     file=$(~/.scripts/shell/system/find.sh ~/.config |
         _fzfile -d "${HOME}/" --with-nth 2..)
-    [ -f "$file" ] && vim "$file"
+    [ -f "$file" ] && $EDITOR "$file"
 }
 fzumount() {
     command df -x efivarfs -x tmpfs -x devtmpfs | tail -n +2 | sort -Vr |
